@@ -66,3 +66,8 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Procesamiento: al recibir la respuesta se detienen el reloj de la pregunta y el total; el total se reanuda cuando termina o falla la transcripción y evaluación. Entre preguntas el reloj total corre.
 - Recuperación: la ventana de 30 minutos se cuenta desde el último latido recibido.
 - `docs/index.html` no refleja las secciones F y G; debe regenerarse desde las specs.
+
+## H. Interpretaciones confirmadas (2026-10-12)
+
+- La sesión pasa a `completed` cuando termina la evaluación de la última respuesta (o vence la pregunta), no al recibir la respuesta.
+- No se puede iniciar otra pregunta mientras la anterior se procesa.
