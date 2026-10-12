@@ -26,6 +26,10 @@ REQUIRED = {
     "AUTH_LOGIN_LOCKOUT_SECONDS": "900",
     "AUTH_COOKIE_SECURE": "false",
     "FRONTEND_BASE_URL": "http://localhost:3000",
+    "APP_ENV": "development",
+    "BILLING_PROVIDER": "fake",
+    "BILLING_MONTHLY_PRICE_CLP": "9990",
+    "BILLING_TRIAL_DAYS": "7",
 }
 
 
@@ -84,3 +88,29 @@ def test_rechaza_inactividad_mayor_que_la_duracion_maxima(env):
     env.setenv("AUTH_SESSION_IDLE_TIMEOUT_SECONDS", "2592001")
     with pytest.raises(ValueError, match="session_idle_timeout"):
         Settings(_env_file=None).auth_policy()
+
+
+def test_mercadopago_exige_credenciales(env):
+    env.setenv("BILLING_PROVIDER", "mercadopago")
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "")
+    with pytest.raises(ValidationError, match="MERCADOPAGO_ACCESS_TOKEN"):
+        Settings(_env_file=None)
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "TEST-token")
+    env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
+    assert Settings(_env_file=None).billing_provider == "mercadopago"
+
+
+def test_produccion_prohibe_el_simulador_de_pagos(env):
+    env.setenv("APP_ENV", "production")
+    env.setenv("AUTH_COOKIE_SECURE", "true")
+    with pytest.raises(ValidationError, match="simulador de pagos"):
+        Settings(_env_file=None)
+
+
+def test_produccion_exige_cookie_segura(env):
+    env.setenv("APP_ENV", "production")
+    env.setenv("BILLING_PROVIDER", "mercadopago")
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "APP_USR-token")
+    env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
+    with pytest.raises(ValidationError, match="AUTH_COOKIE_SECURE"):
+        Settings(_env_file=None)

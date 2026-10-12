@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app.persistence import (  # noqa: F401  (registra las tablas)
     auth_models,
+    billing_models,
     feedback_models,
     simulation_models,
 )

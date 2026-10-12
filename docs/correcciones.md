@@ -86,3 +86,17 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - La interfaz usa un tema claro y cálido para todos, sin cambiar a oscuro según el sistema (pedido del usuario: "amigable").
 - El panel muestra la ruta del estudiante con su estado real y tarjetas de progreso con estados vacíos hasta que existan datos; no se muestran cifras inventadas.
 - Nueva casilla de comentarios de usuarios (FR-028, AC-037, entidad `UserFeedback`).
+
+## K. Séptima ronda (suscripción, 2026-10-12)
+
+- Suscripción mensual con Mercado Pago, $9.990 CLP, 7 días de prueba, todo el estudio bloqueado sin suscripción; administradores exentos.
+- Integración: "Suscripciones sin plan asociado" con pago pendiente (`init_point`), porque la variante con plan exige tokenizar la tarjeta en el sitio.
+- Firma de webhooks: HMAC-SHA256 de `id:{data.id};request-id:{x-request-id};ts:{ts};`, igual que el SDK oficial de Python.
+- Pendientes nuevos (README 5 a 7): acceso tras cancelar, credenciales y URL pública de webhooks, obligaciones tributarias y de consumidor.
+- Por validar en el entorno de prueba de Mercado Pago: si `free_trial` en días se acepta en suscripciones sin plan, si el correo del pagador debe coincidir con su cuenta de Mercado Pago, y la configuración de webhooks para suscripciones (la documentación es contradictoria).
+- Se añadieron FR-029 a FR-031, AC-038, AC-039, las entidades `Subscription` y `BillingEvent`, y el Gate 11b.
+
+## L. Despliegue (2026-10-12)
+
+- Frontend en Vercel (`vercel.json` con un solo servicio, `frontend`); backend en Render con Docker. Se resuelve el pendiente 1.
+- Dominio apruebatuexamen.cl, comprado en NIC Chile.
