@@ -6,7 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Por ahora el repositorio contiene solo especificaciones. Todavía no hay código, gestor de paquetes ni comandos de build, lint o pruebas. Cuando exista el scaffolding (Next.js + TypeScript, FastAPI + Python, Docker para PostgreSQL y backend), añade aquí los comandos reales, incluido cómo ejecutar una sola prueba. No los inventes antes de que existan.
+Por ahora el repositorio contiene especificaciones y el entorno Docker de base de datos. Todavía no hay código de backend ni frontend, ni comandos de build, lint o pruebas. Cuando exista el scaffolding (Next.js + TypeScript, FastAPI + Python 3.12 con uv), añade aquí los comandos reales, incluido cómo ejecutar una sola prueba. No los inventes antes de que existan.
+
+## Entorno local (Docker)
+
+```sh
+cp .env.example .env                 # una vez; el compose falla si faltan variables
+docker compose up -d                 # PostgreSQL 17 + pgvector en 127.0.0.1:${POSTGRES_PORT:-5432}
+docker compose exec db psql -U tugrado -d tugrado
+docker compose down                  # conserva datos; `down -v` borra el volumen
+```
+
+`docker/postgres/init/` solo se ejecuta al crear el volumen por primera vez (hoy crea la extensión `vector`). El esquema se gestionará con Alembic, no con esos scripts. El backend se agregará como servicio en el mismo `docker-compose.yml`.
 
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 
