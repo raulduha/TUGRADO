@@ -3,7 +3,7 @@
 ## 1. Usuarios y permisos
 
 ### FR-001 — Autenticación y perfil
-Cada usuario debe acceder mediante una cuenta autenticada. El backend valida la identidad y autorización para toda operación protegida. Las cuentas usan correo y contraseña de mínimo 12 caracteres (Argon2id, sin reglas de composición, con bloqueo de contraseñas comunes), correo verificado antes del primer uso y recuperación mediante enlace de un solo uso que caduca a los 30 minutos.
+Cada usuario debe acceder mediante una cuenta autenticada. El backend valida la identidad y autorización para toda operación protegida. Las cuentas usan correo y contraseña de mínimo 12 caracteres (Argon2id, sin reglas de composición, con bloqueo de contraseñas comunes), correo verificado antes del primer uso y recuperación mediante enlace de un solo uso que caduca a los 30 minutos. La sesión se mantiene con una cookie HttpOnly, Secure y SameSite=Lax que contiene un token opaco; el backend guarda la sesión (solo el hash del token) y puede revocarla. Caduca tras 7 días sin actividad o 30 días desde el inicio. Los estudiantes se registran solos; los administradores se crean con un comando de consola. El enlace de verificación de correo es de un solo uso y caduca a las 24 horas. Tras 10 intentos fallidos de inicio de sesión en 15 minutos, la cuenta se bloquea temporalmente 15 minutos. Todos estos valores son configuración.
 
 ### FR-002 — Roles
 El sistema debe incluir, como mínimo, los roles `student` y `administrator`.

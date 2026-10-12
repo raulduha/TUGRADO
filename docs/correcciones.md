@@ -71,3 +71,12 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 
 - La sesión pasa a `completed` cuando termina la evaluación de la última respuesta (o vence la pregunta), no al recibir la respuesta.
 - No se puede iniciar otra pregunta mientras la anterior se procesa.
+
+## I. Quinta ronda de decisiones (autenticación, 2026-10-12)
+
+- Sesión: cookie HttpOnly/Secure/SameSite=Lax con token opaco; sesión guardada en PostgreSQL (hash) y revocable. El frontend reenvía `/api` al backend (mismo origen) y el backend valida `Origin` en operaciones que modifican datos.
+- Duración: 7 días sin actividad o 30 días desde el inicio.
+- Registro abierto de estudiantes; administradores creados con un comando de consola.
+- Enlace de verificación de correo: un solo uso, 24 horas.
+- Bloqueo temporal: 15 minutos tras 10 intentos fallidos en 15 minutos.
+- Se añadió AC-036.
