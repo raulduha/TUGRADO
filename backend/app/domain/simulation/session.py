@@ -118,9 +118,13 @@ class SimulationSession:
         self.paused_at: datetime | None = None
         self.voluntary_pause_started_at: datetime | None = None
         self.voluntary_pauses_used = 0
-        self._committed_at: datetime | None = None
-        self._last_at: datetime | None = None
-        self._results: dict[str, Any] = {}
+        # Estado interno persistido: solo lo modifica esta clase (y el mapeo al restaurar).
+        # Hasta dónde se consolidaron las transiciones por tiempo.
+        self.committed_at: datetime | None = None
+        # Última hora recibida, para exigir orden temporal.
+        self.last_operation_at: datetime | None = None
+        # Resultado de cada request_id aceptado (idempotencia).
+        self.request_results: dict[str, Any] = {}
 
     # ------------------------------------------------------------------ consultas
 
@@ -169,7 +173,7 @@ class SimulationSession:
             raise SessionRuleError("session_already_started", "La sesión ya fue iniciada")
         self.state = SessionState.IN_PROGRESS
         self.last_seen = at
-        self._committed_at = at
+        self.committed_at = at
         self._sync_clocks(at)
         self._record("session_started", at)
 
@@ -177,8 +181,8 @@ class SimulationSession:
         self._client_touch(at)
 
     def start_question(self, at: datetime, request_id: str) -> int:
-        if request_id in self._results:
-            return self._results[request_id]
+        if request_id in self.request_results:
+            return self.request_results[request_id]
         self._client_touch(at)
         if self.state is not SessionState.IN_PROGRESS:
             raise SessionRuleError(
@@ -196,13 +200,13 @@ class SimulationSession:
         self.attempts.append(attempt)
         self._sync_clocks(at)
         self._record("question_started", at, order=attempt.order)
-        self._results[request_id] = attempt.order
+        self.request_results[request_id] = attempt.order
         return attempt.order
 
     def request_extension(self, at: datetime, request_id: str) -> timedelta:
         """Concede la extensión y devuelve el nuevo límite total de la pregunta."""
-        if request_id in self._results:
-            return self._results[request_id]
+        if request_id in self.request_results:
+            return self.request_results[request_id]
         self._client_touch(at)
         attempt = self.active_attempt
         if attempt is None or attempt.state is not AttemptState.AWAITING_EXTENSION:
@@ -222,13 +226,13 @@ class SimulationSession:
             order=attempt.order,
             extensions_granted=attempt.extensions_granted,
         )
-        self._results[request_id] = attempt.limit
+        self.request_results[request_id] = attempt.limit
         return attempt.limit
 
     def submit_answer(self, at: datetime, request_id: str) -> datetime:
         """Registra la recepción de la respuesta; detiene el reloj de la pregunta y el total."""
-        if request_id in self._results:
-            return self._results[request_id]
+        if request_id in self.request_results:
+            return self.request_results[request_id]
         self._client_touch(at)
         attempt = self.active_attempt
         if attempt is None or attempt.state is not AttemptState.IN_PROGRESS:
@@ -239,11 +243,11 @@ class SimulationSession:
         attempt.answer_received_at = at
         self._sync_clocks(at)
         self._record("answer_received", at, order=attempt.order)
-        self._results[request_id] = at
+        self.request_results[request_id] = at
         return at
 
     def start_voluntary_pause(self, at: datetime, request_id: str) -> None:
-        if request_id in self._results:
+        if request_id in self.request_results:
             return
         self._client_touch(at)
         if self.state is not SessionState.IN_PROGRESS or self.active_attempt is not None:
@@ -258,20 +262,20 @@ class SimulationSession:
         self.voluntary_pause_started_at = at
         self._sync_clocks(at)
         self._record("voluntary_pause_started", at)
-        self._results[request_id] = None
+        self.request_results[request_id] = None
 
     def end_voluntary_pause(self, at: datetime, request_id: str) -> None:
-        if request_id in self._results:
+        if request_id in self.request_results:
             return
         self._client_touch(at)
         if self.voluntary_pause_started_at is None:
             raise SessionRuleError("pause_not_active", "No hay una pausa activa")
         self._end_voluntary_pause(at, reason="student")
-        self._results[request_id] = None
+        self.request_results[request_id] = None
 
     def resume(self, at: datetime, request_id: str) -> None:
         """Reanuda tras una desconexión, con el tiempo restante guardado."""
-        if request_id in self._results:
+        if request_id in self.request_results:
             return
         self._check_time(at)
         self._refresh(at)
@@ -284,19 +288,19 @@ class SimulationSession:
         self.resume_state = None
         self.paused_at = None
         self.last_seen = at
-        self._committed_at = at
+        self.committed_at = at
         self._sync_clocks(at)
         self._record("session_resumed", at, state=self.state.value)
-        self._results[request_id] = None
+        self.request_results[request_id] = None
 
     def abandon(self, at: datetime, request_id: str) -> None:
         """Cierre voluntario sin terminar: lo evaluado se conserva; lo pendiente no puntúa."""
-        if request_id in self._results:
+        if request_id in self.request_results:
             return
         self._check_time(at)
         self._refresh(at)
         if self.state in ACTIVE_SESSION_STATES:
-            self._advance_to(max(at, self._committed_at or at))
+            self._advance_to(max(at, self.committed_at or at))
         self._ensure_not_closed()
         if self.state is SessionState.CREATED:
             raise SessionRuleError("session_not_started", "La sesión no ha comenzado")
@@ -307,7 +311,7 @@ class SimulationSession:
         self.resume_state = None
         self.paused_at = None
         self._close(SessionState.ABANDONED, at)
-        self._results[request_id] = None
+        self.request_results[request_id] = None
 
     # ------------------------------------------- comandos del sistema (procesamiento)
 
@@ -332,9 +336,9 @@ class SimulationSession:
 
     def _check_time(self, at: datetime) -> None:
         _require_aware(at)
-        if self._last_at is not None and at < self._last_at:
+        if self.last_operation_at is not None and at < self.last_operation_at:
             raise ValueError("las operaciones de una sesión deben llegar en orden temporal")
-        self._last_at = at
+        self.last_operation_at = at
 
     def _ensure_not_closed(self) -> None:
         if self.state in TERMINAL_SESSION_STATES:
@@ -436,8 +440,8 @@ class SimulationSession:
                 self._on_total_exhausted(at)
             else:
                 self._end_voluntary_pause(at, reason="expired")
-        if self._committed_at is None or until > self._committed_at:
-            self._committed_at = until
+        if self.committed_at is None or until > self.committed_at:
+            self.committed_at = until
 
     def _on_question_exhausted(self, at: datetime) -> None:
         attempt = self.active_attempt

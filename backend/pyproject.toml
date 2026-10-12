@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "API de TUGRADO: preparación del examen de grado"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.20.0",
     "fastapi>=0.143.0",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
@@ -30,3 +31,11 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.isort]
+# La carpeta backend/alembic/ no debe confundirse con el paquete alembic.
+known-third-party = ["alembic"]
+
+[tool.ruff.lint.per-file-ignores]
+# Migraciones generadas por Alembic: se revisan, pero no se reformatean a mano.
+"alembic/versions/*" = ["E501"]

@@ -32,7 +32,12 @@ uv run pytest -m "not integration"                # sin PostgreSQL
 uv run pytest tests/test_health.py::test_health   # una sola prueba
 uv run ruff check . && uv run ruff format --check .
 uv run uvicorn app.main:app --reload              # sin Docker
+uv run alembic upgrade head                       # aplica migraciones (en Docker: docker compose exec backend alembic upgrade head)
+uv run alembic revision --autogenerate -m "..."   # nueva migración; revísala antes de commitear
+uv run alembic check                              # falla si los modelos y las migraciones divergen
 ```
+
+Las pruebas `integration` usan `TEST_DATABASE_URL` (base `tugrado_test`). La crean y migran solas, y vacían las tablas después de cada prueba.
 
 - `app/config.py` (`Settings`, pydantic-settings) es el único punto de entrada de configuración. Los campos sin valor por defecto son obligatorios y `create_app()` falla al arrancar si faltan. Los parámetros de negocio decididos (extensiones, latido, `recovery_window`, cuotas…) van aquí como campos obligatorios, con su valor confirmado en `.env.example`, no como constantes en el código.
 - Las dependencias externas (por ejemplo, `get_engine`) se inyectan con `Depends`, para poder reemplazarlas en pruebas con `app.dependency_overrides`.
@@ -45,7 +50,14 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 - Todos los plazos son exclusivos: en el instante exacto del vencimiento la regla ya aplicó.
 - Las transiciones por tiempo solo se consolidan hasta la última señal del cliente (latido o comando). Por eso la pausa por desconexión puede ser retroactiva sin deshacer nada. `sweep()` solo detecta desconexiones y vence recuperaciones; no avanza los demás temporizadores.
 - `_sync_clocks()` es la única regla que decide qué relojes corren. El total se detiene en pausas, durante el procesamiento de la respuesta y tras agotarse.
-- Los comandos del cliente llevan `request_id` para ser idempotentes. La concurrencia entre procesos debe resolverse en la persistencia con un bloqueo por sesión.
+- Los comandos del cliente llevan `request_id` para ser idempotentes.
+
+### Persistencia (`app/persistence/`)
+
+- Toda operación sobre una sesión pasa por `run_locked()`, que bloquea la fila con `SELECT … FOR UPDATE`, toma la hora **después** del bloqueo (así el dominio recibe las operaciones en orden), aplica el dominio y guarda.
+- Si el dominio rechaza con `SessionRuleError`, igual se guardan las transiciones aplicadas antes del rechazo (por ejemplo, una pausa detectada). Con cualquier otra excepción se hace rollback.
+- `session_event` es de solo adición, con `(session_id, seq)` único. `session_request` guarda el resultado de cada `request_id`.
+- Las restricciones CHECK de los enums se declaran con `_enum_check()`, no con `Enum(create_constraint=True)`: esta última opción hace que Alembic las duplique.
 
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 
