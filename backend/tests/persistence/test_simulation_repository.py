@@ -3,13 +3,13 @@ concurrencia real entre transacciones (Gate 3, AC-011, AC-014, AC-015)."""
 
 import threading
 import uuid
-from datetime import datetime
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.domain.simulation.session import AttemptState, SessionRuleError, SessionState
+from app.persistence.auth_models import UserAccountRow
 from app.persistence.simulation_models import SessionEventRow
 from app.persistence.simulation_repository import (
     SessionNotFound,
@@ -17,32 +17,20 @@ from app.persistence.simulation_repository import (
     run_locked,
 )
 from tests.domain.conftest import at, make_session, secs
+from tests.fakes import FakeClock
 
 pytestmark = pytest.mark.integration
-
-STUDENT = uuid.UUID("00000000-0000-0000-0000-000000000001")
-
-
-class FakeClock:
-    """Hora controlada por la prueba; `run_locked` la lee después de tomar el bloqueo."""
-
-    def __init__(self, seconds: float = 0) -> None:
-        self.now = at(seconds)
-        self._lock = threading.Lock()
-
-    def set(self, seconds: float) -> None:
-        with self._lock:
-            self.now = at(seconds)
-
-    def __call__(self) -> datetime:
-        with self._lock:
-            return self.now
 
 
 @pytest.fixture
 def stored(engine):
+    with Session(engine) as db:
+        student = UserAccountRow(email="estudiante@ejemplo.cl", password_hash="x")
+        db.add(student)
+        db.commit()
+        student_id = student.id
     session_id = uuid.uuid4()
-    create_session(engine, session_id, STUDENT, make_session())
+    create_session(engine, session_id, student_id, make_session())
     return session_id
 
 

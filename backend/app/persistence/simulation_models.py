@@ -8,7 +8,6 @@ from sqlalchemy import (
     BigInteger,
     CheckConstraint,
     DateTime,
-    Enum,
     ForeignKey,
     Integer,
     Interval,
@@ -20,34 +19,20 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.simulation.session import AttemptState, SessionState
-from app.persistence.base import Base
-
-
-def _enum(enum_cls: type) -> Enum:
-    # Se guarda el valor (`in_progress`), no el nombre del miembro. La restricción CHECK se
-    # declara aparte con `_enum_check` para que Alembic no la duplique.
-    return Enum(
-        enum_cls,
-        native_enum=False,
-        create_constraint=False,
-        length=40,
-        values_callable=lambda e: [m.value for m in e],
-    )
-
-
-def _enum_check(column: str, enum_cls: type, name: str) -> CheckConstraint:
-    values = ", ".join(f"'{m.value}'" for m in enum_cls)
-    return CheckConstraint(f"{column} IN ({values})", name=name)
+from app.persistence.base import Base, enum_check, enum_column
 
 
 class SimulationSessionRow(Base):
     __tablename__ = "simulation_session"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    # TODO(FK): referenciará a la tabla de usuarios cuando exista.
-    student_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
-    state: Mapped[SessionState] = mapped_column(_enum(SessionState))
-    resume_state: Mapped[SessionState | None] = mapped_column(_enum(SessionState))
+    # RESTRICT: borrar una cuenta no elimina resultados en silencio; la eliminación a
+    # solicitud (AC-033) tendrá su propio flujo auditado.
+    student_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="RESTRICT"), index=True
+    )
+    state: Mapped[SessionState] = mapped_column(enum_column(SessionState))
+    resume_state: Mapped[SessionState | None] = mapped_column(enum_column(SessionState))
 
     # Configuración temporal congelada (AC-005).
     total_limit: Mapped[timedelta] = mapped_column(Interval)
@@ -84,8 +69,8 @@ class SimulationSessionRow(Base):
     )
 
     __table_args__ = (
-        _enum_check("state", SessionState, "state_valid"),
-        _enum_check("resume_state", SessionState, "resume_state_valid"),
+        enum_check("state", SessionState, "state_valid"),
+        enum_check("resume_state", SessionState, "resume_state_valid"),
         CheckConstraint("question_count >= 1", name="question_count_positive"),
         CheckConstraint("voluntary_pauses_used >= 0", name="voluntary_pauses_used_non_negative"),
     )
@@ -99,7 +84,7 @@ class QuestionAttemptRow(Base):
     )
     order: Mapped[int] = mapped_column(Integer, primary_key=True)
     # TODO(FK): versión de pregunta presentada, cuando exista el contenido versionado.
-    state: Mapped[AttemptState] = mapped_column(_enum(AttemptState))
+    state: Mapped[AttemptState] = mapped_column(enum_column(AttemptState))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     limit: Mapped[timedelta] = mapped_column(Interval)
     clock_accumulated: Mapped[timedelta] = mapped_column(Interval)
@@ -108,7 +93,7 @@ class QuestionAttemptRow(Base):
     answer_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
-        _enum_check("state", AttemptState, "state_valid"),
+        enum_check("state", AttemptState, "state_valid"),
         CheckConstraint('"order" >= 1', name="order_positive"),
         CheckConstraint("extensions_granted >= 0", name="extensions_granted_non_negative"),
     )

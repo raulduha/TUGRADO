@@ -99,7 +99,7 @@ La interfaz debe adaptarse desde la primera versión. Los flujos de grabación, 
 ### Resueltas
 - Base de datos: PostgreSQL en Neon, con SQLAlchemy y Alembic. Índice RAG: pgvector.
 - Hosting del frontend: Vercel. Almacenamiento temporal: Vercel Blob. Cola: tabla en PostgreSQL detrás de una interfaz.
-- Autenticación propia con correo y contraseña: Argon2id, mínimo 12 caracteres, correo verificado, recuperación con enlace de un solo uso de 30 minutos.
+- Autenticación propia con correo y contraseña: Argon2id, mínimo 12 caracteres, correo verificado, recuperación con enlace de un solo uso de 30 minutos. Sesión en cookie HttpOnly/Secure/SameSite=Lax con token opaco; la sesión se guarda en PostgreSQL (hash del token) y es revocable. El frontend reenvía `/api` al backend para operar en el mismo origen, y el backend valida el encabezado `Origin` en las operaciones que modifican datos.
 - Observabilidad: OpenTelemetry, sin datos personales ni audio en logs.
 - Entorno local: Docker para PostgreSQL y backend. Correo en desarrollo: salida por consola.
 - Retención: 12 meses; eliminación a solicitud en un máximo de 30 días; audio temporal eliminado al terminar la transcripción.

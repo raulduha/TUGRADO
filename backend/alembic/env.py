@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.persistence import simulation_models  # noqa: F401  (registra las tablas)
+from app.persistence import auth_models, simulation_models  # noqa: F401  (registra las tablas)
 from app.persistence.base import Base
 
 config = context.config

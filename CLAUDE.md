@@ -37,6 +37,8 @@ uv run alembic revision --autogenerate -m "..."   # nueva migración; revísala 
 uv run alembic check                              # falla si los modelos y las migraciones divergen
 ```
 
+Crear o promover un administrador (no hay registro público de administradores): `uv run python -m app.cli create-admin --email admin@ejemplo.cl`, o dentro de Docker `docker compose exec backend python -m app.cli create-admin --email …`. La contraseña se pide por consola o se lee de `ADMIN_PASSWORD`. En desarrollo los correos (verificación y recuperación) no se envían: aparecen en `docker compose logs backend`.
+
 Las pruebas `integration` usan `TEST_DATABASE_URL` (base `tugrado_test`). La crean y migran solas, y vacían las tablas después de cada prueba.
 
 - `app/config.py` (`Settings`, pydantic-settings) es el único punto de entrada de configuración. Los campos sin valor por defecto son obligatorios y `create_app()` falla al arrancar si faltan. Los parámetros de negocio decididos (extensiones, latido, `recovery_window`, cuotas…) van aquí como campos obligatorios, con su valor confirmado en `.env.example`, no como constantes en el código.
@@ -57,7 +59,17 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 - Toda operación sobre una sesión pasa por `run_locked()`, que bloquea la fila con `SELECT … FOR UPDATE`, toma la hora **después** del bloqueo (así el dominio recibe las operaciones en orden), aplica el dominio y guarda.
 - Si el dominio rechaza con `SessionRuleError`, igual se guardan las transiciones aplicadas antes del rechazo (por ejemplo, una pausa detectada). Con cualquier otra excepción se hace rollback.
 - `session_event` es de solo adición, con `(session_id, seq)` único. `session_request` guarda el resultado de cada `request_id`.
-- Las restricciones CHECK de los enums se declaran con `_enum_check()`, no con `Enum(create_constraint=True)`: esta última opción hace que Alembic las duplique.
+- Las restricciones CHECK de los enums se declaran con `enum_column()` y `enum_check()` (`app/persistence/base.py`), no con `Enum(create_constraint=True)`: esta última opción hace que Alembic las duplique.
+
+### Autenticación (`app/auth/`, `app/api/auth.py`, `app/api/deps.py`)
+
+- Para proteger un endpoint, usa las anotaciones `CurrentUser` o `AdminUser`, o `Depends(require_role(...))`, de `app/api/deps.py`. No hay otra forma de autorizar.
+- Sesión en la cookie HttpOnly `tugrado_session`. En la base de datos solo se guarda el hash SHA-256 del token, igual que en los enlaces de correo.
+- `app/api/origin.py` rechaza con 403 las operaciones que modifican datos si el encabezado `Origin` no es el de `FRONTEND_BASE_URL`. Los clientes de prueba envían ese `Origin`.
+- `AuthService` confirma sus propias transacciones (un intento fallido debe guardarse aunque se responda con error) y envía los correos **después** del commit.
+- Las respuestas de registro, inicio de sesión y recuperación no revelan si un correo existe (AC-036): mantén ese contrato al agregar endpoints.
+- En pruebas, el reloj (`get_clock`), el correo (`get_email_sender`) y la base (`get_engine`) se reemplazan con los fixtures `api`, `clock` y `outbox` de `tests/conftest.py`.
+- `app/auth/data/common_passwords.txt` se generó a partir de SecLists; su origen está en el README de esa carpeta.
 
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 

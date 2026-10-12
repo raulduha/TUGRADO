@@ -43,6 +43,7 @@ Una tarea no se considera terminada solo porque el código compila. Debe superar
 - Una falla técnica no se transforma automáticamente en una evaluación negativa.
 - El audio original no se persiste por defecto.
 - Se comprueba la política de contraseñas, la verificación de correo y la caducidad del enlace de recuperación (AC-032).
+- Se comprueban la caducidad y revocación de la sesión, el bloqueo temporal por intentos fallidos y que las respuestas no revelen si un correo está registrado (AC-036).
 - Se comprueba que el audio temporal se elimina al terminar la transcripción (tope de 1 hora para restos) y que transcripciones y resultados se eliminan a los 12 meses.
 - Se revisa la retención de proveedores externos antes de producción.
 
