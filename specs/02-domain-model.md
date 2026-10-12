@@ -32,6 +32,7 @@ Este modelo es lógico y no prescribe todavía un motor de base de datos.
 - **StudyPlanRevision**: revisión adaptativa, fecha, factores considerados y cambios respecto del plan original.
 - **StudyTask**: actividad planificada, materia/subtema, fecha, estado, prioridad y sesión vinculada cuando corresponda.
 - **AIUsageRecord**: función, proveedor/modelo, consumo medible, usuario/sesión cuando corresponda, fecha y estimación de costo si está disponible.
+- **UserFeedback**: comentario general sobre la aplicación: usuario, tipo (`suggestion`, `problem`, `other`), mensaje, página de origen y fecha. Solo lectura para administradores.
 
 ## Estados sugeridos
 

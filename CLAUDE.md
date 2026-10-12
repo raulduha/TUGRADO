@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Hay especificaciones, el entorno Docker y el scaffolding del backend (FastAPI + Python 3.12 con uv) con un endpoint de salud. Todavía no hay frontend ni modelos de dominio. Cuando exista el frontend, añade aquí sus comandos; no los inventes antes.
+Hay especificaciones, el entorno Docker, el backend (FastAPI + Python 3.12 con uv: autenticación, dominio y persistencia de la sesión de simulación, comentarios de usuarios) y el frontend (Next.js 16: portada, cuentas, panel). La simulación todavía no tiene endpoints ni pantallas.
 
 ## Entorno local (Docker)
 
@@ -72,6 +72,28 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 - `app/auth/data/common_passwords.txt` se generó a partir de SecLists; su origen está en el README de esa carpeta.
 
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
+
+## Frontend (`frontend/`)
+
+Next.js 16.4 con `cacheComponents` y `partialPrefetching`. **Lee `frontend/AGENTS.md` y la documentación incluida en `node_modules/next/dist/docs/` antes de escribir código**: esta versión cambia APIs que quizá conozcas de otra forma.
+
+```sh
+cp .env.example .env.local    # BACKEND_URL obligatoria (next.config.ts falla sin ella)
+pnpm install
+pnpm dev                      # http://localhost:3000; el backend debe estar arriba (Docker)
+pnpm lint && pnpm typecheck   # typecheck corre next typegen (genera LayoutProps, etc.)
+pnpm build
+pnpm e2e                      # Playwright con el Chrome instalado; requiere la app levantada en :3000
+pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
+```
+
+- El navegador solo habla con el frontend: `next.config.ts` reenvía `/api/*` a `BACKEND_URL`. Así la cookie de sesión es de primera parte y el backend ve `Origin: http://localhost:3000`. Abre la app en `localhost:3000`: con otra dirección (por ejemplo, la IP de red) el backend rechaza las operaciones por origen, y `next dev` bloquea sus recursos internos.
+- Las llamadas pasan por `src/lib/api.ts`, que devuelve `{ok, status, data | error{code, message}}` con los códigos de error del backend.
+- Las pantallas que leen `?token=` o `?next=` usan `useSearchParams` dentro de `<Suspense>` (exigido por Cache Components). `?next=` pasa por `safeNext()` para evitar redirecciones abiertas.
+- Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: el panel consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401.
+- Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
+- El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.
+- Gate 10: `e2e/responsive.spec.ts` recorre las pantallas públicas en 390, 768 y 1280 px y falla si hay desplazamiento horizontal.
 
 ## Mapa de especificaciones
 

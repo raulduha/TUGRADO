@@ -71,7 +71,7 @@ def engine(migrated_engine):
     """Motor de la base de pruebas; vacía las tablas al terminar cada prueba."""
     yield migrated_engine
     with migrated_engine.begin() as conn:
-        conn.execute(text("TRUNCATE user_account, simulation_session CASCADE"))
+        conn.execute(text("TRUNCATE user_account, simulation_session, user_feedback CASCADE"))
 
 
 # ------------------------------------------------------------------ API con base real
