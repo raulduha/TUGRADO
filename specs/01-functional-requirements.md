@@ -127,3 +127,8 @@ El sistema conserva configuración, estado, intentos, tiempos, transcripciones y
 
 ### FR-027 — Integridad
 Las decisiones sobre autorización, temporizadores, publicación, estado de sesión y resultados se validan en el backend. Las solicitudes tardías, duplicadas o concurrentes no deben producir estados incompatibles.
+
+## 11. Comentarios de usuarios
+
+### FR-028 — Casilla de comentarios
+Un usuario con sesión iniciada puede enviar comentarios sobre la aplicación desde un botón visible en el panel: tipo (`suggestion`, `problem` u `other`) y un mensaje de hasta 2.000 caracteres. Se guardan con el usuario, la página desde la que se envió y la fecha. Solo un administrador puede consultarlos. Los comentarios no sustituyen el reporte de preguntas o evaluaciones (FR-016), que conserva la versión de contenido y el intento asociado. Se conservan conforme a la política general de retención (12 meses).

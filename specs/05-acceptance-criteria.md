@@ -109,3 +109,6 @@ Al alcanzar el 80 % de la cuota se muestra una alerta; al llegar al límite (5 p
 
 ## AC-036 — Sesión de usuario y registro
 Un estudiante puede registrarse con correo y contraseña; la cuenta no puede usarse hasta verificar el correo con un enlace de un solo uso que caduca a las 24 horas. La sesión caduca tras 7 días sin actividad o 30 días desde el inicio, y cerrar sesión la revoca en el backend. Tras 10 intentos fallidos en 15 minutos, la cuenta rechaza nuevos intentos durante 15 minutos. Las respuestas de registro, inicio de sesión y recuperación no revelan si un correo está registrado, salvo el aviso de bloqueo temporal.
+
+## AC-037 — Comentarios de usuarios
+Con sesión iniciada, el usuario puede enviar un comentario con tipo y mensaje de 1 a 2.000 caracteres desde el panel, y recibe una confirmación. Sin sesión, la operación se rechaza. Solo un administrador puede listar los comentarios; un estudiante no puede leer los de nadie.

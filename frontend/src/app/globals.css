@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Tema claro y cálido para todos (decisión de diseño: la app no cambia a oscuro según el
+   sistema). El acento es decorativo: no se usa para texto. */
+:root {
+  color-scheme: light;
+  --background: #fbf8f3;
+  --foreground: #1f2430;
+  --surface: #ffffff;
+  --muted: #5d6474;
+  --line: #e7e1d6;
+  --brand: #2f5bd3;
+  --brand-strong: #2448ad;
+  --brand-soft: #e8eefc;
+  --on-brand: #ffffff;
+  --danger: #b42318;
+  --success: #067647;
+  --accent: #f5a524;
+  --accent-soft: #fdf1dc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-on-brand: var(--on-brand);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

@@ -80,3 +80,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Enlace de verificación de correo: un solo uso, 24 horas.
 - Bloqueo temporal: 15 minutos tras 10 intentos fallidos en 15 minutos.
 - Se añadió AC-036.
+
+## J. Sexta ronda (frontend y comentarios, 2026-10-12)
+
+- La interfaz usa un tema claro y cálido para todos, sin cambiar a oscuro según el sistema (pedido del usuario: "amigable").
+- El panel muestra la ruta del estudiante con su estado real y tarjetas de progreso con estados vacíos hasta que existan datos; no se muestran cifras inventadas.
+- Nueva casilla de comentarios de usuarios (FR-028, AC-037, entidad `UserFeedback`).
