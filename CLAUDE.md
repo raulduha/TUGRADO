@@ -6,18 +6,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Por ahora el repositorio contiene especificaciones y el entorno Docker de base de datos. Todavía no hay código de backend ni frontend, ni comandos de build, lint o pruebas. Cuando exista el scaffolding (Next.js + TypeScript, FastAPI + Python 3.12 con uv), añade aquí los comandos reales, incluido cómo ejecutar una sola prueba. No los inventes antes de que existan.
+Hay especificaciones, el entorno Docker y el scaffolding del backend (FastAPI + Python 3.12 con uv) con un endpoint de salud. Todavía no hay frontend ni modelos de dominio. Cuando exista el frontend, añade aquí sus comandos; no los inventes antes.
 
 ## Entorno local (Docker)
 
 ```sh
 cp .env.example .env                 # una vez; el compose falla si faltan variables
-docker compose up -d                 # PostgreSQL 17 + pgvector en 127.0.0.1:${POSTGRES_PORT:-5432}
+docker compose up -d --build         # db (PostgreSQL 17 + pgvector) y backend con recarga en caliente
 docker compose exec db psql -U tugrado -d tugrado
 docker compose down                  # conserva datos; `down -v` borra el volumen
 ```
 
-`docker/postgres/init/` solo se ejecuta al crear el volumen por primera vez (hoy crea la extensión `vector`). El esquema se gestionará con Alembic, no con esos scripts. El backend se agregará como servicio en el mismo `docker-compose.yml`.
+- Backend: http://127.0.0.1:8000 (`/health`, `/health/db`, `/docs`). El código de `backend/app` se monta en el contenedor.
+- `docker/postgres/init/` solo se ejecuta al crear el volumen por primera vez (hoy crea la extensión `vector`). El esquema se gestionará con Alembic, no con esos scripts.
+- En Windows usa `127.0.0.1`, no `localhost`, en `DATABASE_URL`: `localhost` intenta IPv6 primero y la conexión tarda minutos.
+
+## Backend (`backend/`)
+
+Ejecutar desde `backend/`. Las pruebas y la app leen `DATABASE_URL` del `.env` de la raíz.
+
+```sh
+uv sync                                           # instala dependencias en backend/.venv
+uv run pytest                                     # todas las pruebas (las integration necesitan la db arriba)
+uv run pytest -m "not integration"                # sin PostgreSQL
+uv run pytest tests/test_health.py::test_health   # una sola prueba
+uv run ruff check . && uv run ruff format --check .
+uv run uvicorn app.main:app --reload              # sin Docker
+```
+
+- `app/config.py` (`Settings`, pydantic-settings) es el único punto de entrada de configuración. Los campos sin valor por defecto son obligatorios y `create_app()` falla al arrancar si faltan. Los parámetros de negocio decididos (extensiones, latido, `recovery_window`, cuotas…) van aquí como campos obligatorios, con su valor confirmado en `.env.example`, no como constantes en el código.
+- Las dependencias externas (por ejemplo, `get_engine`) se inyectan con `Depends`, para poder reemplazarlas en pruebas con `app.dependency_overrides`.
+- Las pruebas que requieren PostgreSQL llevan `@pytest.mark.integration`.
 
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 
