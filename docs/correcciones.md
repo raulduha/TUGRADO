@@ -59,3 +59,10 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 ## F. Tercera ronda de decisiones
 
 - Backend en Python 3.12, gestionado con uv; imagen Docker `python:3.12-slim`.
+
+## G. Cuarta ronda de decisiones (reglas de tiempo de la sesión)
+
+- Extensión: el nuevo límite de la pregunta es la hora de concesión + 60 s (no el límite original + 60 s).
+- Procesamiento: al recibir la respuesta se detienen el reloj de la pregunta y el total; el total se reanuda cuando termina o falla la transcripción y evaluación. Entre preguntas el reloj total corre.
+- Recuperación: la ventana de 30 minutos se cuenta desde el último latido recibido.
+- `docs/index.html` no refleja las secciones F y G; debe regenerarse desde las specs.

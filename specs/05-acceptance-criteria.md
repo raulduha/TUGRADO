@@ -93,7 +93,7 @@ El usuario que creó o modificó una versión no puede aprobarla ni publicarla. 
 Una simulación no admite mezclar tipos de pregunta. Una corrección de resultado sin reporte vinculado se rechaza.
 
 ## AC-031 — Tiempo de procesamiento
-El reloj de la pregunta se detiene cuando el backend recibe la respuesta; la latencia de transcripción y evaluación no reduce el tiempo del estudiante.
+El reloj de la pregunta y el total se detienen cuando el backend recibe la respuesta, y el total se reanuda al terminar (o fallar) el procesamiento; la latencia de transcripción y evaluación no reduce el tiempo del estudiante.
 
 ## AC-032 — Cuentas y contraseñas
 Se rechazan contraseñas de menos de 12 caracteres o comunes. Una cuenta no verificada no puede usar la aplicación. El enlace de recuperación es de un solo uso y caduca a los 30 minutos.

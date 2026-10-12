@@ -21,8 +21,8 @@
 - Solo contenido aprobado en una versión exacta puede publicarse y utilizarse en sesiones ordinarias.
 - La retroalimentación oral se configura antes de iniciar la sesión: después de cada pregunta o al final.
 - La simulación tiene límites total e individual. Al agotarse el tiempo total, no se inician nuevas preguntas; la pregunta activa puede finalizar dentro de su límite individual y extensiones válidas.
-- La extensión individual es de 60 segundos, se solicita dentro de 15 segundos tras expirar el tiempo individual y se permite 1 por pregunta. Estos valores son configuración (`max_extensions_per_question`, ventana de oferta), no constantes en el código.
-- Ante una desconexión (30 s sin latido; latido cada 10 s), pausa el tiempo retroactivamente desde el último latido y permite reanudar desde el último estado guardado con el tiempo restante dentro de 30 minutos (`recovery_window`). Pasado ese plazo, la sesión queda `expired`.
+- La extensión individual es de 60 segundos, se solicita dentro de 15 segundos tras expirar el tiempo individual y se permite 1 por pregunta. El nuevo límite es la hora de concesión + 60 s. Estos valores son configuración (`max_extensions_per_question`, ventana de oferta), no constantes en el código.
+- Ante una desconexión (30 s sin latido; latido cada 10 s), pausa el tiempo retroactivamente desde el último latido y permite reanudar desde el último estado guardado con el tiempo restante dentro de 30 minutos (`recovery_window`), contados desde el último latido. El tiempo de transcripción y evaluación no consume el reloj total. Pasado ese plazo, la sesión queda `expired`.
 - Pausa voluntaria: solo entre preguntas, hasta 30 segundos, una vez por simulación.
 - Una simulación contiene un solo tipo de pregunta. Quien crea o modifica una versión no puede aprobarla ni publicarla. Las correcciones de resultados exigen un reporte vinculado.
 - Cuotas iniciales: 5 simulaciones orales por día y 100 por mes por usuario. Eliminación a solicitud en un máximo de 30 días. Contraseñas: mínimo 12 caracteres con Argon2id. Escala 1 a 7: conversión lineal ponderada con un decimal.

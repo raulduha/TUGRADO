@@ -21,13 +21,14 @@ Una tarea no se considera terminada solo porque el código compila. Debe superar
 - Se prueban el límite total y el individual.
 - Al agotarse el límite total, se bloquea el inicio de nuevas preguntas.
 - La pregunta activa puede terminar dentro del límite individual y de extensiones válidas.
-- Una extensión aprobada agrega exactamente 60 segundos.
+- Una extensión aprobada fija el límite en exactamente la hora de concesión + 60 segundos.
 - Se prueban solicitudes tardías, duplicadas y concurrentes.
 - La desconexión reconocida pausa el tiempo; la reconexión restaura estado y tiempo restante.
 - Las solicitudes duplicadas no crean extensiones, respuestas o evaluaciones duplicadas.
 - La ventana de recuperación (30 min), el máximo de extensiones (1), la ventana de oferta (15 s), el latido (10 s / 30 s) y la pausa voluntaria (30 s, una vez) son configuración, no constantes. Las pruebas cubren los valores límite de cada uno.
 - Se prueba que la pausa voluntaria se rechaza con pregunta activa y que una segunda pausa se rechaza.
-- Se prueba que el reloj se detiene en la hora de recepción de la respuesta.
+- Se prueba que el reloj de la pregunta y el total se detienen en la hora de recepción de la respuesta, y que el total se reanuda al terminar el procesamiento.
+- Se prueba que la ventana de recuperación se cuenta desde el último latido.
 
 ## Gate 4 — Retroalimentación
 

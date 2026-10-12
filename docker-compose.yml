@@ -21,6 +21,8 @@ services:
 
   backend:
     build: ./backend
+    # Parámetros de la app; las variables de `environment` tienen prioridad sobre este archivo.
+    env_file: .env
     environment:
       WATCHFILES_FORCE_POLLING: "true"  # Docker Desktop en Windows no propaga eventos de archivos
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}

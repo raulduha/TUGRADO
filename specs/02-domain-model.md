@@ -60,7 +60,7 @@ La solicitud de extensión concede 60 segundos únicamente si el backend la acep
 5. El backend decide validez de respuestas, temporizadores, extensiones y transiciones.
 6. Al perder conexión, el tiempo se pausa y la sesión se reanuda con el tiempo restante persistido. La desconexión se reconoce tras 30 s sin latido (latido cada 10 s) y la recuperación máxima es de 30 minutos.
 7. El límite total impide iniciar nuevas preguntas. Una pregunta activa puede completarse según el límite individual y extensiones válidas.
-8. La extensión individual es de 60 segundos por concesión. El máximo es 1 concesión por pregunta y la ventana para solicitarla es de 15 s.
+8. La extensión individual es de 60 segundos por concesión. El máximo es 1 concesión por pregunta y la ventana para solicitarla es de 15 s. El nuevo límite es la hora de concesión + 60 s.
 9. El modo `at_simulation_end` impide mostrar retroalimentación académica antes del cierre de la sesión.
 10. Las transcripciones y evaluaciones se conservan 12 meses; el audio original no se persiste y el audio temporal se elimina al terminar la transcripción.
 11. Los resultados no pueden editarse directamente por el estudiante. Las correcciones administrativas mantienen el resultado original y trazabilidad.
