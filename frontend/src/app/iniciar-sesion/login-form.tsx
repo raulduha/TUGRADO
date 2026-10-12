@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { Field } from "@/components/field";
@@ -12,29 +12,26 @@ import { safeNext } from "@/lib/navigation";
 
 type State =
   | { status: "idle" }
-  | { status: "success" }
   | { status: "error"; email: string; code: string; message: string };
-
-async function login(_: State, form: FormData): Promise<State> {
-  const email = String(form.get("email") ?? "");
-  const password = String(form.get("password") ?? "");
-  const result = await api("/auth/login", { body: { email, password } });
-  if (result.ok) {
-    return { status: "success" };
-  }
-  return { status: "error", email, code: result.error.code, message: result.error.message };
-}
 
 export function LoginForm() {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
-  const [state, action, pending] = useActionState(login, { status: "idle" });
-
-  useEffect(() => {
-    if (state.status === "success") {
-      router.replace(next);
-    }
-  }, [state, next, router]);
+  // La redirección ocurre en el envío y el estado vuelve a "idle": con Cache Components la
+  // página se conserva (Activity) y un estado "éxito" guardado redirigiría otra vez al volver.
+  const [state, action, pending] = useActionState(
+    async (_: State, form: FormData): Promise<State> => {
+      const email = String(form.get("email") ?? "");
+      const password = String(form.get("password") ?? "");
+      const result = await api("/auth/login", { body: { email, password } });
+      if (result.ok) {
+        router.replace(next);
+        return { status: "idle" };
+      }
+      return { status: "error", email, code: result.error.code, message: result.error.message };
+    },
+    { status: "idle" },
+  );
 
   const email = state.status === "error" ? state.email : undefined;
 
@@ -56,7 +53,7 @@ export function LoginForm() {
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
-      <SubmitButton pending={pending || state.status === "success"}>Iniciar sesión</SubmitButton>
+      <SubmitButton pending={pending}>Iniciar sesión</SubmitButton>
     </form>
   );
 }

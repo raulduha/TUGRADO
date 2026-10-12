@@ -56,6 +56,8 @@ export default function PanelPage() {
 
   async function logout() {
     await api("/auth/logout", { method: "POST" });
+    // El panel se conserva entre navegaciones (Activity): no debe quedar el usuario anterior.
+    setMe(null);
     router.replace("/iniciar-sesion");
   }
 
@@ -82,7 +84,8 @@ export default function PanelPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      {/* pb-28: espacio para el botón flotante de comentarios. */}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-8">
         {error ? (
           <p role="alert" className="text-danger">
             {error}
@@ -142,9 +145,9 @@ export default function PanelPage() {
               <h2 id="progreso" className="text-xl font-semibold tracking-tight">
                 Tu progreso
               </h2>
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {STATS.map((stat) => (
-                  <li key={stat.label} className="rounded-2xl border border-line bg-surface p-5">
+                  <li key={stat.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
                       <Icon name={stat.icon} />
                     </span>

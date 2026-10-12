@@ -55,12 +55,13 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={open}
-        className="fixed bottom-4 right-4 z-10 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-3 font-semibold text-on-brand shadow-lg transition hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:bottom-6 sm:right-6"
+        className="fixed bottom-4 right-4 z-10 inline-flex items-center gap-2 rounded-full bg-brand p-3.5 font-semibold sm:px-4 sm:py-3 text-on-brand shadow-lg transition hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:bottom-6 sm:right-6"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" />
         </svg>
-        Enviar comentarios
+        {/* En móvil solo el ícono, para no tapar contenido; el nombre accesible no cambia. */}
+        <span className="sr-only sm:not-sr-only">Enviar comentarios</span>
       </button>
 
       <dialog

@@ -90,10 +90,11 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 - El navegador solo habla con el frontend: `next.config.ts` reenvía `/api/*` a `BACKEND_URL`. Así la cookie de sesión es de primera parte y el backend ve `Origin: http://localhost:3000`. Abre la app en `localhost:3000`: con otra dirección (por ejemplo, la IP de red) el backend rechaza las operaciones por origen, y `next dev` bloquea sus recursos internos.
 - Las llamadas pasan por `src/lib/api.ts`, que devuelve `{ok, status, data | error{code, message}}` con los códigos de error del backend.
 - Las pantallas que leen `?token=` o `?next=` usan `useSearchParams` dentro de `<Suspense>` (exigido por Cache Components). `?next=` pasa por `safeNext()` para evitar redirecciones abiertas.
+- **Cache Components conserva hasta 3 páginas visitadas con su estado** (React `<Activity>`; ver `docs/01-app/02-guides/preserving-ui-state.md`). No redirijas desde un `useEffect` según un estado de "éxito": al volver a la página el efecto se repite (eso causó un bucle entre login y panel). Navega dentro del envío y limpia los datos del usuario al cerrar sesión.
 - Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: el panel consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401.
 - Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
 - El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.
-- Gate 10: `e2e/responsive.spec.ts` recorre las pantallas públicas en 390, 768 y 1280 px y falla si hay desplazamiento horizontal.
+- Gate 10: `e2e/responsive.spec.ts` recorre las pantallas públicas en 390, 768 y 1280 px y falla si hay desplazamiento horizontal. `e2e/student.spec.ts` hace el recorrido real de un estudiante: el token de verificación se lee del log del backend (`docker compose logs`) y las cuentas `e2e-*@ejemplo.cl` se borran al terminar.
 
 ## Mapa de especificaciones
 
