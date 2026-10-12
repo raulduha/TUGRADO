@@ -11,9 +11,9 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - Retroalimentación oral elegida por el estudiante antes de iniciar: después de cada pregunta o al final.
 - La simulación tiene tiempo total y tiempo individual por pregunta. Una simulación contiene un solo tipo de pregunta (oral o alternativas); la práctica de alternativas es independiente.
 - Al expirar el tiempo total, no se puede iniciar otra pregunta; la pregunta activa puede terminar dentro de su límite individual y puede solicitar extensiones válidas. Al terminar, la sesión queda `completed`.
-- Al expirar el tiempo individual, el estudiante dispone de 15 segundos para solicitar una extensión de 60 segundos; ese lapso consume tiempo total. El máximo es 1 extensión por pregunta.
-- El tiempo de transcripción y evaluación no se descuenta al estudiante: el reloj se detiene cuando el backend recibe la respuesta.
-- La desconexión se detecta con un latido del cliente cada 10 segundos; sin latido durante 30 segundos, el backend pausa el reloj de forma retroactiva desde el último latido. La sesión puede reanudarse desde el último estado guardado, con el tiempo restante, dentro de 30 minutos. Si no se reanuda en ese plazo, queda `expired`.
+- Al expirar el tiempo individual, el estudiante dispone de 15 segundos para solicitar una extensión de 60 segundos; ese lapso consume tiempo total. El máximo es 1 extensión por pregunta. El nuevo límite de la pregunta es la hora de concesión + 60 s, de modo que el estudiante dispone siempre de 60 s completos.
+- El tiempo de transcripción y evaluación no se descuenta al estudiante: el reloj de la pregunta y el reloj total se detienen cuando el backend recibe la respuesta; el total se reanuda cuando termina (o falla) la transcripción y evaluación.
+- La desconexión se detecta con un latido del cliente cada 10 segundos; sin latido durante 30 segundos, el backend pausa el reloj de forma retroactiva desde el último latido. La sesión puede reanudarse desde el último estado guardado, con el tiempo restante, dentro de 30 minutos. Si no se reanuda en ese plazo, queda `expired`. La ventana de 30 minutos se cuenta desde el último latido recibido.
 - Si hay una grabación en curso o sin transcribir al desconectarse, se descarta el audio temporal y el estudiante vuelve a grabar con el tiempo restante de la pregunta.
 - Pausa voluntaria: solo entre preguntas (sin pregunta activa), de hasta 30 segundos y una vez por simulación. Al vencer, el reloj se reanuda automáticamente.
 - Un administrador solo puede corregir un resultado a partir de un reporte vinculado. La corrección conserva el original.
@@ -65,5 +65,6 @@ Lista única de decisiones abiertas. No se deben inventar valores para ellas.
 1. Hosting de producción del backend FastAPI (candidatos evaluados: Railway, Render). Hoy solo corre en local con Docker.
 2. Proveedor de correo transaccional de producción. En desarrollo se imprime en consola.
 3. Candidatos y proveedores concretos de IA (modelo de lenguaje, transcripción, embeddings y síntesis de voz) y el umbral de calidad aceptable que usará la prueba de concepto.
+4. Estado de un `QuestionAttempt` cuando falla la transcripción o la evaluación, y si el estudiante puede reintentar. El modelo no define un estado para ese caso. Lo único confirmado es que el reloj total se reanuda al fallar el procesamiento y que una falla técnica no se convierte en nota.
 
 Los parámetros ya decididos (extensiones, ventana de recuperación, latido, pausa, retención, cuotas) se implementan como configuración con el valor confirmado, no como constantes en el código.

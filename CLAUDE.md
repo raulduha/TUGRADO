@@ -38,6 +38,15 @@ uv run uvicorn app.main:app --reload              # sin Docker
 - Las dependencias externas (por ejemplo, `get_engine`) se inyectan con `Depends`, para poder reemplazarlas en pruebas con `app.dependency_overrides`.
 - Las pruebas que requieren PostgreSQL llevan `@pytest.mark.integration`.
 
+### Dominio de la simulación (`app/domain/simulation/`)
+
+Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones en su docstring. Lo que no es obvio:
+- Cada operación recibe la hora del servidor (`at`, con zona horaria) y deben llegar en orden. Las pruebas usan `at(segundos)` y `keep_alive()` de `tests/domain/conftest.py`. Sin latidos durante 30 s, la sesión se pausa sola, así que en las pruebas hay que mantenerla viva.
+- Todos los plazos son exclusivos: en el instante exacto del vencimiento la regla ya aplicó.
+- Las transiciones por tiempo solo se consolidan hasta la última señal del cliente (latido o comando). Por eso la pausa por desconexión puede ser retroactiva sin deshacer nada. `sweep()` solo detecta desconexiones y vence recuperaciones; no avanza los demás temporizadores.
+- `_sync_clocks()` es la única regla que decide qué relojes corren. El total se detiene en pausas, durante el procesamiento de la respuesta y tras agotarse.
+- Los comandos del cliente llevan `request_id` para ser idempotentes. La concurrencia entre procesos debe resolverse en la persistencia con un bloqueo por sesión.
+
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 
 ## Mapa de especificaciones

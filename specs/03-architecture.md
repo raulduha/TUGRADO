@@ -29,15 +29,15 @@ El backend mantiene la hora de inicio, límite total, límite individual, tiempo
 4. Rechaza solicitudes tardías, duplicadas o que intenten abrir una pregunta nueva.
 
 ### Extensión individual
-Al expirar el límite individual, el frontend ofrece durante 15 segundos solicitar 60 segundos adicionales. El backend verifica estado, identidad, política de extensiones y concurrencia, registra el evento y devuelve el nuevo límite autorizado. El máximo es 1 extensión por pregunta.
+Al expirar el límite individual, el frontend ofrece durante 15 segundos solicitar 60 segundos adicionales. El backend verifica estado, identidad, política de extensiones y concurrencia, registra el evento y devuelve el nuevo límite autorizado: hora de concesión + 60 s. El máximo es 1 extensión por pregunta.
 
 ### Pausa voluntaria
 Solo se permite sin pregunta activa, hasta 30 segundos y una vez por simulación. Al vencer, el backend reanuda el reloj.
 
 ### Desconexión y recuperación
-La sesión guarda checkpoints en eventos relevantes: presentación de pregunta, respuesta enviada, transcripción lista, evaluación completada, extensión concedida y pausa/reanudación. Al detectarse una desconexión aplicable, el backend pausa el reloj; al reconectar, restaura el estado y tiempo restante guardados. Detección: latido del cliente cada 10 s; sin latido durante 30 s se reconoce la desconexión y el reloj se pausa retroactivamente desde el último latido. Ventana máxima de recuperación: 30 minutos. Una solicitud duplicada debe ser idempotente.
+La sesión guarda checkpoints en eventos relevantes: presentación de pregunta, respuesta enviada, transcripción lista, evaluación completada, extensión concedida y pausa/reanudación. Al detectarse una desconexión aplicable, el backend pausa el reloj; al reconectar, restaura el estado y tiempo restante guardados. Detección: latido del cliente cada 10 s; sin latido durante 30 s se reconoce la desconexión y el reloj se pausa retroactivamente desde el último latido. Ventana máxima de recuperación: 30 minutos, contados desde el último latido. Una solicitud duplicada debe ser idempotente.
 
-El checkpoint de pausa guarda el estado previo para poder volver a él, incluido `awaiting_current_question_completion`. El audio temporal no se persiste, por lo que una grabación en curso o sin transcribir al desconectarse no se restaura. El estudiante vuelve a grabar con el tiempo restante de la pregunta. El tiempo de transcripción y evaluación no se imputa al estudiante: el backend registra la hora de recepción de cada respuesta y el reloj se detiene en ese momento.
+El checkpoint de pausa guarda el estado previo para poder volver a él, incluido `awaiting_current_question_completion`. El audio temporal no se persiste, por lo que una grabación en curso o sin transcribir al desconectarse no se restaura. El estudiante vuelve a grabar con el tiempo restante de la pregunta. El tiempo de transcripción y evaluación no se imputa al estudiante: el backend registra la hora de recepción de cada respuesta; en ese momento se detienen el reloj de la pregunta y el total, y el total se reanuda al terminar (o fallar) la transcripción y evaluación.
 
 ## 4. Voz
 

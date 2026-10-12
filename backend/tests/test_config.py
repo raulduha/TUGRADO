@@ -1,15 +1,55 @@
+from datetime import timedelta
+
 import pytest
 from pydantic import ValidationError
 
 from app.config import Settings
 
+REQUIRED = {
+    "DATABASE_URL": "postgresql+psycopg://u:p@127.0.0.1:5432/x",
+    "SESSION_EXTENSION_SECONDS": "60",
+    "SESSION_MAX_EXTENSIONS_PER_QUESTION": "1",
+    "SESSION_EXTENSION_OFFER_WINDOW_SECONDS": "15",
+    "SESSION_HEARTBEAT_INTERVAL_SECONDS": "10",
+    "SESSION_HEARTBEAT_TIMEOUT_SECONDS": "30",
+    "SESSION_RECOVERY_WINDOW_SECONDS": "1800",
+    "SESSION_VOLUNTARY_PAUSE_MAX_SECONDS": "30",
+    "SESSION_VOLUNTARY_PAUSES_PER_SESSION": "1",
+}
 
-def test_falla_si_falta_database_url(monkeypatch):
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    with pytest.raises(ValidationError, match="database_url"):
+
+@pytest.fixture
+def env(monkeypatch):
+    for name, value in REQUIRED.items():
+        monkeypatch.setenv(name, value)
+    return monkeypatch
+
+
+@pytest.mark.parametrize("missing", sorted(REQUIRED))
+def test_falla_si_falta_un_parametro_obligatorio(env, missing):
+    env.delenv(missing)
+    with pytest.raises(ValidationError, match=missing.lower()):
         Settings(_env_file=None)
 
 
-def test_lee_database_url_del_entorno(monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://u:p@localhost:5432/x")
-    assert Settings(_env_file=None).database_url.endswith("/x")
+def test_construye_la_politica_de_sesion_desde_el_entorno(env):
+    policy = Settings(_env_file=None).session_policy()
+    assert policy.extension == timedelta(seconds=60)
+    assert policy.max_extensions_per_question == 1
+    assert policy.extension_offer_window == timedelta(seconds=15)
+    assert policy.heartbeat_timeout == timedelta(seconds=30)
+    assert policy.recovery_window == timedelta(minutes=30)
+    assert policy.voluntary_pause_max == timedelta(seconds=30)
+    assert policy.voluntary_pauses_per_session == 1
+
+
+def test_rechaza_valores_no_positivos(env):
+    env.setenv("SESSION_EXTENSION_SECONDS", "0")
+    with pytest.raises(ValidationError, match="session_extension_seconds"):
+        Settings(_env_file=None)
+
+
+def test_rechaza_latido_mayor_o_igual_que_el_timeout(env):
+    env.setenv("SESSION_HEARTBEAT_INTERVAL_SECONDS", "30")
+    with pytest.raises(ValueError, match="heartbeat_interval"):
+        Settings(_env_file=None).session_policy()
