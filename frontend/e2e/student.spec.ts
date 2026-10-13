@@ -34,10 +34,13 @@ test("un estudiante se registra, entra al panel, comenta y cierra sesión", asyn
   await expect(page).toHaveURL(/\/panel$/);
   await expect(page.getByRole("heading", { level: 1, name: "¡Hola! Qué bueno verte" })).toBeVisible();
   await expect(page.getByText(`${email} · Estudiante`)).toBeVisible();
-  await expect(page.getByRole("img", { name: "Ruta completada al 33 %" })).toBeVisible();
-  const route = page.getByRole("region", { name: "Tu ruta" }).getByRole("listitem");
-  await expect(route).toHaveCount(6);
-  await expect(route.filter({ hasText: "Listo." })).toHaveCount(2);
+  await expect(page.getByRole("img", { name: "Mapa completado al 13 %" })).toBeVisible();
+  const map = page.getByRole("region", { name: "Tu mapa de estudio" });
+  await expect(map.getByRole("listitem")).toHaveCount(8);
+  await expect(map.getByRole("button", { name: /Completado$/ })).toHaveCount(1);
+  // Apruvi comenta el nivel que se toca.
+  await map.getByRole("button", { name: /^Nivel 5:/ }).click();
+  await expect(map.getByText("Apruvi · Nivel 5: Tu primera simulación oral")).toBeVisible();
   await expect(page.getByRole("region", { name: "Tu progreso" }).getByRole("listitem")).toHaveCount(4);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

@@ -40,3 +40,46 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Apruvi: respiración suave (se estira hacia arriba desde los pies), parpadeo ocasional y
+   borla que se mece. Sin movimiento si la persona lo pidió en su sistema. */
+.apruvi-breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: apruvi-breathe 3.8s ease-in-out infinite;
+}
+.apruvi-shadow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: apruvi-shadow 3.8s ease-in-out infinite;
+}
+.apruvi-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 55%;
+  animation: apruvi-blink 5.2s ease-in-out infinite;
+}
+.apruvi-tassel {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: apruvi-tassel 3.8s ease-in-out infinite;
+}
+@keyframes apruvi-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  45% { transform: scale(0.985, 1.035); }
+  60% { transform: scale(0.988, 1.03); }
+}
+@keyframes apruvi-shadow {
+  0%, 100% { transform: scale(1); }
+  45%, 60% { transform: scale(0.94); }
+}
+@keyframes apruvi-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes apruvi-tassel {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apruvi-breathe, .apruvi-shadow, .apruvi-blink, .apruvi-tassel { animation: none; }
+}

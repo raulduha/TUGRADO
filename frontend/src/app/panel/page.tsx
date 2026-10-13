@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
+import { LEVELS, StudyMap } from "@/components/study-map";
 import { Icon, type IconName } from "@/components/illustrations";
 import { api, formatDate, type Me, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
@@ -14,17 +15,6 @@ const ROLE_LABELS: Record<Me["roles"][number], string> = {
   student: "Estudiante",
   administrator: "Administrador",
 };
-
-// La ruta refleja el estado real: con sesión iniciada, la cuenta existe y el correo está
-// verificado. Los pasos siguientes aún no existen en la app y se marcan como "Próximamente".
-const ROUTE: Array<{ icon: IconName; title: string; text: string; done: boolean }> = [
-  { icon: "user", title: "Crea tu cuenta", text: "Listo.", done: true },
-  { icon: "mail", title: "Verifica tu correo", text: "Listo.", done: true },
-  { icon: "list", title: "Elige tu programa y materias", text: "Próximamente", done: false },
-  { icon: "book", title: "Responde tu primera práctica", text: "Próximamente", done: false },
-  { icon: "mic", title: "Haz tu primera simulación oral", text: "Próximamente", done: false },
-  { icon: "calendar", title: "Arma tu plan de estudio", text: "Próximamente", done: false },
-];
 
 // Sin datos todavía: se muestra el estado vacío, nunca cifras inventadas.
 const STATS: Array<{ icon: IconName; label: string }> = [
@@ -61,8 +51,8 @@ export default function PanelPage() {
     };
   }, [me, router]);
 
-  const done = ROUTE.filter((step) => step.done).length;
-  const percent = Math.round((done / ROUTE.length) * 100);
+  const done = LEVELS.filter((level) => level.done).length;
+  const percent = Math.round((done / LEVELS.length) * 100);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -94,38 +84,19 @@ export default function PanelPage() {
                   desde aquí.
                 </p>
               </div>
-              <ProgressRing percent={percent} label={`${done} de ${ROUTE.length} pasos`} />
+              <ProgressRing percent={percent} label={`${done} de ${LEVELS.length} niveles`} />
             </section>
 
-            <section aria-labelledby="ruta">
-              <h2 id="ruta" className="text-xl font-semibold tracking-tight">
-                Tu ruta
+            <section aria-labelledby="mapa">
+              <h2 id="mapa" className="text-xl font-semibold tracking-tight">
+                Tu mapa de estudio
               </h2>
-              <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {ROUTE.map((step, index) => (
-                  <li
-                    key={step.title}
-                    className={`flex items-center gap-4 rounded-2xl border p-4 ${
-                      step.done ? "border-success/30 bg-surface" : "border-line bg-surface/60"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-11 w-11 flex-none items-center justify-center rounded-full ${
-                        step.done ? "bg-success text-white" : "bg-background text-muted"
-                      }`}
-                    >
-                      <Icon name={step.done ? "check" : step.icon} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-muted">Paso {index + 1}</p>
-                      <p className="font-semibold">{step.title}</p>
-                      <p className={`text-sm ${step.done ? "text-success" : "text-muted"}`}>
-                        {step.text}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+              <p className="mt-1 text-sm text-muted">
+                Toca un nivel para que Apruvi te cuente de qué se trata.
+              </p>
+              <div className="mt-4">
+                <StudyMap />
+              </div>
             </section>
 
             <SubscriptionCard sub={sub} />
@@ -163,7 +134,7 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
   const circumference = 2 * Math.PI * radius;
   return (
     <div className="flex items-center gap-4 self-start sm:self-auto">
-      <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90" role="img" aria-label={`Ruta completada al ${percent} %`}>
+      <svg viewBox="0 0 100 100" className="h-24 w-24 -rotate-90" role="img" aria-label={`Mapa completado al ${percent} %`}>
         <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--surface)" strokeWidth="10" />
         <circle
           cx="50"
