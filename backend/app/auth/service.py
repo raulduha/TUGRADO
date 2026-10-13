@@ -20,6 +20,7 @@ from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.passwords import hash_password, needs_rehash, validate_password, verify_password
 from app.auth.policy import AuthPolicy
 from app.auth.tokens import hash_token, new_token
+from app.errors import AppError
 from app.persistence.auth_models import (
     AuthSessionRow,
     EmailTokenPurpose,
@@ -35,10 +36,8 @@ logger = logging.getLogger("tugrado.auth")
 _SESSION_TOUCH_RESOLUTION_SECONDS = 60
 
 
-class AuthError(Exception):
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
+class AuthError(AppError):
+    pass
 
 
 @dataclass(frozen=True)

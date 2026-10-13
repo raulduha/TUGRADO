@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api import auth, billing, feedback, health
+from app.api.errors import register_error_handlers
 from app.api.origin import origin_guard
 from app.config import get_settings
 
@@ -10,6 +11,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Aprueba tu examen API", version="0.1.0")
     app.middleware("http")(origin_guard(settings.frontend_origin))
+    register_error_handlers(app)
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(feedback.router)

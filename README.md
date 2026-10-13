@@ -57,6 +57,7 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - `AGENTS.md`: instrucciones para agentes de desarrollo.
 - `harness/quality-gates.md`: controles de calidad que deben pasar antes de aceptar una tarea.
 - `docs/correcciones.md`: registro de correcciones y decisiones.
+- `docs/despliegue.md`: cómo están armados desarrollo y producción, variables de entorno y despliegue.
 
 Nota de numeración: este paquete no incluye `specs/04-*.md` porque solo contiene los documentos afectados. Si existe un `04`, debe revisarse contra estas decisiones.
 

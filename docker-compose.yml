@@ -2,7 +2,8 @@ name: tugrado
 
 services:
   db:
-    image: pgvector/pgvector:pg17
+    # Misma versión mayor que producción (Neon: PostgreSQL 18).
+    image: pgvector/pgvector:pg18
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?Define POSTGRES_DB en .env}
@@ -11,7 +12,8 @@ services:
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      # La imagen 18 guarda los datos en /var/lib/postgresql/18/docker.
+      - db-data-pg18:/var/lib/postgresql
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
@@ -37,4 +39,4 @@ services:
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 volumes:
-  db-data:
+  db-data-pg18:

@@ -2,12 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, Response, status
 from pydantic import BaseModel, EmailStr
 
 from app.api.deps import SESSION_COOKIE, CurrentUser, get_auth_service
-from app.auth.passwords import PasswordPolicyError
-from app.auth.service import AuthError, AuthService
+from app.auth.service import AuthService
 from app.config import Settings, get_settings
 from app.persistence.auth_models import Role
 
@@ -18,21 +17,6 @@ AppSettings = Annotated[Settings, Depends(get_settings)]
 
 # Respuesta idéntica exista o no el correo: no se revela qué cuentas están registradas.
 ACCEPTED = {"detail": "Si el correo es válido, te enviamos un mensaje con los pasos a seguir."}
-
-_STATUS_BY_CODE = {
-    "invalid_credentials": status.HTTP_401_UNAUTHORIZED,
-    "email_not_verified": status.HTTP_403_FORBIDDEN,
-    "account_locked": status.HTTP_429_TOO_MANY_REQUESTS,
-    "invalid_token": status.HTTP_400_BAD_REQUEST,
-}
-
-
-def _http_error(exc: AuthError | PasswordPolicyError) -> HTTPException:
-    if isinstance(exc, PasswordPolicyError):
-        code = status.HTTP_422_UNPROCESSABLE_CONTENT
-    else:
-        code = _STATUS_BY_CODE.get(exc.code, status.HTTP_400_BAD_REQUEST)
-    return HTTPException(code, detail={"code": exc.code, "message": str(exc)})
 
 
 class Credentials(BaseModel):
@@ -61,19 +45,13 @@ class Me(BaseModel):
 
 @router.post("/register", status_code=status.HTTP_202_ACCEPTED)
 def register(body: Credentials, service: Service) -> dict[str, str]:
-    try:
-        service.register(body.email, body.password)
-    except PasswordPolicyError as exc:
-        raise _http_error(exc) from exc
+    service.register(body.email, body.password)
     return ACCEPTED
 
 
 @router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT)
 def verify_email(body: TokenOnly, service: Service) -> None:
-    try:
-        service.verify_email(body.token)
-    except AuthError as exc:
-        raise _http_error(exc) from exc
+    service.verify_email(body.token)
 
 
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
@@ -84,10 +62,7 @@ def resend_verification(body: EmailOnly, service: Service) -> dict[str, str]:
 
 @router.post("/login", status_code=status.HTTP_204_NO_CONTENT)
 def login(body: Credentials, response: Response, service: Service, settings: AppSettings) -> None:
-    try:
-        token = service.login(body.email, body.password)
-    except AuthError as exc:
-        raise _http_error(exc) from exc
+    token = service.login(body.email, body.password)
     response.set_cookie(
         SESSION_COOKIE,
         token,
@@ -126,7 +101,4 @@ def request_password_reset(body: EmailOnly, service: Service) -> dict[str, str]:
 
 @router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
 def confirm_password_reset(body: PasswordReset, service: Service) -> None:
-    try:
-        service.reset_password(body.token, body.password)
-    except (AuthError, PasswordPolicyError) as exc:
-        raise _http_error(exc) from exc
+    service.reset_password(body.token, body.password)

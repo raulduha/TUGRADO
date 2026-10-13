@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.billing.gateway import NewSubscription, ProviderError, SubscriptionGateway
+from app.errors import AppError
 from app.persistence.auth_models import Role, UserAccountRow
 from app.persistence.billing_models import (
     OPEN_STATUSES,
@@ -26,10 +27,8 @@ from app.persistence.billing_models import (
 SUBSCRIPTION_REASON = "Aprueba tu examen - Suscripción mensual"
 
 
-class BillingError(Exception):
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
+class BillingError(AppError):
+    pass
 
 
 @dataclass(frozen=True)
