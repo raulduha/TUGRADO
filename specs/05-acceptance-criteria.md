@@ -124,3 +124,6 @@ Un usuario puede ingresar con Google; si su correo verificado ya tiene cuenta, e
 
 ## AC-041 — Acceso de cortesía
 Una cuenta con acceso de cortesía vigente entra al panel y al estudio sin suscripción. Otorgarlo exige una cuenta existente, motivo y responsable; repetirlo no crea un segundo acceso. Al revocarlo la cuenta pierde el acceso y el registro se conserva con su fecha de revocación.
+
+## AC-042 — Rachas
+La primera visita del día suma un día a la racha y muestra una celebración una sola vez; volver el mismo día no suma ni repite la celebración. Un día sin entrar reinicia la racha actual y se conserva la mejor. Los días se cuentan en hora de Chile.

@@ -149,3 +149,6 @@ El estudiante puede cancelar su suscripción desde la aplicación; el backend la
 
 ### FR-032 — Acceso de cortesía
 El equipo puede dar acceso sin suscripción a una cuenta específica (por ejemplo, cuentas de prueba) desde el CLI del backend, indicando el motivo y quién lo otorga. A lo más hay un acceso vigente por cuenta. Revocarlo registra la fecha y conserva el historial.
+
+### FR-033 — Rachas
+Cada día (hora de Chile) en que el estudiante entra al panel queda registrado. El panel muestra la racha actual de días seguidos, la mejor racha y los últimos 7 días, y celebra la primera visita del día. La racha mide constancia de uso; no es una medida de desempeño ni promete aprobar el examen.

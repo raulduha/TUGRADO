@@ -75,3 +75,5 @@ export function formatClp(amount: number): string {
 export function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("es-CL", { dateStyle: "long" }).format(new Date(iso));
 }
+
+export type Streak = { current: number; best: number; new_today: boolean; week: boolean[] };

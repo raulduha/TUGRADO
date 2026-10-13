@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
+import { StreakCard, StreakCelebration } from "@/components/streak";
 import { LEVELS, StudyMap } from "@/components/study-map";
 import { Icon, type IconName } from "@/components/illustrations";
-import { api, formatDate, type Me, type Subscription } from "@/lib/api";
+import { api, formatDate, type Me, type Streak, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
@@ -21,13 +22,14 @@ const STATS: Array<{ icon: IconName; label: string }> = [
   { icon: "book", label: "Preguntas respondidas" },
   { icon: "mic", label: "Simulaciones orales" },
   { icon: "chart", label: "Cobertura del programa" },
-  { icon: "flame", label: "Días seguidos estudiando" },
 ];
 
 export default function PanelPage() {
   const router = useRouter();
   const { me, setMe, error: userError } = useRequireUser("/panel");
   const [sub, setSub] = useState<Subscription | null>(null);
+  const [streak, setStreak] = useState<Streak | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Sin acceso (suscripción, cortesía o administrador) no se entra al panel: primero la prueba
@@ -41,6 +43,12 @@ export default function PanelPage() {
         if (result.status !== 401) setError(result.error.message);
       } else if (result.data.has_access) {
         setSub(result.data);
+        // Marca el día como activo; el backend dice si es la primera visita de hoy.
+        api<Streak>("/engagement/checkin", { method: "POST" }).then((checkin) => {
+          if (cancelled || !checkin.ok) return;
+          setStreak(checkin.data);
+          if (checkin.data.new_today) setCelebrate(true);
+        });
       } else {
         setSub(null);
         router.replace("/suscripcion");
@@ -59,6 +67,8 @@ export default function PanelPage() {
       <AppHeader me={me} onLoggedOut={() => {
           setMe(null);
           setSub(null);
+          setStreak(null);
+          setCelebrate(false);
         }} />
 
       {/* pb-28: espacio para el botón flotante de comentarios. */}
@@ -87,6 +97,8 @@ export default function PanelPage() {
               <ProgressRing percent={percent} label={`${done} de ${LEVELS.length} niveles`} />
             </section>
 
+            {streak ? <StreakCard streak={streak} /> : null}
+
             <section aria-labelledby="mapa">
               <h2 id="mapa" className="text-xl font-semibold tracking-tight">
                 Tu mapa de estudio
@@ -105,7 +117,7 @@ export default function PanelPage() {
               <h2 id="progreso" className="text-xl font-semibold tracking-tight">
                 Tu progreso
               </h2>
-              <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 {STATS.map((stat) => (
                   <li key={stat.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
@@ -125,6 +137,9 @@ export default function PanelPage() {
       </main>
 
       {me ? <FeedbackButton /> : null}
+      {celebrate && streak ? (
+        <StreakCelebration streak={streak} onClose={() => setCelebrate(false)} />
+      ) : null}
     </div>
   );
 }
