@@ -50,3 +50,16 @@ def test_proveedor_inalcanzable():
 
     with pytest.raises(EmailDeliveryError):
         sender_with(handler).send(MESSAGE)
+
+
+def test_envia_la_version_html_si_existe():
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"id": "1"})
+
+    message = EmailMessage(to="a@ejemplo.cl", subject="S", body="Hola", html="<p>Hola</p>")
+    sender_with(handler).send(message)
+    assert seen["body"]["text"] == "Hola"
+    assert seen["body"]["html"] == "<p>Hola</p>"

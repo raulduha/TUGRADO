@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.auth.email import EmailMessage
+from app.email_layout import Action, compose
 
 _MONTHS = [
     "enero",
@@ -66,9 +67,16 @@ def subscription_started(
         )
         opening = "Tu suscripción mensual quedó activa. Ya puedes entrar a estudiar."
         cancel = f"Puedes cancelarla cuando quieras: {manage}"
-    body = (
-        f"¡Te damos la bienvenida a Aprueba tu examen!\n\n{opening}\n\n{charge}\n{cancel}\n\n"
-        "El pago lo procesa Mercado Pago; nosotros no recibimos los datos de tu tarjeta.\n"
-        "Las evaluaciones son orientativas y no garantizan la aprobación del examen."
+    return compose(
+        to=to,
+        subject=subject,
+        heading="¡Te damos la bienvenida a Aprueba tu examen!",
+        paragraphs=[
+            opening,
+            charge,
+            "El pago lo procesa Mercado Pago; nosotros no recibimos los datos de tu tarjeta.",
+        ],
+        action=Action("Ir a estudiar", f"{frontend_base_url}/panel"),
+        note=cancel,
+        frontend_base_url=frontend_base_url,
     )
-    return EmailMessage(to=to, subject=subject, body=body)
