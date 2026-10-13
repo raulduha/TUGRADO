@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/app-header";
+import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
 import { Icon, type IconName } from "@/components/illustrations";
-import { api, type Me, type Subscription } from "@/lib/api";
+import { api, formatDate, type Me, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
@@ -36,7 +37,7 @@ const STATS: Array<{ icon: IconName; label: string }> = [
 export default function PanelPage() {
   const router = useRouter();
   const { me, setMe, error: userError } = useRequireUser("/panel");
-  const [hasAccess, setHasAccess] = useState(false);
+  const [sub, setSub] = useState<Subscription | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Sin acceso (suscripción, cortesía o administrador) no se entra al panel: primero la prueba
@@ -49,9 +50,9 @@ export default function PanelPage() {
       if (!result.ok) {
         if (result.status !== 401) setError(result.error.message);
       } else if (result.data.has_access) {
-        setHasAccess(true);
+        setSub(result.data);
       } else {
-        setHasAccess(false);
+        setSub(null);
         router.replace("/suscripcion");
       }
     });
@@ -67,7 +68,7 @@ export default function PanelPage() {
     <div className="flex flex-1 flex-col">
       <AppHeader me={me} onLoggedOut={() => {
           setMe(null);
-          setHasAccess(false);
+          setSub(null);
         }} />
 
       {/* pb-28: espacio para el botón flotante de comentarios. */}
@@ -76,7 +77,7 @@ export default function PanelPage() {
           <p role="alert" className="text-danger">
             {userError ?? error}
           </p>
-        ) : !me || !hasAccess ? (
+        ) : !me || !sub ? (
           <p role="status" className="text-muted">
             Cargando tu panel…
           </p>
@@ -126,6 +127,8 @@ export default function PanelPage() {
                 ))}
               </ol>
             </section>
+
+            <SubscriptionCard sub={sub} />
 
             <section aria-labelledby="progreso">
               <h2 id="progreso" className="text-xl font-semibold tracking-tight">
@@ -179,5 +182,34 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
         <p className="text-sm text-muted">{label}</p>
       </div>
     </div>
+  );
+}
+
+/** Acceso directo para administrar o cancelar la suscripción desde el panel. */
+function SubscriptionCard({ sub }: { sub: Subscription }) {
+  const active = sub.status === "authorized";
+  return (
+    <section
+      aria-labelledby="suscripcion"
+      className="flex flex-col gap-4 rounded-3xl border border-line bg-surface p-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h2 id="suscripcion" className="text-xl font-semibold tracking-tight">
+          Tu suscripción
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          {active
+            ? sub.next_payment_date
+              ? `Activa. Próximo cobro: ${formatDate(sub.next_payment_date)}.`
+              : "Activa."
+            : "Tienes acceso sin suscripción."}
+        </p>
+      </div>
+      {active ? (
+        <ButtonLink href="/suscripcion" variant="secondary" className="flex-none">
+          Administrar o cancelar
+        </ButtonLink>
+      ) : null}
+    </section>
   );
 }

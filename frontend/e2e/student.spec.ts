@@ -131,7 +131,8 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await expect(page.getByText("¡Listo! Tu suscripción está activa.")).toBeVisible();
   await page.getByRole("link", { name: "Ir a mi panel" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "¡Hola! Qué bueno verte" })).toBeVisible();
-  await page.getByRole("link", { name: "Suscripción" }).click();
+  await expect(page.getByRole("region", { name: "Tu suscripción" })).toBeVisible();
+  await page.getByRole("link", { name: "Administrar o cancelar" }).click();
 
   await expect(page.getByText("Tu suscripción está activa.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Cancelar suscripción" }).click();
