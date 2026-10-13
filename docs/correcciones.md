@@ -127,3 +127,10 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Confirmado con la API de prueba: la prueba gratis de 7 días se acepta (`free_trial` en días; primer cobro desplazado 7 días).
 - Al quedar activa la suscripción se envía un correo de confirmación a la cuenta (no al correo de Mercado Pago): con prueba gratis indica la fecha del primer cobro y que cancelar antes evita el cobro; Mercado Pago envía además su propio comprobante.
 - La pantalla de suscripción consulta a Mercado Pago si hay un pago pendiente, para activarlo aunque el webhook no llegue.
+
+## Q. Mapa de estudio y Apruvi (2026-10-13)
+
+- Pedido del usuario: reemplazar la ruta genérica del panel por un mapa de estudio tipo juego 2D, con una mascota propia, "Apruvi", que habla en cada nivel, avanza por el mapa y respira con naturalidad.
+- Los niveles siguen el recorrido de las specs (materias, plan, práctica, simulación oral, refuerzo adaptativo, simulacro, examen). Solo el primero, la cuenta, aparece completado; los demás dicen "Próximamente" hasta que existan. Los mensajes de Apruvi no prometen aprobar el examen.
+- Las animaciones se desactivan con `prefers-reduced-motion`.
+

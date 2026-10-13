@@ -105,6 +105,8 @@ const ICON_PATHS = {
   clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 7v5l3 2",
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   lock: "M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3",
+  cap: "M12 4 2 9l10 5 10-5-10-5ZM6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v5",
+  repeat: "M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;
