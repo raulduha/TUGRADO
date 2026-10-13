@@ -95,8 +95,15 @@ async def mercadopago_webhook(
     try:
         verify(x_signature, x_request_id, data_id, secret.get_secret_value())
     except InvalidSignature as exc:
-        # Sin datos sensibles en el log: solo el motivo y el id de la solicitud.
-        logger.warning("Webhook rechazado (%s), request_id=%s", exc, x_request_id)
+        # Sin la clave en el log: el motivo y los datos firmados (públicos) para diagnosticar
+        # una clave equivocada.
+        logger.warning(
+            "Webhook rechazado (%s), request_id=%s data_id=%s x_signature=%s",
+            exc,
+            x_request_id,
+            data_id,
+            x_signature,
+        )
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             detail={"code": "invalid_signature", "message": "Firma inválida"},
