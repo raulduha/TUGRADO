@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ButtonLink } from "@/components/button";
+import { LegalLinks } from "@/components/legal-page";
 import { HeroIllustration, Icon, type IconName, Logo } from "@/components/illustrations";
 
 const ROUTE: Array<{ icon: IconName; title: string; text: string }> = [
@@ -94,9 +95,12 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="mx-auto w-full max-w-6xl px-4 py-8 text-xs text-muted">
-        Las evaluaciones son orientativas: no son una calificación oficial ni garantizan la
-        aprobación del examen.
+      <footer className="mx-auto w-full max-w-6xl space-y-2 px-4 py-8 text-xs text-muted">
+        <p>
+          Las evaluaciones son orientativas: no son una calificación oficial ni garantizan la
+          aprobación del examen.
+        </p>
+        <LegalLinks />
       </footer>
     </div>
   );

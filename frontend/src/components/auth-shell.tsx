@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Icon, Logo, PathIllustration } from "@/components/illustrations";
+import { LegalLinks } from "@/components/legal-page";
 
 const BENEFITS = [
   "Preguntas revisadas por personas, con su explicación",
@@ -64,6 +65,7 @@ export function AuthShell({
             <div className="mt-6">{children}</div>
           </div>
           {footer ? <div className="mt-6 text-center text-sm text-muted">{footer}</div> : null}
+          <LegalLinks className="mt-8 justify-center text-muted" />
         </div>
       </main>
     </div>

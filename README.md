@@ -42,6 +42,7 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - Almacenamiento temporal de importaciones: Vercel Blob. Cola de tareas: tabla en PostgreSQL (Neon) detrás de una interfaz.
 - Backend FastAPI en Render (Docker); frontend en Vercel. Dominio: apruebatuexamen.cl (comprado en NIC Chile; DNS delegado a Vercel). El frontend reenvía `/api` al backend de Render.
 - Correo (verificación y recuperación de cuenta): Resend, remitente `no-reply@apruebatuexamen.cl` (DKIM, SPF y DMARC en el DNS de Vercel). En desarrollo se imprime en consola; en producción el envío real es obligatorio.
+- Propietario del producto: proda.cl.
 - Marca visible: "Aprueba tu examen" (dominio apruebatuexamen.cl). El nombre no constituye una garantía: se mantiene visible que las evaluaciones son orientativas y no garantizan la aprobación.
 - Observabilidad: OpenTelemetry, sin datos personales ni audio en logs.
 - Entorno local de desarrollo: Docker para PostgreSQL y backend.

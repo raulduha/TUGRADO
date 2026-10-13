@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Alert } from "@/components/alert";
@@ -58,6 +59,17 @@ export function RegisterForm() {
         hint="Mínimo 12 caracteres. Puedes usar una frase; evita contraseñas comunes."
         error={passwordError}
       />
+      <p className="text-xs text-muted">
+        Al crear tu cuenta aceptas los{" "}
+        <Link href="/terminos" className="font-medium text-brand underline-offset-4 hover:underline">
+          Términos
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacidad" className="font-medium text-brand underline-offset-4 hover:underline">
+          Política de privacidad
+        </Link>
+        .
+      </p>
       <SubmitButton pending={pending}>Crear cuenta</SubmitButton>
     </form>
   );
