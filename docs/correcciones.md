@@ -134,3 +134,8 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Los niveles siguen el recorrido de las specs (materias, plan, práctica, simulación oral, refuerzo adaptativo, simulacro, examen). Solo el primero, la cuenta, aparece completado; los demás dicen "Próximamente" hasta que existan. Los mensajes de Apruvi no prometen aprobar el examen.
 - Las animaciones se desactivan con `prefers-reduced-motion`.
 
+## R. Rachas (2026-10-13)
+
+- Pedido del usuario: rachas con fueguito, celebración por conectarse a diario y un correo de ánimo tras un par de días sin entrar.
+- Hecho: registro diario idempotente (`ActivityDay`), racha actual y mejor racha, los últimos 7 días y celebración con Apruvi en la primera visita del día (FR-033, AC-042). "Días seguidos estudiando" pasó a la tarjeta "Tu racha".
+- Pendiente: el correo de ánimo. Necesita una tarea programada y una forma de darse de baja; el mensaje anima sin prometer la aprobación.

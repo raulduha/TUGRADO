@@ -36,6 +36,7 @@ Este modelo es lógico y no prescribe todavía un motor de base de datos.
 - **UserFeedback**: comentario general sobre la aplicación: usuario, tipo (`suggestion`, `problem`, `other`), mensaje, página de origen y fecha. Solo lectura para administradores.
 - **Subscription**: suscripción de un estudiante: identificador en Mercado Pago (`preapproval`), correo de la cuenta de Mercado Pago que paga, estado, monto y moneda, días de prueba, enlace de pago, próxima fecha de cobro y fechas. Estados según Mercado Pago: `pending`, `authorized`, `paused`, `cancelled`.
 - **BillingEvent**: registro de solo adición de cada cambio de estado de una suscripción y su origen (webhook, retorno del pago, cancelación).
+- **ActivityDay**: día (hora de Chile) en que un estudiante entró al panel; uno por estudiante y día. Sirve para calcular rachas.
 - **AccessGrant**: acceso de cortesía sin suscripción: cuenta, motivo, quién lo otorgó, fecha y, si se revocó, fecha de revocación. A lo más uno vigente por cuenta; no se borra al revocarse.
 
 ## Estados sugeridos

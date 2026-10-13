@@ -33,6 +33,13 @@ test("un estudiante se registra, entra al panel, comenta y cierra sesión", asyn
   // Panel
   await expect(page).toHaveURL(/\/panel$/);
   await expect(page.getByRole("heading", { level: 1, name: "¡Hola! Qué bueno verte" })).toBeVisible();
+  // Primera visita del día: Apruvi celebra el inicio de la racha.
+  const celebration = page.getByRole("dialog", { name: "¡Racha iniciada!" });
+  await expect(celebration).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("celebracion.png") });
+  await celebration.getByRole("button", { name: "¡Vamos!" }).click();
+  await expect(celebration).toBeHidden();
+  await expect(page.getByRole("region", { name: "Tu racha" })).toContainText("1 día seguido");
   await expect(page.getByText(`${email} · Estudiante`)).toBeVisible();
   await expect(page.getByRole("img", { name: "Mapa completado al 13 %" })).toBeVisible();
   const map = page.getByRole("region", { name: "Tu mapa de estudio" });
@@ -41,7 +48,7 @@ test("un estudiante se registra, entra al panel, comenta y cierra sesión", asyn
   // Apruvi comenta el nivel que se toca.
   await map.getByRole("button", { name: /^Nivel 5:/ }).click();
   await expect(map.getByText("Apruvi · Nivel 5: Tu primera simulación oral")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Tu progreso" }).getByRole("listitem")).toHaveCount(4);
+  await expect(page.getByRole("region", { name: "Tu progreso" }).getByRole("listitem")).toHaveCount(3);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
@@ -138,6 +145,7 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await expect(page.getByText("¡Listo! Tu suscripción está activa.")).toBeVisible();
   await page.getByRole("link", { name: "Ir a mi panel" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "¡Hola! Qué bueno verte" })).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", { name: "¡Vamos!" }).click();
   await expect(page.getByRole("region", { name: "Tu suscripción" })).toBeVisible();
   await page.getByRole("link", { name: "Administrar o cancelar" }).click();
 
