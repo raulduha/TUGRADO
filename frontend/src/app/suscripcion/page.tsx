@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
-import { buttonStyles } from "@/components/button";
+import { ButtonLink, buttonStyles } from "@/components/button";
 import { Icon } from "@/components/illustrations";
 import { api, formatClp, formatDate, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
@@ -205,15 +205,30 @@ function StatusPanel({
   return (
     <div className="space-y-3">
       {sub.has_access ? (
-        <Alert tone="info">Tienes acceso como administrador; no necesitas suscripción.</Alert>
-      ) : null}
-      <button type="button" onClick={onSubscribe} disabled={busy} className={`w-full ${buttonStyles.primary}`}>
-        {busy
-          ? "Redirigiendo a Mercado Pago…"
-          : sub.trial_days > 0
-            ? `Comenzar ${sub.trial_days} días gratis`
-            : "Suscribirme"}
-      </button>
+        <>
+          <Alert tone="info">
+            Tu cuenta ya tiene acceso sin suscripción (administrador o cuenta autorizada por el
+            equipo).
+          </Alert>
+          <ButtonLink href="/panel" className="w-full">
+            Ir a mi panel
+          </ButtonLink>
+        </>
+      ) : (
+        <p className="text-sm text-muted">
+          Para empezar a estudiar, activa tu prueba gratis. Mercado Pago te pedirá un medio de
+          pago; puedes cancelar desde aquí antes de que termine la prueba.
+        </p>
+      )}
+      {sub.has_access ? null : (
+        <button type="button" onClick={onSubscribe} disabled={busy} className={`w-full ${buttonStyles.primary}`}>
+          {busy
+            ? "Redirigiendo a Mercado Pago…"
+            : sub.trial_days > 0
+              ? `Comenzar ${sub.trial_days} días gratis`
+              : "Suscribirme"}
+        </button>
+      )}
     </div>
   );
 }

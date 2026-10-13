@@ -1,4 +1,4 @@
-"""Reglas de la suscripción (FR-029 a FR-031, AC-038, AC-039, Gate 11b).
+"""Reglas de la suscripción (FR-029 a FR-032, AC-038, AC-039, Gate 11b).
 
 El estado local solo cambia con datos obtenidos de la API del proveedor; nunca con el
 contenido de una notificación ni con parámetros de la URL de retorno.
@@ -19,6 +19,7 @@ from app.errors import AppError
 from app.persistence.auth_models import Role, UserAccountRow
 from app.persistence.billing_models import (
     OPEN_STATUSES,
+    AccessGrantRow,
     BillingEventRow,
     SubscriptionRow,
     SubscriptionStatus,
@@ -80,11 +81,18 @@ class BillingService:
         )
 
     def has_access(self, user_id: uuid.UUID, roles: frozenset[Role]) -> bool:
-        if Role.ADMINISTRATOR in roles:
+        if Role.ADMINISTRATOR in roles or self.active_grant(user_id) is not None:
             return True
         row = self.open_subscription(user_id)
         # Pendiente 5 del README: tras cancelar no se conserva acceso hasta decidirlo.
         return row is not None and row.status == SubscriptionStatus.AUTHORIZED
+
+    def active_grant(self, user_id: uuid.UUID) -> AccessGrantRow | None:
+        return self.db.scalars(
+            select(AccessGrantRow).where(
+                AccessGrantRow.user_id == user_id, AccessGrantRow.revoked_at.is_(None)
+            )
+        ).first()
 
     # ------------------------------------------------------------------- comandos
 

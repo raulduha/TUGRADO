@@ -1,12 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/app-header";
-import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
 import { Icon, type IconName } from "@/components/illustrations";
-import { api, formatClp, type Me, type Subscription } from "@/lib/api";
+import { api, type Me, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
@@ -34,40 +34,54 @@ const STATS: Array<{ icon: IconName; label: string }> = [
 ];
 
 export default function PanelPage() {
-  const { me, setMe, error } = useRequireUser("/panel");
-  const [sub, setSub] = useState<Subscription | null>(null);
+  const router = useRouter();
+  const { me, setMe, error: userError } = useRequireUser("/panel");
+  const [hasAccess, setHasAccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Sin acceso (suscripción, cortesía o administrador) no se entra al panel: primero la prueba
+  // gratis. Cada vez que el panel se muestra se consulta de nuevo al backend, que decide.
   useEffect(() => {
     if (!me) return;
     let cancelled = false;
     api<Subscription>("/billing/subscription").then((result) => {
-      if (!cancelled && result.ok) setSub(result.data);
+      if (cancelled) return;
+      if (!result.ok) {
+        if (result.status !== 401) setError(result.error.message);
+      } else if (result.data.has_access) {
+        setHasAccess(true);
+      } else {
+        setHasAccess(false);
+        router.replace("/suscripcion");
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [me]);
+  }, [me, router]);
 
   const done = ROUTE.filter((step) => step.done).length;
   const percent = Math.round((done / ROUTE.length) * 100);
 
   return (
     <div className="flex flex-1 flex-col">
-      <AppHeader me={me} onLoggedOut={() => setMe(null)} />
+      <AppHeader me={me} onLoggedOut={() => {
+          setMe(null);
+          setHasAccess(false);
+        }} />
 
       {/* pb-28: espacio para el botón flotante de comentarios. */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-8">
-        {error ? (
+        {userError || error ? (
           <p role="alert" className="text-danger">
-            {error}
+            {userError ?? error}
           </p>
-        ) : !me ? (
+        ) : !me || !hasAccess ? (
           <p role="status" className="text-muted">
             Cargando tu panel…
           </p>
         ) : (
           <div className="space-y-10">
-            {sub && !sub.has_access ? <SubscriptionBanner sub={sub} /> : null}
             <section className="flex flex-col gap-6 rounded-3xl bg-gradient-to-br from-brand-soft to-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">¡Hola! Qué bueno verte</h1>
@@ -165,30 +179,5 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
         <p className="text-sm text-muted">{label}</p>
       </div>
     </div>
-  );
-}
-
-function SubscriptionBanner({ sub }: { sub: Subscription }) {
-  const pending = sub.status === "pending";
-  return (
-    <section className="flex flex-col gap-4 rounded-3xl border border-brand/30 bg-surface p-6 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-brand-soft text-brand">
-          <Icon name="lock" />
-        </span>
-        <div>
-          <p className="font-semibold">
-            {pending ? "Completa tu suscripción" : "Activa tu suscripción para estudiar"}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {sub.trial_days > 0 ? `${sub.trial_days} días gratis, luego ` : ""}
-            {formatClp(sub.amount_clp)} al mes. Cancela cuando quieras.
-          </p>
-        </div>
-      </div>
-      <ButtonLink href="/suscripcion" className="flex-none">
-        {pending ? "Ver estado del pago" : "Ver plan"}
-      </ButtonLink>
-    </section>
   );
 }

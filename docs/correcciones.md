@@ -112,3 +112,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Pedido del usuario: ingresar con Google. Decisiones (recomendadas y aceptadas): se vincula automáticamente con la cuenta existente si Google declara el correo verificado, y se mantiene el registro con correo y contraseña.
 - Flujo OpenID Connect con código de autorización, PKCE, `state` y `nonce`; el `id_token` se valida con las claves públicas de Google (firma, emisor, audiencia y vencimiento).
 - Se añadieron FR-001b, AC-040 y la entidad `UserIdentity`.
+
+## O. Prueba gratis obligatoria y acceso de cortesía (2026-10-13)
+
+- Pedido del usuario: al crear la cuenta hay que ingresar la tarjeta (prueba gratis de 7 días en Mercado Pago) para entrar; sin eso no se ve el panel. Cambia la decisión de la séptima ronda, en la que el panel era visible sin suscripción.
+- Las cuentas que autorice el equipo (pruebas, desarrollo) pueden entrar sin pagar: acceso de cortesía otorgado desde el CLI con motivo y responsable, revocable sin borrar el registro.
+- Por validar en el entorno de prueba de Mercado Pago: que la prueba gratis pida el medio de pago y no cobre durante los 7 días.
+- Se añadieron FR-032, AC-041 y la entidad `AccessGrant`; se ajustaron FR-030 y AC-038.
+

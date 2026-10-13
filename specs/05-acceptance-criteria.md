@@ -114,10 +114,13 @@ Un estudiante puede registrarse con correo y contraseña; la cuenta no puede usa
 Con sesión iniciada, el usuario puede enviar un comentario con tipo y mensaje de 1 a 2.000 caracteres desde el panel, y recibe una confirmación. Sin sesión, la operación se rechaza. Solo un administrador puede listar los comentarios; un estudiante no puede leer los de nadie.
 
 ## AC-038 — Suscripción
-Un estudiante sin suscripción puede iniciar una y es redirigido a Mercado Pago; la aplicación no recibe datos de tarjeta. Una solicitud repetida no crea suscripciones duplicadas. Solo una suscripción `authorized` da acceso al estudio; los administradores tienen acceso sin suscripción.
+Un estudiante sin suscripción puede iniciar una y es redirigido a Mercado Pago; la aplicación no recibe datos de tarjeta. Una solicitud repetida no crea suscripciones duplicadas. Solo una suscripción `authorized` da acceso al estudio; los administradores tienen acceso sin suscripción. Un estudiante sin acceso que inicia sesión es llevado a la suscripción y no ve el panel.
 
 ## AC-039 — Notificaciones de pago
 Una notificación sin firma válida se rechaza y no cambia el estado. Una notificación válida no se usa como dato: el backend consulta el estado en Mercado Pago y lo registra. Las notificaciones repetidas no duplican cambios. El simulador de pagos no puede activarse en producción.
 
 ## AC-040 — Ingreso con Google
 Un usuario puede ingresar con Google; si su correo verificado ya tiene cuenta, entra a esa misma cuenta, y si no, se crea una cuenta de estudiante. Se rechazan las respuestas con `state` o `nonce` que no coinciden, códigos inválidos y correos no verificados por Google. El registro con correo y contraseña sigue disponible.
+
+## AC-041 — Acceso de cortesía
+Una cuenta con acceso de cortesía vigente entra al panel y al estudio sin suscripción. Otorgarlo exige una cuenta existente, motivo y responsable; repetirlo no crea un segundo acceso. Al revocarlo la cuenta pierde el acceso y el registro se conserva con su fecha de revocación.
