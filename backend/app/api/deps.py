@@ -10,6 +10,7 @@ from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.auth.email import ConsoleEmailSender, EmailSender, ResendEmailSender
+from app.auth.google import GoogleOAuth, GoogleProvider
 from app.auth.service import AuthenticatedUser, AuthService
 from app.billing.gateway import FakeGateway, MercadoPagoGateway, SubscriptionGateway
 from app.billing.service import BillingPlan, BillingService
@@ -143,3 +144,20 @@ def subscribed_user(
 
 
 SubscribedUser = Annotated[AuthenticatedUser, Depends(subscribed_user)]
+
+
+# --------------------------------------------------------------- ingreso con Google
+
+
+@lru_cache
+def _google_for(client_id: str, client_secret: str) -> GoogleProvider:
+    return GoogleOAuth(client_id, client_secret)
+
+
+def get_google_provider(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> GoogleProvider | None:
+    if not settings.google_enabled or settings.google_client_secret is None:
+        return None
+    assert settings.google_client_id is not None
+    return _google_for(settings.google_client_id, settings.google_client_secret.get_secret_value())

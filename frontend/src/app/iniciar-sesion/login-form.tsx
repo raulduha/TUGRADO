@@ -6,6 +6,7 @@ import { useActionState, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { Field } from "@/components/field";
+import { GoogleButton } from "@/components/google-button";
 import { SubmitButton } from "@/components/submit-button";
 import { api } from "@/lib/api";
 import { safeNext } from "@/lib/navigation";
@@ -16,7 +17,8 @@ type State =
 
 export function LoginForm() {
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"));
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get("next"));
   // La redirección ocurre en el envío y el estado vuelve a "idle": con Cache Components la
   // página se conserva (Activity) y un estado "éxito" guardado redirigiría otra vez al volver.
   const [state, action, pending] = useActionState(
@@ -34,9 +36,16 @@ export function LoginForm() {
   );
 
   const email = state.status === "error" ? state.email : undefined;
+  const googleFailed = searchParams.get("error") === "google";
 
   return (
     <form action={action} className="space-y-5">
+      <GoogleButton next={next} />
+      {googleFailed && state.status === "idle" ? (
+        <Alert tone="error">
+          No pudimos completar el ingreso con Google. Inténtalo de nuevo o usa tu correo.
+        </Alert>
+      ) : null}
       {state.status === "error" ? (
         <Alert tone="error">
           <p>{state.message}</p>

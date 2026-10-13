@@ -4,7 +4,15 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,7 +35,8 @@ class UserAccountRow(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Se guarda normalizado (minúsculas, sin espacios) para que la unicidad no dependa del caso.
     email: Mapped[str] = mapped_column(String(320), unique=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
+    # None: cuenta creada con Google, sin contraseña (puede definirla con la recuperación).
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Bloqueo temporal por intentos fallidos.
     failed_login_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -94,3 +103,23 @@ class EmailTokenRow(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (enum_check("purpose", EmailTokenPurpose, "purpose_valid"),)
+
+
+class UserIdentityRow(Base):
+    """Identidad externa vinculada a una cuenta (FR-001b)."""
+
+    __tablename__ = "user_identity"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(20))
+    # Identificador estable del usuario en el proveedor (`sub`); el correo puede cambiar.
+    subject: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(320))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("provider", "subject", name="uq_user_identity_provider_subject"),
+    )
