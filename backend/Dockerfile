@@ -20,5 +20,6 @@ RUN useradd --create-home --uid 1000 app
 USER app
 
 EXPOSE 8000
-# Render (y otros) asignan el puerto con $PORT; en local se usa 8000.
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+# Producción: start.sh aplica las migraciones y arranca la API en $PORT (8000 en local).
+# En desarrollo, docker-compose reemplaza este comando por uvicorn con recarga.
+CMD ["sh", "start.sh"]
