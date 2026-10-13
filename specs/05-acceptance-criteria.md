@@ -112,3 +112,9 @@ Un estudiante puede registrarse con correo y contraseña; la cuenta no puede usa
 
 ## AC-037 — Comentarios de usuarios
 Con sesión iniciada, el usuario puede enviar un comentario con tipo y mensaje de 1 a 2.000 caracteres desde el panel, y recibe una confirmación. Sin sesión, la operación se rechaza. Solo un administrador puede listar los comentarios; un estudiante no puede leer los de nadie.
+
+## AC-038 — Suscripción
+Un estudiante sin suscripción puede iniciar una y es redirigido a Mercado Pago; la aplicación no recibe datos de tarjeta. Una solicitud repetida no crea suscripciones duplicadas. Solo una suscripción `authorized` da acceso al estudio; los administradores tienen acceso sin suscripción.
+
+## AC-039 — Notificaciones de pago
+Una notificación sin firma válida se rechaza y no cambia el estado. Una notificación válida no se usa como dato: el backend consulta el estado en Mercado Pago y lo registra. Las notificaciones repetidas no duplican cambios. El simulador de pagos no puede activarse en producción.

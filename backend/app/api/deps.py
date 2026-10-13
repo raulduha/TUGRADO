@@ -9,8 +9,10 @@ from typing import Annotated
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth.email import ConsoleEmailSender, EmailSender
+from app.auth.email import ConsoleEmailSender, EmailSender, ResendEmailSender
 from app.auth.service import AuthenticatedUser, AuthService
+from app.billing.gateway import FakeGateway, MercadoPagoGateway, SubscriptionGateway
+from app.billing.service import BillingPlan, BillingService
 from app.clock import utc_now
 from app.config import Settings, get_settings
 from app.db import get_db
@@ -24,9 +26,18 @@ def get_clock() -> Callable[[], datetime]:
 
 
 @lru_cache
-def get_email_sender() -> EmailSender:
-    # Proveedor de producción pendiente (README): por ahora solo consola.
+def _email_sender_for(provider: str, api_key: str | None, from_address: str) -> EmailSender:
+    if provider == "resend":
+        assert api_key is not None
+        return ResendEmailSender(api_key, from_address)
     return ConsoleEmailSender()
+
+
+def get_email_sender(settings: Annotated[Settings, Depends(get_settings)]) -> EmailSender:
+    key = settings.resend_api_key
+    return _email_sender_for(
+        settings.email_provider, key.get_secret_value() if key else None, settings.email_from
+    )
 
 
 def get_auth_service(
@@ -73,3 +84,62 @@ def require_role(role: Role) -> Callable[[AuthenticatedUser], AuthenticatedUser]
 
 CurrentUser = Annotated[AuthenticatedUser, Depends(current_user)]
 AdminUser = Annotated[AuthenticatedUser, Depends(require_role(Role.ADMINISTRATOR))]
+
+
+# ------------------------------------------------------------------ suscripción
+
+
+@lru_cache
+def _gateway_for(provider: str, access_token: str | None, frontend: str) -> SubscriptionGateway:
+    if provider == "mercadopago":
+        assert access_token is not None
+        return MercadoPagoGateway(access_token)
+    return FakeGateway(frontend)
+
+
+def get_subscription_gateway(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> SubscriptionGateway:
+    token = settings.mercadopago_access_token
+    return _gateway_for(
+        settings.billing_provider,
+        token.get_secret_value() if token else None,
+        settings.frontend_base_url,
+    )
+
+
+def get_billing_service(
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+    gateway: Annotated[SubscriptionGateway, Depends(get_subscription_gateway)],
+) -> BillingService:
+    return BillingService(
+        db=db,
+        gateway=gateway,
+        plan=BillingPlan(
+            amount_clp=settings.billing_monthly_price_clp, trial_days=settings.billing_trial_days
+        ),
+        clock=clock,
+        provider_name=settings.billing_provider,
+        frontend_base_url=settings.frontend_base_url,
+    )
+
+
+def subscribed_user(
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+    billing: Annotated[BillingService, Depends(get_billing_service)],
+) -> AuthenticatedUser:
+    """Usuario con acceso al estudio: suscripción activa, o administrador (FR-030)."""
+    if not billing.has_access(user.id, user.roles):
+        raise HTTPException(
+            status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "code": "subscription_required",
+                "message": "Necesitas una suscripción activa para usar esta función",
+            },
+        )
+    return user
+
+
+SubscribedUser = Annotated[AuthenticatedUser, Depends(subscribed_user)]

@@ -321,3 +321,19 @@ def test_sin_sesion_no_hay_acceso(protected_api):
     response = protected_api.get("/solo-estudiante")
     assert response.status_code == 401
     assert code(response) == "not_authenticated"
+
+
+def test_si_el_correo_falla_el_registro_igual_responde_y_se_puede_reenviar(api, outbox, engine):
+    from app.auth.email import EmailDeliveryError
+
+    original = outbox.send
+    outbox.send = lambda message: (_ for _ in ()).throw(EmailDeliveryError("caído"))
+    response = register(api)
+    assert response.status_code == 202
+    with Session(engine) as db:
+        assert db.scalars(select(UserAccountRow)).one().email == EMAIL
+
+    outbox.send = original
+    assert api.post("/auth/resend-verification", json={"email": EMAIL}).status_code == 202
+    verify = api.post("/auth/verify-email", json={"token": outbox.last_token(EMAIL)})
+    assert verify.status_code == 204

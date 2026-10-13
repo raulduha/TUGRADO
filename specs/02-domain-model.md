@@ -33,6 +33,8 @@ Este modelo es lógico y no prescribe todavía un motor de base de datos.
 - **StudyTask**: actividad planificada, materia/subtema, fecha, estado, prioridad y sesión vinculada cuando corresponda.
 - **AIUsageRecord**: función, proveedor/modelo, consumo medible, usuario/sesión cuando corresponda, fecha y estimación de costo si está disponible.
 - **UserFeedback**: comentario general sobre la aplicación: usuario, tipo (`suggestion`, `problem`, `other`), mensaje, página de origen y fecha. Solo lectura para administradores.
+- **Subscription**: suscripción de un estudiante: identificador en Mercado Pago (`preapproval`), estado, monto y moneda, días de prueba, enlace de pago, próxima fecha de cobro y fechas. Estados según Mercado Pago: `pending`, `authorized`, `paused`, `cancelled`.
+- **BillingEvent**: registro de solo adición de cada cambio de estado de una suscripción y su origen (webhook, retorno del pago, cancelación).
 
 ## Estados sugeridos
 

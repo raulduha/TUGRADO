@@ -132,3 +132,14 @@ Las decisiones sobre autorización, temporizadores, publicación, estado de sesi
 
 ### FR-028 — Casilla de comentarios
 Un usuario con sesión iniciada puede enviar comentarios sobre la aplicación desde un botón visible en el panel: tipo (`suggestion`, `problem` u `other`) y un mensaje de hasta 2.000 caracteres. Se guardan con el usuario, la página desde la que se envió y la fecha. Solo un administrador puede consultarlos. Los comentarios no sustituyen el reporte de preguntas o evaluaciones (FR-016), que conserva la versión de contenido y el intento asociado. Se conservan conforme a la política general de retención (12 meses).
+
+## 12. Suscripción y pagos
+
+### FR-029 — Suscripción mensual
+El estudiante puede suscribirse desde la aplicación a un plan mensual de $9.990 CLP con 7 días de prueba gratis (valores configurables). El backend crea la suscripción en Mercado Pago y redirige al estudiante a la página de pago de Mercado Pago. La aplicación nunca recibe, procesa ni guarda datos de tarjeta.
+
+### FR-030 — Estado y acceso
+El backend es la fuente de verdad del acceso. El estado local de la suscripción se actualiza solo consultando la API de Mercado Pago: tras una notificación webhook con firma válida o cuando el estudiante vuelve de la página de pago. Nunca se confía en el contenido de una notificación ni en parámetros de la URL de retorno. El estudiante tiene acceso al estudio mientras la suscripción está `authorized` (incluida la prueba gratis). Los administradores no requieren suscripción. Cada cambio de estado queda registrado.
+
+### FR-031 — Cancelación
+El estudiante puede cancelar su suscripción desde la aplicación; el backend la cancela en Mercado Pago. El acceso tras la cancelación queda pendiente de decisión (README, punto 5).

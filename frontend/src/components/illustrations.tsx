@@ -24,7 +24,7 @@ export function Logo({ className = "" }: Props) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <LogoMark className="h-8 w-8" />
-      <span className="text-lg font-semibold tracking-tight">TUGRADO</span>
+      <span className="text-lg font-semibold tracking-tight">Aprueba tu examen</span>
     </span>
   );
 }

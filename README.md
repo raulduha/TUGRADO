@@ -30,6 +30,7 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - Escala 1 a 7: cada criterio se puntúa de 0 a 100, se pondera según la rúbrica y el total se convierte linealmente a 1,0–7,0 con un decimal.
 - Eliminación a solicitud: el estudiante la pide desde su perfil y se borran transcripciones y resultados en un máximo de 30 días, conservando solo un registro de auditoría sin contenido.
 - La interfaz debe ser responsive desde la primera versión.
+- Suscripción mensual con Mercado Pago ("Suscripciones sin plan asociado" con pago pendiente): $9.990 CLP al mes, con 7 días de prueba gratis. El estudiante paga en la página de Mercado Pago; la aplicación nunca recibe ni guarda datos de tarjeta. Sin suscripción activa, el estudiante solo puede usar su cuenta, ver el panel, suscribirse y enviar comentarios; todo el estudio (práctica, simulación y plan) requiere suscripción. Los administradores no requieren suscripción. Precio y días de prueba son configuración.
 
 **Stack e infraestructura**
 
@@ -39,8 +40,9 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - Autenticación propia con correo y contraseña, implementada en el backend. Sesión en cookie HttpOnly con token opaco guardado (como hash) en PostgreSQL y revocable; 7 días de inactividad o 30 días máximo. Registro abierto de estudiantes; administradores creados por consola. Verificación de correo con enlace de un solo uso de 24 h. Bloqueo temporal de 15 min tras 10 intentos fallidos en 15 min.
 - Hosting del frontend: Vercel. Base de datos: Neon (PostgreSQL con pgvector).
 - Almacenamiento temporal de importaciones: Vercel Blob. Cola de tareas: tabla en PostgreSQL (Neon) detrás de una interfaz.
-- Backend FastAPI: por ahora solo en local con Docker; el hosting de producción queda pendiente.
-- Correo (verificación y recuperación de cuenta): en desarrollo se imprime en consola; el proveedor de producción queda pendiente.
+- Backend FastAPI en Render (Docker); frontend en Vercel. Dominio: apruebatuexamen.cl (comprado en NIC Chile; DNS delegado a Vercel). El frontend reenvía `/api` al backend de Render.
+- Correo (verificación y recuperación de cuenta): Resend, remitente `no-reply@apruebatuexamen.cl` (DKIM, SPF y DMARC en el DNS de Vercel). En desarrollo se imprime en consola; en producción el envío real es obligatorio.
+- Marca visible: "Aprueba tu examen" (dominio apruebatuexamen.cl). El nombre no constituye una garantía: se mantiene visible que las evaluaciones son orientativas y no garantizan la aprobación.
 - Observabilidad: OpenTelemetry, sin datos personales ni audio en logs.
 - Entorno local de desarrollo: Docker para PostgreSQL y backend.
 - Proveedores de IA (modelo de lenguaje, transcripción, embeddings y síntesis de voz): se eligen tras una prueba de concepto. Criterio: menor costo, siempre que la calidad en respuestas jurídicas sea aceptable y se revise la retención de datos del proveedor. Mientras tanto se usan implementaciones falsas detrás de interfaces.
@@ -62,9 +64,12 @@ Nota de numeración: este paquete no incluye `specs/04-*.md` porque solo contien
 
 Lista única de decisiones abiertas. No se deben inventar valores para ellas.
 
-1. Hosting de producción del backend FastAPI (candidatos evaluados: Railway, Render). Hoy solo corre en local con Docker.
-2. Proveedor de correo transaccional de producción. En desarrollo se imprime en consola.
+1. ~~Hosting de producción del backend~~ Resuelto: Render.
+2. ~~Proveedor de correo de producción~~ Resuelto: Resend.
 3. Candidatos y proveedores concretos de IA (modelo de lenguaje, transcripción, embeddings y síntesis de voz) y el umbral de calidad aceptable que usará la prueba de concepto.
 4. Estado de un `QuestionAttempt` cuando falla la transcripción o la evaluación, y si el estudiante puede reintentar. El modelo no define un estado para ese caso. Lo único confirmado es que el reloj total se reanuda al fallar el procesamiento y que una falla técnica no se convierte en nota.
+5. Acceso tras cancelar la suscripción: si se mantiene hasta el fin del periodo pagado o termina de inmediato. Mientras no se decida, el acceso existe solo mientras Mercado Pago informa la suscripción como `authorized`.
+6. Credenciales de Mercado Pago (cuenta vendedora, credenciales de prueba y de producción) y URL pública para recibir webhooks.
+7. Obligaciones tributarias y de consumidor del cobro (boleta electrónica, derecho a retracto, reembolsos): requieren revisión con un asesor antes de cobrar.
 
 Los parámetros ya decididos (extensiones, ventana de recuperación, latido, pausa, retención, cuotas) se implementan como configuración con el valor confirmado, no como constantes en el código.

@@ -91,6 +91,14 @@ Una tarea no se considera terminada solo porque el código compila. Debe superar
 - Se aplican límites configurados de consumo y errores claros al alcanzar cuotas.
 - Se registran métricas de uso disponibles sin guardar datos personales innecesarios.
 
+## Gate 11b — Pagos
+
+- Se verifica la firma de las notificaciones (HMAC del encabezado `x-signature`) y se rechazan las inválidas.
+- El estado se obtiene de la API del proveedor, no del contenido de la notificación ni de la URL de retorno.
+- No se reciben, registran ni guardan datos de tarjeta; las credenciales no aparecen en logs.
+- Las solicitudes y notificaciones duplicadas son idempotentes.
+- El acceso al estudio se autoriza en backend según el estado de la suscripción.
+
 ## Gate 12 — Verificación final
 
 - Ejecuta las pruebas relacionadas y registra los resultados reales.
