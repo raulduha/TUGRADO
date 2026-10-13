@@ -14,6 +14,8 @@ class EmailMessage:
     to: str
     subject: str
     body: str
+    # Versión HTML opcional; `body` es siempre la versión de texto plano.
+    html: str | None = None
 
 
 class EmailSender(Protocol):
@@ -53,6 +55,8 @@ class ResendEmailSender:
             "subject": message.subject,
             "text": message.body,
         }
+        if message.html:
+            body["html"] = message.html
         try:
             response = self._client.post("/emails", json=body, headers=self._headers)
         except httpx.HTTPError as exc:

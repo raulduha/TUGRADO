@@ -21,6 +21,7 @@ from app.auth.google import GoogleIdentity
 from app.auth.passwords import hash_password, needs_rehash, validate_password, verify_password
 from app.auth.policy import AuthPolicy
 from app.auth.tokens import hash_token, new_token
+from app.email_layout import Action, compose
 from app.errors import AppError
 from app.persistence.auth_models import (
     AuthSessionRow,
@@ -77,11 +78,19 @@ class AuthService:
         existing = self._user_by_email(email)
         if existing is not None:
             # Misma respuesta que un registro nuevo; el aviso llega solo al dueño del correo.
-            self._send(
-                email,
-                "Ya tienes una cuenta en Aprueba tu examen",
-                "Alguien intentó registrarse con este correo, que ya tiene una cuenta. "
-                "Si fuiste tú, inicia sesión o recupera tu contraseña. Si no, ignora este correo.",
+            self._deliver(
+                compose(
+                    to=email,
+                    subject="Ya tienes una cuenta en Aprueba tu examen",
+                    heading="Ya tienes una cuenta",
+                    paragraphs=[
+                        "Alguien intentó registrarse con este correo, que ya tiene una cuenta.",
+                        "Si fuiste tú, inicia sesión o recupera tu contraseña.",
+                    ],
+                    action=Action("Iniciar sesión", f"{self.frontend_base_url}/iniciar-sesion"),
+                    note="Si no fuiste tú, ignora este correo.",
+                    frontend_base_url=self.frontend_base_url,
+                )
             )
             return
         user = UserAccountRow(email=email, password_hash=hash_password(password))
@@ -272,14 +281,20 @@ class AuthService:
             user, EmailTokenPurpose.RESET_PASSWORD, self.policy.password_reset_ttl
         )
         minutes = int(self.policy.password_reset_ttl.total_seconds() // 60)
-        message = EmailMessage(
+        message = compose(
             to=user.email,
             subject="Recupera tu contraseña de Aprueba tu examen",
-            body=(
-                f"Para elegir una nueva contraseña abre este enlace (válido por {minutes} minutos "
-                f"y una sola vez):\n{self.frontend_base_url}/restablecer-contrasena?token={token}"
-                "\n\nSi no lo pediste, ignora este correo."
+            heading="Elige una nueva contraseña",
+            paragraphs=[
+                "Recibimos una solicitud para cambiar la contraseña de tu cuenta.",
+                f"El enlace es válido por {minutes} minutos y se puede usar una sola vez.",
+            ],
+            action=Action(
+                "Elegir nueva contraseña",
+                f"{self.frontend_base_url}/restablecer-contrasena?token={token}",
             ),
+            note="Si no lo pediste, ignora este correo: tu contraseña no cambia.",
+            frontend_base_url=self.frontend_base_url,
         )
         # El correo sale después del commit: nunca se envía un enlace que no quedó guardado.
         self.db.commit()
@@ -320,13 +335,19 @@ class AuthService:
             user, EmailTokenPurpose.VERIFY_EMAIL, self.policy.email_verification_ttl
         )
         hours = int(self.policy.email_verification_ttl.total_seconds() // 3600)
-        return EmailMessage(
+        return compose(
             to=user.email,
             subject="Verifica tu correo en Aprueba tu examen",
-            body=(
-                f"Para activar tu cuenta abre este enlace (válido por {hours} horas y una sola "
-                f"vez):\n{self.frontend_base_url}/verificar-correo?token={token}"
+            heading="¡Qué bueno tenerte! Confirma tu correo",
+            paragraphs=[
+                "Confirma tu correo para activar tu cuenta y empezar a preparar tu examen.",
+                f"El enlace es válido por {hours} horas y se puede usar una sola vez.",
+            ],
+            action=Action(
+                "Confirmar mi correo", f"{self.frontend_base_url}/verificar-correo?token={token}"
             ),
+            note="Si no creaste una cuenta, ignora este correo.",
+            frontend_base_url=self.frontend_base_url,
         )
 
     def _issue_token(self, user: UserAccountRow, purpose: EmailTokenPurpose, ttl: timedelta) -> str:
@@ -363,9 +384,6 @@ class AuthService:
             raise AuthError("invalid_token", "El enlace no es válido o ya caducó")
         row.used_at = now
         return row
-
-    def _send(self, to: str, subject: str, body: str) -> None:
-        self._deliver(EmailMessage(to=to, subject=subject, body=body))
 
     def _deliver(self, message: EmailMessage) -> None:
         # Un fallo del proveedor no interrumpe la operación ni revela si la cuenta existe:
