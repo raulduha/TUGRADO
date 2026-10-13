@@ -41,6 +41,8 @@ class SubscriptionRow(Base):
     amount_clp: Mapped[int] = mapped_column(Integer)
     trial_days: Mapped[int] = mapped_column(Integer)
     init_point: Mapped[str | None] = mapped_column(String(500))
+    # Correo de la cuenta de Mercado Pago que paga; puede diferir del correo de la app.
+    payer_email: Mapped[str | None] = mapped_column(String(320))
     next_payment_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

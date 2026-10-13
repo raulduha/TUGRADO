@@ -120,3 +120,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Por validar en el entorno de prueba de Mercado Pago: que la prueba gratis pida el medio de pago y no cobre durante los 7 días.
 - Se añadieron FR-032, AC-041 y la entidad `AccessGrant`; se ajustaron FR-030 y AC-038.
 
+## P. Correo de la cuenta de Mercado Pago (2026-10-13)
+
+- En las pruebas, Mercado Pago rechazó crear la suscripción: el correo del pagador (`payer_email`) debe corresponder a la cuenta que paga, y los usuarios de prueba solo pueden pagar a vendedores de prueba.
+- Decisión del usuario (entre pedir el correo o migrar a suscripciones con plan): la pantalla de suscripción pide el correo de la cuenta de Mercado Pago, con el de la app por omisión. Se guarda en `Subscription.payer_email`.
+- Confirmado con la API de prueba: la prueba gratis de 7 días se acepta (`free_trial` en días; primer cobro desplazado 7 días).
+

@@ -148,6 +148,8 @@ class FakeGateway:
         self._frontend = frontend_base_url.rstrip("/")
         self._items: dict[str, ProviderSubscription] = {}
         self._trial: dict[str, int] = {}
+        # Correo del pagador de cada suscripción simulada (para las pruebas).
+        self.payers: dict[str, str] = {}
         self._lock = threading.Lock()
 
     def create(self, request: NewSubscription) -> ProviderSubscription:
@@ -162,6 +164,7 @@ class FakeGateway:
         with self._lock:
             self._items[provider_id] = item
             self._trial[provider_id] = request.trial_days
+            self.payers[provider_id] = request.payer_email
         return item
 
     def get(self, provider_id: str) -> ProviderSubscription:
