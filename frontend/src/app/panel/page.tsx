@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { AppHeader } from "@/components/app-header";
+import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
-import { Icon, type IconName, Logo } from "@/components/illustrations";
-import { api, type Me } from "@/lib/api";
+import { Icon, type IconName } from "@/components/illustrations";
+import { api, formatClp, type Me, type Subscription } from "@/lib/api";
+import { useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
   student: "Estudiante",
@@ -32,57 +34,26 @@ const STATS: Array<{ icon: IconName; label: string }> = [
 ];
 
 export default function PanelPage() {
-  const router = useRouter();
-  const [me, setMe] = useState<Me | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { me, setMe, error } = useRequireUser("/panel");
+  const [sub, setSub] = useState<Subscription | null>(null);
 
   useEffect(() => {
+    if (!me) return;
     let cancelled = false;
-    api<Me>("/auth/me").then((result) => {
-      if (cancelled) return;
-      if (result.ok) {
-        setMe(result.data);
-      } else if (result.status === 401) {
-        // El backend es quien decide: sin sesión válida, a iniciar sesión.
-        router.replace("/iniciar-sesion?next=/panel");
-      } else {
-        setError(result.error.message);
-      }
+    api<Subscription>("/billing/subscription").then((result) => {
+      if (!cancelled && result.ok) setSub(result.data);
     });
     return () => {
       cancelled = true;
     };
-  }, [router]);
-
-  async function logout() {
-    await api("/auth/logout", { method: "POST" });
-    // El panel se conserva entre navegaciones (Activity): no debe quedar el usuario anterior.
-    setMe(null);
-    router.replace("/iniciar-sesion");
-  }
+  }, [me]);
 
   const done = ROUTE.filter((step) => step.done).length;
   const percent = Math.round((done / ROUTE.length) * 100);
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Logo />
-          {me ? (
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="hidden truncate text-sm text-muted sm:inline">{me.email}</span>
-              <button
-                type="button"
-                onClick={logout}
-                className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium hover:border-brand focus-visible:outline-2 focus-visible:outline-brand"
-              >
-                Cerrar sesión
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </header>
+      <AppHeader me={me} onLoggedOut={() => setMe(null)} />
 
       {/* pb-28: espacio para el botón flotante de comentarios. */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-8">
@@ -96,6 +67,7 @@ export default function PanelPage() {
           </p>
         ) : (
           <div className="space-y-10">
+            {sub && !sub.has_access ? <SubscriptionBanner sub={sub} /> : null}
             <section className="flex flex-col gap-6 rounded-3xl bg-gradient-to-br from-brand-soft to-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">¡Hola! Qué bueno verte</h1>
@@ -193,5 +165,30 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
         <p className="text-sm text-muted">{label}</p>
       </div>
     </div>
+  );
+}
+
+function SubscriptionBanner({ sub }: { sub: Subscription }) {
+  const pending = sub.status === "pending";
+  return (
+    <section className="flex flex-col gap-4 rounded-3xl border border-brand/30 bg-surface p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-brand-soft text-brand">
+          <Icon name="lock" />
+        </span>
+        <div>
+          <p className="font-semibold">
+            {pending ? "Completa tu suscripción" : "Activa tu suscripción para estudiar"}
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            {sub.trial_days > 0 ? `${sub.trial_days} días gratis, luego ` : ""}
+            {formatClp(sub.amount_clp)} al mes. Cancela cuando quieras.
+          </p>
+        </div>
+      </div>
+      <ButtonLink href="/suscripcion" className="flex-none">
+        {pending ? "Ver estado del pago" : "Ver plan"}
+      </ButtonLink>
+    </section>
   );
 }
