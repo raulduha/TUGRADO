@@ -92,6 +92,17 @@ class Settings(BaseSettings):
             raise ValueError("GOOGLE_CLIENT_ID requiere GOOGLE_CLIENT_SECRET y OAUTH_STATE_SECRET")
         if self.email_provider == "resend" and not _filled(self.resend_api_key):
             raise ValueError("email_provider=resend requiere RESEND_API_KEY")
+        if self.billing_provider == "mercadopago":
+            token = self.mercadopago_access_token.get_secret_value().strip()  # type: ignore[union-attr]
+            if not token.startswith(("TEST-", "APP_USR-")):
+                raise ValueError(
+                    "MERCADOPAGO_ACCESS_TOKEN debe empezar con TEST- (prueba) "
+                    "o APP_USR- (producción)"
+                )
+            if self.app_env == "production" and token.startswith("TEST-"):
+                raise ValueError(
+                    "En producción MERCADOPAGO_ACCESS_TOKEN debe ser de producción (APP_USR-)"
+                )
         if self.app_env == "production":
             if self.email_provider == "console":
                 raise ValueError("En producción los correos deben enviarse (EMAIL_PROVIDER=resend)")

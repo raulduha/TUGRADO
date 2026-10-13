@@ -139,3 +139,23 @@ def test_produccion_exige_envio_real_de_correos(env):
     env.setenv("EMAIL_PROVIDER", "resend")
     env.setenv("RESEND_API_KEY", "re_prueba")
     assert Settings(_env_file=None).app_env == "production"
+
+
+def test_token_de_mercadopago_con_prefijo_desconocido_se_rechaza(env):
+    env.setenv("BILLING_PROVIDER", "mercadopago")
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "pegado-mal")
+    env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
+    with pytest.raises(ValidationError, match="TEST- .prueba. o APP_USR-"):
+        Settings(_env_file=None)
+
+
+def test_produccion_rechaza_token_de_prueba_de_mercadopago(env):
+    env.setenv("APP_ENV", "production")
+    env.setenv("AUTH_COOKIE_SECURE", "true")
+    env.setenv("EMAIL_PROVIDER", "resend")
+    env.setenv("RESEND_API_KEY", "re_prueba")
+    env.setenv("BILLING_PROVIDER", "mercadopago")
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123")
+    env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
+    with pytest.raises(ValidationError, match="debe ser de producción"):
+        Settings(_env_file=None)
