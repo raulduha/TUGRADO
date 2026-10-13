@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Hay especificaciones, el entorno Docker, el backend (FastAPI + Python 3.12 con uv: autenticación, dominio y persistencia de la sesión de simulación, comentarios de usuarios) y el frontend (Next.js 16: portada, cuentas, panel). La simulación todavía no tiene endpoints ni pantallas.
+Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints ni pantallas.
 
 ## Entorno local (Docker)
 
 ```sh
 cp .env.example .env                 # una vez; el compose falla si faltan variables
-docker compose up -d --build         # db (PostgreSQL 17 + pgvector) y backend con recarga en caliente
+docker compose up -d --build         # db (PostgreSQL 18 + pgvector, igual que Neon) y backend con recarga en caliente
 docker compose exec db psql -U tugrado -d tugrado
 docker compose down                  # conserva datos; `down -v` borra el volumen
 ```
@@ -63,6 +63,7 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 
 ### Autenticación (`app/auth/`, `app/api/auth.py`, `app/api/deps.py`)
 
+- Los errores de negocio heredan de `AppError` (`app/errors.py`) y se traducen a HTTP en un solo lugar (`app/api/errors.py`, tabla `STATUS_BY_CODE`). No captures errores en cada endpoint.
 - Para proteger un endpoint, usa las anotaciones `CurrentUser` o `AdminUser`, o `Depends(require_role(...))`, de `app/api/deps.py`. No hay otra forma de autorizar.
 - Sesión en la cookie HttpOnly `tugrado_session`. En la base de datos solo se guarda el hash SHA-256 del token, igual que en los enlaces de correo.
 - `app/api/origin.py` rechaza con 403 las operaciones que modifican datos si el encabezado `Origin` no es el de `FRONTEND_BASE_URL`. Los clientes de prueba envían ese `Origin`.
@@ -92,6 +93,7 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 - Las pantallas que leen `?token=` o `?next=` usan `useSearchParams` dentro de `<Suspense>` (exigido por Cache Components). `?next=` pasa por `safeNext()` para evitar redirecciones abiertas.
 - **Cache Components conserva hasta 3 páginas visitadas con su estado** (React `<Activity>`; ver `docs/01-app/02-guides/preserving-ui-state.md`). No redirijas desde un `useEffect` según un estado de "éxito": al volver a la página el efecto se repite (eso causó un bucle entre login y panel). Navega dentro del envío y limpia los datos del usuario al cerrar sesión.
 - Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: el panel consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401.
+- Botones: `buttonStyles` y `ButtonLink` de `src/components/button.tsx`; no repitas clases de botón.
 - Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
 - El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.
 - Gate 10: `e2e/responsive.spec.ts` recorre las pantallas públicas en 390, 768 y 1280 px y falla si hay desplazamiento horizontal. `e2e/student.spec.ts` hace el recorrido real de un estudiante: el token de verificación se lee del log del backend (`docker compose logs`) y las cuentas `e2e-*@ejemplo.cl` se borran al terminar.

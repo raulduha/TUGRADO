@@ -7,6 +7,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
 from app.auth.policy import AuthPolicy
+from app.errors import AppError
 
 _COMMON_PASSWORDS_FILE = Path(__file__).parent / "data" / "common_passwords.txt"
 # Parámetros por defecto de argon2-cffi (perfil RFC 9106 de bajo consumo de memoria).
@@ -15,10 +16,8 @@ _hasher = PasswordHasher()
 _DUMMY_HASH = _hasher.hash("contraseña-de-relleno-para-igualar-tiempos")
 
 
-class PasswordPolicyError(Exception):
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(message)
-        self.code = code
+class PasswordPolicyError(AppError):
+    pass
 
 
 @lru_cache

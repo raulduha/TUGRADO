@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 
 import { Alert } from "@/components/alert";
+import { ButtonLink } from "@/components/button";
 import { Field } from "@/components/field";
 import { SubmitButton } from "@/components/submit-button";
 import { api } from "@/lib/api";
@@ -37,12 +38,9 @@ export function ResetPasswordForm() {
     return (
       <div className="space-y-5">
         <Alert tone="success">Tu contraseña se actualizó.</Alert>
-        <Link
-          href="/iniciar-sesion"
-          className="flex w-full items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-base font-semibold text-on-brand hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        >
+        <ButtonLink href="/iniciar-sesion" className="w-full">
           Iniciar sesión
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

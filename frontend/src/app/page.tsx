@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ButtonLink } from "@/components/button";
 import { HeroIllustration, Icon, type IconName, Logo } from "@/components/illustrations";
 
 const ROUTE: Array<{ icon: IconName; title: string; text: string }> = [
@@ -24,11 +25,6 @@ const ROUTE: Array<{ icon: IconName; title: string; text: string }> = [
     text: "Un plan hasta la fecha de tu examen que se ajusta a cómo vas avanzando.",
   },
 ];
-
-const BUTTON_PRIMARY =
-  "rounded-xl bg-brand px-6 py-3 text-center font-semibold text-on-brand shadow-sm transition hover:bg-brand-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
-const BUTTON_SECONDARY =
-  "rounded-xl border border-line bg-surface px-6 py-3 text-center font-semibold transition hover:border-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
 
 export default function Home() {
   return (
@@ -61,12 +57,12 @@ export default function Home() {
               un plan de estudio que se ajusta a tu avance.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/registro" className={BUTTON_PRIMARY}>
+              <ButtonLink href="/registro" className="py-3">
                 Crear cuenta gratis
-              </Link>
-              <Link href="/iniciar-sesion" className={BUTTON_SECONDARY}>
+              </ButtonLink>
+              <ButtonLink href="/iniciar-sesion" variant="secondary" className="py-3">
                 Ya tengo cuenta
-              </Link>
+              </ButtonLink>
             </div>
           </div>
           <HeroIllustration className="mx-auto w-full max-w-md" />

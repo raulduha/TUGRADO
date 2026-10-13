@@ -27,17 +27,6 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 Billing = Annotated[BillingService, Depends(get_billing_service)]
 AppSettings = Annotated[Settings, Depends(get_settings)]
 
-_STATUS_BY_CODE = {
-    "already_subscribed": status.HTTP_409_CONFLICT,
-    "no_subscription": status.HTTP_404_NOT_FOUND,
-    "billing_unavailable": status.HTTP_503_SERVICE_UNAVAILABLE,
-}
-
-
-def _http_error(exc: BillingError) -> HTTPException:
-    code = _STATUS_BY_CODE.get(exc.code, status.HTTP_400_BAD_REQUEST)
-    return HTTPException(code, detail={"code": exc.code, "message": str(exc)})
-
 
 class SubscriptionOut(BaseModel):
     status: SubscriptionStatus | None
@@ -64,29 +53,20 @@ def get_subscription(user: CurrentUser, billing: Billing) -> SubscriptionOut:
 
 @router.post("/subscription", status_code=status.HTTP_201_CREATED)
 def start_subscription(user: CurrentUser, billing: Billing) -> CheckoutOut:
-    try:
-        return CheckoutOut(checkout_url=billing.start(user.id))
-    except BillingError as exc:
-        raise _http_error(exc) from exc
+    return CheckoutOut(checkout_url=billing.start(user.id))
 
 
 @router.post("/subscription/sync")
 def sync_subscription(user: CurrentUser, billing: Billing) -> SubscriptionOut:
     """Al volver de Mercado Pago: se consulta el estado real; los parámetros de la URL de
     retorno no se usan."""
-    try:
-        billing.sync_user(user.id, source="return")
-    except BillingError as exc:
-        raise _http_error(exc) from exc
+    billing.sync_user(user.id, source="return")
     return _view(billing, user)
 
 
 @router.post("/subscription/cancel")
 def cancel_subscription(user: CurrentUser, billing: Billing) -> SubscriptionOut:
-    try:
-        billing.cancel(user.id)
-    except BillingError as exc:
-        raise _http_error(exc) from exc
+    billing.cancel(user.id)
     return _view(billing, user)
 
 
