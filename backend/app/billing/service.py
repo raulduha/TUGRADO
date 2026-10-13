@@ -6,6 +6,7 @@ contenido de una notificación ni con parámetros de la URL de retorno.
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -14,7 +15,9 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.service import normalize_email
+from app.billing.emails import subscription_started
 from app.billing.gateway import NewSubscription, ProviderError, SubscriptionGateway
 from app.errors import AppError
 from app.persistence.auth_models import Role, UserAccountRow
@@ -25,6 +28,8 @@ from app.persistence.billing_models import (
     SubscriptionRow,
     SubscriptionStatus,
 )
+
+logger = logging.getLogger("tugrado.billing")
 
 SUBSCRIPTION_REASON = "Aprueba tu examen - Suscripción mensual"
 
@@ -59,6 +64,7 @@ class BillingService:
         clock: Callable[[], datetime],
         provider_name: str,
         frontend_base_url: str,
+        email_sender: EmailSender | None = None,
     ) -> None:
         self.db = db
         self.gateway = gateway
@@ -66,6 +72,9 @@ class BillingService:
         self.clock = clock
         self.provider_name = provider_name
         self.frontend_base_url = frontend_base_url.rstrip("/")
+        self.email_sender = email_sender
+        # Correos que se envían recién después del commit.
+        self._pending_emails: list[EmailMessage] = []
 
     # ------------------------------------------------------------------ consultas
 
@@ -220,6 +229,18 @@ class BillingService:
             raise BillingError("reference_mismatch", "La suscripción no corresponde")
         self._apply(row, remote.status, remote.next_payment_date, source)
         self.db.commit()
+        self._send_pending_emails()
+
+    def _send_pending_emails(self) -> None:
+        emails, self._pending_emails = self._pending_emails, []
+        if self.email_sender is None:
+            return
+        for message in emails:
+            # Un fallo del correo no deshace la suscripción: se registra sin destinatario.
+            try:
+                self.email_sender.send(message)
+            except EmailDeliveryError as exc:
+                logger.error("No se pudo enviar el correo «%s»: %s", message.subject, exc)
 
     def _apply(
         self, row: SubscriptionRow, status: str, next_payment: datetime | None, source: str
@@ -235,6 +256,25 @@ class BillingService:
             row.status = new_status
             row.updated_at = now
             self._record(row, source, previous, new_status, now)
+            if (
+                new_status == SubscriptionStatus.AUTHORIZED
+                and previous == SubscriptionStatus.PENDING
+            ):
+                self._queue_started_email(row)
+
+    def _queue_started_email(self, row: SubscriptionRow) -> None:
+        user = self.db.get(UserAccountRow, row.user_id)
+        if user is None:
+            return
+        self._pending_emails.append(
+            subscription_started(
+                to=user.email,
+                amount_clp=row.amount_clp,
+                trial_days=row.trial_days,
+                next_payment=row.next_payment_date,
+                frontend_base_url=self.frontend_base_url,
+            )
+        )
 
     def _record(
         self,

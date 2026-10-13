@@ -125,4 +125,5 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - En las pruebas, Mercado Pago rechazó crear la suscripción: el correo del pagador (`payer_email`) debe corresponder a la cuenta que paga, y los usuarios de prueba solo pueden pagar a vendedores de prueba.
 - Decisión del usuario (entre pedir el correo o migrar a suscripciones con plan): la pantalla de suscripción pide el correo de la cuenta de Mercado Pago, con el de la app por omisión. Se guarda en `Subscription.payer_email`.
 - Confirmado con la API de prueba: la prueba gratis de 7 días se acepta (`free_trial` en días; primer cobro desplazado 7 días).
-
+- Al quedar activa la suscripción se envía un correo de confirmación a la cuenta (no al correo de Mercado Pago): con prueba gratis indica la fecha del primer cobro y que cancelar antes evita el cobro; Mercado Pago envía además su propio comprobante.
+- La pantalla de suscripción consulta a Mercado Pago si hay un pago pendiente, para activarlo aunque el webhook no llegue.
