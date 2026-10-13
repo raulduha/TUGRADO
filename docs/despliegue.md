@@ -39,6 +39,22 @@ Vercel solo necesita `BACKEND_URL=https://api.apruebatuexamen.cl` (Production y 
 
 Los secretos viven únicamente en los paneles de Render y Vercel; nunca en el repositorio.
 
+## Mercado Pago: claves de suscripción
+
+Solo se usan dos valores (la Public Key y el Client ID/Secret no hacen falta, porque el pago
+ocurre en la página de Mercado Pago):
+
+| Variable (Render) | Dónde se obtiene |
+|---|---|
+| `MERCADOPAGO_ACCESS_TOKEN` | Mercado Pago Developers → *Tus integraciones* → tu aplicación → *Credenciales de prueba* (`TEST-…`) o *Credenciales de producción* (`APP_USR-…`, requiere activarlas con los datos del negocio). |
+| `MERCADOPAGO_WEBHOOK_SECRET` | En la misma aplicación → *Webhooks → Configurar notificaciones*: URL `https://api.apruebatuexamen.cl/billing/webhooks/mercadopago` (modo prueba y producción) y evento **Planes y suscripciones**. Al guardar, Mercado Pago genera la clave secreta. |
+
+Pasos:
+
+1. **Prueba:** pegar el Access Token `TEST-…` y la clave del webhook en Render y cambiar `BILLING_PROVIDER=mercadopago` (con `APP_ENV=development`). Probar con una **cuenta de prueba compradora** de Mercado Pago (*Tus integraciones → Cuentas de prueba*): el estudiante debe registrarse en la app con el correo de esa cuenta, porque la suscripción se crea con su correo.
+2. Validar en ese entorno los puntos abiertos (README y `docs/correcciones.md` §K): que `free_trial` en días se acepta sin plan asociado, el correo del pagador y la llegada de los webhooks.
+3. **Producción:** reemplazar por el Access Token `APP_USR-…`, poner `APP_ENV=production` y subir Render a Starter. El backend no arranca si en producción se usa un token `TEST-` o un prefijo desconocido.
+
 ## Antes de abrir a usuarios reales
 
 1. Credenciales de Mercado Pago y webhook a `https://api.apruebatuexamen.cl/billing/webhooks/mercadopago`.
