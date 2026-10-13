@@ -65,6 +65,7 @@ export type Subscription = {
   trial_days: number;
   next_payment_date: string | null;
   checkout_url: string | null;
+  payer_email: string | null;
 };
 
 export function formatClp(amount: number): string {

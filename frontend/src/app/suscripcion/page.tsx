@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
 import { ButtonLink, buttonStyles } from "@/components/button";
+import { Field } from "@/components/field";
 import { Icon } from "@/components/illustrations";
 import { api, formatClp, formatDate, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
@@ -35,10 +36,12 @@ export default function SubscriptionPage() {
     };
   }, [me]);
 
-  async function subscribe() {
+  async function subscribe(payerEmail: string) {
     setBusy(true);
     setError(null);
-    const result = await api<{ checkout_url: string }>("/billing/subscription", { method: "POST" });
+    const result = await api<{ checkout_url: string }>("/billing/subscription", {
+      body: { payer_email: payerEmail },
+    });
     if (result.ok) {
       // El pago ocurre en la página de Mercado Pago (o en el simulador en desarrollo).
       window.location.assign(result.data.checkout_url);
@@ -102,6 +105,7 @@ export default function SubscriptionPage() {
               </ul>
               <StatusPanel
                 sub={sub}
+                defaultEmail={sub.payer_email ?? me?.email ?? ""}
                 busy={busy}
                 confirmCancel={confirmCancel}
                 onSubscribe={subscribe}
@@ -123,6 +127,7 @@ export default function SubscriptionPage() {
 
 function StatusPanel({
   sub,
+  defaultEmail,
   busy,
   confirmCancel,
   onSubscribe,
@@ -131,9 +136,10 @@ function StatusPanel({
   onCancel,
 }: {
   sub: Subscription;
+  defaultEmail: string;
   busy: boolean;
   confirmCancel: boolean;
-  onSubscribe: () => void;
+  onSubscribe: (payerEmail: string) => void;
   onAskCancel: () => void;
   onKeep: () => void;
   onCancel: () => void;
@@ -181,11 +187,7 @@ function StatusPanel({
     return (
       <div className="space-y-3">
         <Alert tone="info">Tu suscripción está esperando que completes el pago en Mercado Pago.</Alert>
-        {sub.checkout_url ? (
-          <a href={sub.checkout_url} className={`w-full ${buttonStyles.primary}`}>
-            Completar el pago
-          </a>
-        ) : null}
+        <PayForm defaultEmail={defaultEmail} busy={busy} label="Ir a pagar en Mercado Pago" onSubmit={onSubscribe} />
         <a href="/suscripcion/retorno" className={`w-full ${buttonStyles.secondary}`}>
           Ya pagué: actualizar estado
         </a>
@@ -221,14 +223,49 @@ function StatusPanel({
         </p>
       )}
       {sub.has_access ? null : (
-        <button type="button" onClick={onSubscribe} disabled={busy} className={`w-full ${buttonStyles.primary}`}>
-          {busy
-            ? "Redirigiendo a Mercado Pago…"
-            : sub.trial_days > 0
-              ? `Comenzar ${sub.trial_days} días gratis`
-              : "Suscribirme"}
-        </button>
+        <PayForm
+          defaultEmail={defaultEmail}
+          busy={busy}
+          label={sub.trial_days > 0 ? `Comenzar ${sub.trial_days} días gratis` : "Suscribirme"}
+          onSubmit={onSubscribe}
+        />
       )}
     </div>
+  );
+}
+
+/** Mercado Pago exige que el correo coincida con la cuenta con la que se paga: puede ser
+ * distinto del correo de la app. */
+function PayForm({
+  defaultEmail,
+  busy,
+  label,
+  onSubmit,
+}: {
+  defaultEmail: string;
+  busy: boolean;
+  label: string;
+  onSubmit: (payerEmail: string) => void;
+}) {
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(String(new FormData(event.currentTarget).get("payer_email") ?? "").trim());
+      }}
+    >
+      <Field
+        label="Correo de tu cuenta de Mercado Pago"
+        name="payer_email"
+        type="email"
+        autoComplete="email"
+        defaultValue={defaultEmail}
+        hint="Debe ser el correo con el que inicias sesión en Mercado Pago."
+      />
+      <button type="submit" disabled={busy} className={`w-full ${buttonStyles.primary}`}>
+        {busy ? "Redirigiendo a Mercado Pago…" : label}
+      </button>
+    </form>
   );
 }

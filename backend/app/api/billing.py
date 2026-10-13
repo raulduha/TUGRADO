@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.api.deps import (
     CurrentUser,
@@ -35,6 +35,12 @@ class SubscriptionOut(BaseModel):
     trial_days: int
     next_payment_date: datetime | None
     checkout_url: str | None
+    payer_email: str | None
+
+
+class StartIn(BaseModel):
+    # Correo de la cuenta de Mercado Pago con la que se pagará; por omisión, el de la app.
+    payer_email: EmailStr | None = None
 
 
 class CheckoutOut(BaseModel):
@@ -52,8 +58,11 @@ def get_subscription(user: CurrentUser, billing: Billing) -> SubscriptionOut:
 
 
 @router.post("/subscription", status_code=status.HTTP_201_CREATED)
-def start_subscription(user: CurrentUser, billing: Billing) -> CheckoutOut:
-    return CheckoutOut(checkout_url=billing.start(user.id))
+def start_subscription(
+    user: CurrentUser, billing: Billing, body: StartIn | None = None
+) -> CheckoutOut:
+    payer = str(body.payer_email) if body and body.payer_email else None
+    return CheckoutOut(checkout_url=billing.start(user.id, payer))
 
 
 @router.post("/subscription/sync")

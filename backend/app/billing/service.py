@@ -14,6 +14,7 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth.service import normalize_email
 from app.billing.gateway import NewSubscription, ProviderError, SubscriptionGateway
 from app.errors import AppError
 from app.persistence.auth_models import Role, UserAccountRow
@@ -46,6 +47,7 @@ class SubscriptionView:
     trial_days: int
     next_payment_date: datetime | None
     checkout_url: str | None
+    payer_email: str | None
 
 
 class BillingService:
@@ -78,6 +80,7 @@ class BillingService:
             checkout_url=row.init_point
             if row and row.status == SubscriptionStatus.PENDING
             else None,
+            payer_email=row.payer_email if row else None,
         )
 
     def has_access(self, user_id: uuid.UUID, roles: frozenset[Role]) -> bool:
@@ -96,18 +99,32 @@ class BillingService:
 
     # ------------------------------------------------------------------- comandos
 
-    def start(self, user_id: uuid.UUID) -> str:
-        """Crea (o reutiliza) la suscripción y devuelve el enlace de pago del proveedor."""
+    def start(self, user_id: uuid.UUID, payer_email: str | None = None) -> str:
+        """Crea (o reutiliza) la suscripción y devuelve el enlace de pago del proveedor.
+
+        `payer_email` es el correo de la cuenta de Mercado Pago que pagará (por omisión, el de
+        la app): Mercado Pago exige que coincida con la cuenta con la que se paga."""
         # Bloquea la cuenta: dos solicitudes simultáneas no crean dos suscripciones.
         user = self.db.scalars(
             select(UserAccountRow).where(UserAccountRow.id == user_id).with_for_update()
         ).one()
+        payer = normalize_email(payer_email or user.email)
         existing = self.open_subscription(user_id)
         if existing is not None:
-            if existing.status == SubscriptionStatus.PENDING and existing.init_point:
+            if existing.status != SubscriptionStatus.PENDING or not existing.init_point:
+                raise BillingError("already_subscribed", "Ya tienes una suscripción activa")
+            if (existing.payer_email or user.email) == payer:
                 self.db.commit()
                 return existing.init_point
-            raise BillingError("already_subscribed", "Ya tienes una suscripción activa")
+            # Cambió el correo de Mercado Pago: se cancela el pago pendiente y se crea otro.
+            assert existing.provider_subscription_id is not None
+            try:
+                remote = self.gateway.cancel(existing.provider_subscription_id)
+            except ProviderError as exc:
+                self.db.rollback()
+                raise _unavailable() from exc
+            self._apply(existing, remote.status, remote.next_payment_date, "cancel")
+            self.db.flush()
 
         now = self.clock()
         row = SubscriptionRow(
@@ -117,6 +134,7 @@ class BillingService:
             status=SubscriptionStatus.PENDING,
             amount_clp=self.plan.amount_clp,
             trial_days=self.plan.trial_days,
+            payer_email=payer,
             created_at=now,
             updated_at=now,
         )
@@ -124,7 +142,7 @@ class BillingService:
             created = self.gateway.create(
                 NewSubscription(
                     external_reference=str(row.id),
-                    payer_email=user.email,
+                    payer_email=payer,
                     reason=SUBSCRIPTION_REASON,
                     amount_clp=self.plan.amount_clp,
                     trial_days=self.plan.trial_days,

@@ -206,6 +206,52 @@ def test_administrador_accede_sin_suscripcion(billing_api, engine, monkeypatch):
     assert billing_api.get("/estudio-de-prueba").status_code == 200
 
 
+# --------------------------------------------------- correo de Mercado Pago del pagador
+
+
+def test_por_omision_paga_el_correo_de_la_cuenta(billing_api, outbox, engine, gateway):
+    student(billing_api, outbox)
+    assert billing_api.post("/billing/subscription").status_code == 201
+    [row] = subscriptions(engine)
+    assert gateway.payers[row.provider_subscription_id] == EMAIL
+    assert billing_api.get("/billing/subscription").json()["payer_email"] == EMAIL
+
+
+def test_el_estudiante_puede_pagar_con_otro_correo_de_mercado_pago(
+    billing_api, outbox, engine, gateway
+):
+    student(billing_api, outbox)
+    response = billing_api.post(
+        "/billing/subscription", json={"payer_email": " Pagos.MP@Ejemplo.cl "}
+    )
+    assert response.status_code == 201
+    [row] = subscriptions(engine)
+    assert gateway.payers[row.provider_subscription_id] == "pagos.mp@ejemplo.cl"
+
+    # Mismo correo: se reutiliza el pago pendiente.
+    again = billing_api.post("/billing/subscription", json={"payer_email": "pagos.mp@ejemplo.cl"})
+    assert again.json() == response.json()
+    assert len(subscriptions(engine)) == 1
+
+
+def test_cambiar_el_correo_reemplaza_el_pago_pendiente(billing_api, outbox, engine, gateway):
+    student(billing_api, outbox)
+    first = billing_api.post("/billing/subscription", json={"payer_email": "uno@ejemplo.cl"})
+    second = billing_api.post("/billing/subscription", json={"payer_email": "dos@ejemplo.cl"})
+    assert second.status_code == 201
+    assert second.json() != first.json()
+    rows = sorted(subscriptions(engine), key=lambda r: r.created_at)
+    assert [r.status for r in rows].count("cancelled") == 1
+    [open_row] = [r for r in rows if r.status == "pending"]
+    assert open_row.payer_email == "dos@ejemplo.cl"
+
+
+def test_un_correo_de_pagador_invalido_se_rechaza(billing_api, outbox):
+    student(billing_api, outbox)
+    response = billing_api.post("/billing/subscription", json={"payer_email": "no-es-correo"})
+    assert response.status_code == 422
+
+
 # ------------------------------------------------------- accesos de cortesía (FR-032)
 
 

@@ -122,6 +122,10 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await expect(page.getByRole("heading", { level: 1, name: "Tu suscripción" })).toBeVisible();
   await expect(page.getByText("$9.990 / mes")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("suscripcion.png"), fullPage: true });
+  // El correo de Mercado Pago viene con el de la cuenta y se puede cambiar.
+  const payer = page.getByLabel("Correo de tu cuenta de Mercado Pago");
+  await expect(payer).toHaveValue(email);
+  await payer.fill(`mp-${email}`);
   await page.getByRole("button", { name: "Comenzar 7 días gratis" }).click();
 
   // BILLING_PROVIDER=fake: el simulador reemplaza la página de Mercado Pago.
