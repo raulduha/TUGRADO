@@ -26,11 +26,18 @@ export default function SubscriptionPage() {
   useEffect(() => {
     if (!me) return;
     let cancelled = false;
-    api<Subscription>("/billing/subscription").then((result) => {
+    (async () => {
+      let result = await api<Subscription>("/billing/subscription");
+      // Con un pago pendiente se consulta a Mercado Pago: así se activa aunque el aviso
+      // (webhook) no haya llegado o el estudiante no haya vuelto desde la página de pago.
+      if (result.ok && result.data.status === "pending") {
+        const synced = await api<Subscription>("/billing/subscription/sync", { method: "POST" });
+        if (synced.ok) result = synced;
+      }
       if (cancelled) return;
       if (result.ok) setSub(result.data);
       else if (result.status !== 401) setError(result.error.message);
-    });
+    })();
     return () => {
       cancelled = true;
     };

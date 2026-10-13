@@ -114,6 +114,7 @@ def get_billing_service(
     settings: Annotated[Settings, Depends(get_settings)],
     clock: Annotated[Callable[[], datetime], Depends(get_clock)],
     gateway: Annotated[SubscriptionGateway, Depends(get_subscription_gateway)],
+    email_sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> BillingService:
     return BillingService(
         db=db,
@@ -124,6 +125,7 @@ def get_billing_service(
         clock=clock,
         provider_name=settings.billing_provider,
         frontend_base_url=settings.frontend_base_url,
+        email_sender=email_sender,
     )
 
 

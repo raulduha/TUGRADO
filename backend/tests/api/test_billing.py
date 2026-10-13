@@ -126,6 +126,22 @@ def test_suscribirse_redirige_al_pago_y_aprobar_da_acceso(billing_api, outbox, e
     assert events(engine) == [("created", None, "pending"), ("return", "pending", "authorized")]
 
 
+def test_al_activarse_llega_un_correo_de_confirmacion_una_sola_vez(billing_api, outbox, engine):
+    student(billing_api, outbox)
+    billing_api.post("/billing/subscription", json={"payer_email": "pagos.mp@ejemplo.cl"})
+    billing_api.post("/billing/fake/approve")
+    # Una nueva consulta sin cambio de estado no repite el correo.
+    billing_api.post("/billing/subscription/sync")
+
+    [message] = [m for m in outbox.to(EMAIL) if "prueba gratis" in m.subject]
+    # Se envía al correo de la cuenta, no al de Mercado Pago.
+    assert not outbox.to("pagos.mp@ejemplo.cl")
+    assert "7 días" in message.body
+    assert "$9.990" in message.body
+    assert "no garantizan la aprobación" in message.body
+    assert "http://localhost:3000/suscripcion" in message.body
+
+
 def test_suscribirse_dos_veces_no_duplica(billing_api, outbox, engine):
     student(billing_api, outbox)
     first = billing_api.post("/billing/subscription").json()["checkout_url"]
