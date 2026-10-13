@@ -6,6 +6,7 @@ estudiante la autoriza en la página de Mercado Pago (`init_point`).
 
 from __future__ import annotations
 
+import logging
 import threading
 import uuid
 from dataclasses import dataclass, replace
@@ -15,6 +16,8 @@ from typing import Protocol
 import httpx
 
 MERCADOPAGO_API = "https://api.mercadopago.com"
+
+logger = logging.getLogger("tugrado.billing")
 
 
 class ProviderError(Exception):
@@ -62,6 +65,16 @@ def _from_payload(data: dict) -> ProviderSubscription:
     )
 
 
+def _error_detail(response: httpx.Response) -> str:
+    try:
+        data = response.json()
+    except ValueError:
+        return response.text[:200]
+    if not isinstance(data, dict):
+        return str(data)[:200]
+    return f"{data.get('code') or data.get('error') or '-'}: {str(data.get('message'))[:200]}"
+
+
 class MercadoPagoGateway:
     """API de suscripciones sin plan asociado (`/preapproval`)."""
 
@@ -77,7 +90,19 @@ class MercadoPagoGateway:
         except httpx.HTTPError as exc:
             raise ProviderError(f"Mercado Pago no respondió: {type(exc).__name__}") from exc
         if response.status_code >= 400:
-            raise ProviderError(f"Mercado Pago respondió {response.status_code} en {path}")
+            # El motivo que da Mercado Pago (p. ej. pagador y vendedor de entornos distintos) se
+            # registra para diagnosticar; no incluye datos de tarjeta.
+            detail = _error_detail(response)
+            logger.warning(
+                "Mercado Pago respondió %s en %s %s: %s",
+                response.status_code,
+                method,
+                path.split("/")[1],
+                detail,
+            )
+            raise ProviderError(
+                f"Mercado Pago respondió {response.status_code} en {path}: {detail}"
+            )
         return response.json()
 
     def create(self, request: NewSubscription) -> ProviderSubscription:
