@@ -33,6 +33,7 @@ Los valores de negocio son los mismos de `.env.example`. Cambian estos:
 | `AUTH_COOKIE_SECURE` | `true` | |
 | `EMAIL_PROVIDER` / `RESEND_API_KEY` | `resend` / clave "render-produccion" | Clave solo de envío, limitada al dominio. |
 | `BILLING_PROVIDER` | `mercadopago` | Requiere `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET`. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `OAUTH_STATE_SECRET` | Credenciales del cliente OAuth "Web application" y una clave aleatoria | URI de redirección autorizada en Google: `https://apruebatuexamen.cl/api/auth/google/callback` (y `http://localhost:3000/api/auth/google/callback` para desarrollo). |
 
 Vercel solo necesita `BACKEND_URL=https://api.apruebatuexamen.cl` (Production y Preview).
 

@@ -5,6 +5,7 @@ Este modelo es lógico y no prescribe todavía un motor de base de datos.
 ## Entidades
 
 - **User**: identidad, estado y datos de perfil mínimos.
+- **UserIdentity**: identidad externa vinculada a un usuario (proveedor `google`, identificador `sub` del proveedor, correo y fecha de vinculación). Un usuario puede no tener contraseña si solo ingresa con Google.
 - **Role / UserRole**: roles `student` y `administrator`. La autorización efectiva se valida en backend.
 - **Jurisdiction**: jurisdicción jurídica configurable.
 - **StudyProgram**: programa de examen, versión, jurisdicción y fecha de referencia.

@@ -17,6 +17,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
+from app.auth.google import GoogleIdentity
 from app.auth.passwords import hash_password, needs_rehash, validate_password, verify_password
 from app.auth.policy import AuthPolicy
 from app.auth.tokens import hash_token, new_token
@@ -27,6 +28,7 @@ from app.persistence.auth_models import (
     EmailTokenRow,
     Role,
     UserAccountRow,
+    UserIdentityRow,
     UserRoleRow,
 )
 
@@ -156,13 +158,58 @@ class AuthService:
         user.failed_login_count = 0
         user.first_failed_login_at = None
         user.locked_until = None
-        if needs_rehash(user.password_hash):
+        if user.password_hash and needs_rehash(user.password_hash):
             user.password_hash = hash_password(password)
         if user.email_verified_at is None:
             self.db.commit()
             raise AuthError(
                 "email_not_verified", "Debes verificar tu correo antes de usar la cuenta"
             )
+        token = self._start_session(user, now)
+        self.db.commit()
+        return token
+
+    def login_with_google(self, identity: GoogleIdentity) -> str:
+        """Ingreso con Google (FR-001b): vincula por `sub` o por correo verificado, o crea la
+        cuenta. Devuelve el token de sesión para la cookie."""
+        if not identity.email_verified:
+            raise AuthError("google_email_not_verified", "Tu correo de Google no está verificado")
+        now = self.clock()
+        link = self.db.scalars(
+            select(UserIdentityRow)
+            .where(UserIdentityRow.provider == "google")
+            .where(UserIdentityRow.subject == identity.subject)
+        ).one_or_none()
+        if link is not None:
+            user = self.db.get(UserAccountRow, link.user_id)
+            assert user is not None
+        else:
+            email = normalize_email(identity.email)
+            user = self.db.scalars(
+                select(UserAccountRow).where(UserAccountRow.email == email).with_for_update()
+            ).one_or_none()
+            if user is None:
+                user = UserAccountRow(email=email, password_hash=None)
+                user.roles.append(UserRoleRow(role=Role.STUDENT))
+                self.db.add(user)
+                self.db.flush()
+            self.db.add(
+                UserIdentityRow(
+                    user_id=user.id,
+                    provider="google",
+                    subject=identity.subject,
+                    email=email,
+                    created_at=now,
+                )
+            )
+        # Google verificó el correo: la cuenta queda verificada.
+        if user.email_verified_at is None:
+            user.email_verified_at = now
+        token = self._start_session(user, now)
+        self.db.commit()
+        return token
+
+    def _start_session(self, user: UserAccountRow, now: datetime) -> str:
         token = new_token()
         self.db.add(
             AuthSessionRow(
@@ -173,7 +220,6 @@ class AuthService:
                 expires_at=now + self.policy.session_max_age,
             )
         )
-        self.db.commit()
         return token
 
     def _record_failure(self, user: UserAccountRow, now: datetime) -> None:

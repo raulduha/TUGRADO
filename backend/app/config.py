@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     email_from: str
     resend_api_key: SecretStr | None = None
 
+    # Ingreso con Google (FR-001b). Sin GOOGLE_CLIENT_ID queda desactivado.
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    # Firma la cookie temporal del ingreso con Google (state, nonce, PKCE).
+    oauth_state_secret: SecretStr | None = None
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(self.google_client_id)
+
     # Suscripción (FR-029 a FR-031). Precio en pesos chilenos, sin decimales.
     billing_provider: Literal["mercadopago", "fake"]
     billing_monthly_price_clp: int = Field(gt=0)
@@ -76,6 +86,10 @@ class Settings(BaseSettings):
                 "billing_provider=mercadopago requiere MERCADOPAGO_ACCESS_TOKEN y "
                 "MERCADOPAGO_WEBHOOK_SECRET"
             )
+        if self.google_enabled and not (
+            _filled(self.google_client_secret) and _filled(self.oauth_state_secret)
+        ):
+            raise ValueError("GOOGLE_CLIENT_ID requiere GOOGLE_CLIENT_SECRET y OAUTH_STATE_SECRET")
         if self.email_provider == "resend" and not _filled(self.resend_api_key):
             raise ValueError("email_provider=resend requiere RESEND_API_KEY")
         if self.app_env == "production":

@@ -118,3 +118,6 @@ Un estudiante sin suscripción puede iniciar una y es redirigido a Mercado Pago;
 
 ## AC-039 — Notificaciones de pago
 Una notificación sin firma válida se rechaza y no cambia el estado. Una notificación válida no se usa como dato: el backend consulta el estado en Mercado Pago y lo registra. Las notificaciones repetidas no duplican cambios. El simulador de pagos no puede activarse en producción.
+
+## AC-040 — Ingreso con Google
+Un usuario puede ingresar con Google; si su correo verificado ya tiene cuenta, entra a esa misma cuenta, y si no, se crea una cuenta de estudiante. Se rechazan las respuestas con `state` o `nonce` que no coinciden, códigos inválidos y correos no verificados por Google. El registro con correo y contraseña sigue disponible.

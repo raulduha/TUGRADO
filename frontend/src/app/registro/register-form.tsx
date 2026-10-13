@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { Alert } from "@/components/alert";
 import { Field } from "@/components/field";
+import { GoogleButton } from "@/components/google-button";
 import { SubmitButton } from "@/components/submit-button";
 import { api } from "@/lib/api";
 
@@ -44,6 +45,7 @@ export function RegisterForm() {
 
   return (
     <form action={action} className="space-y-5">
+      <GoogleButton />
       {state.status === "error" && !passwordError ? (
         <Alert tone="error">{state.message}</Alert>
       ) : null}

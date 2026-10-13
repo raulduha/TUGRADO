@@ -106,3 +106,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Marca visible "Aprueba tu examen" (antes TUGRADO en la interfaz; el código y el repo conservan el nombre interno). Como el nombre podría leerse como promesa, se mantiene el aviso de que las evaluaciones son orientativas y no garantizan la aprobación (AGENTS.md).
 - Correo con Resend (región São Paulo): registros DKIM `resend._domainkey`, SPF `send` y `rsend` (CNAME) y DMARC `_dmarc` (p=none) creados en el DNS de Vercel. Se resuelve el pendiente 2.
 - Un fallo del proveedor de correo no interrumpe el registro ni revela si la cuenta existe; se registra sin destinatario y el estudiante puede pedir el reenvío.
+
+## N. Ingreso con Google (2026-10-13)
+
+- Pedido del usuario: ingresar con Google. Decisiones (recomendadas y aceptadas): se vincula automáticamente con la cuenta existente si Google declara el correo verificado, y se mantiene el registro con correo y contraseña.
+- Flujo OpenID Connect con código de autorización, PKCE, `state` y `nonce`; el `id_token` se valida con las claves públicas de Google (firma, emisor, audiencia y vencimiento).
+- Se añadieron FR-001b, AC-040 y la entidad `UserIdentity`.

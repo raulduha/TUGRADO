@@ -37,7 +37,7 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - Frontend: Next.js + TypeScript. Backend: FastAPI + Python 3.12, gestionado con uv (imagen Docker `python:3.12-slim`).
 - Base de datos: PostgreSQL, con SQLAlchemy y Alembic.
 - Índice RAG: pgvector sobre PostgreSQL, a validar con una prueba de concepto.
-- Autenticación propia con correo y contraseña, implementada en el backend. Sesión en cookie HttpOnly con token opaco guardado (como hash) en PostgreSQL y revocable; 7 días de inactividad o 30 días máximo. Registro abierto de estudiantes; administradores creados por consola. Verificación de correo con enlace de un solo uso de 24 h. Bloqueo temporal de 15 min tras 10 intentos fallidos en 15 min.
+- Autenticación propia con correo y contraseña, implementada en el backend, más ingreso con Google (OpenID Connect); un correo verificado por Google se vincula automáticamente a la cuenta existente. Sesión en cookie HttpOnly con token opaco guardado (como hash) en PostgreSQL y revocable; 7 días de inactividad o 30 días máximo. Registro abierto de estudiantes; administradores creados por consola. Verificación de correo con enlace de un solo uso de 24 h. Bloqueo temporal de 15 min tras 10 intentos fallidos en 15 min.
 - Hosting del frontend: Vercel. Base de datos: Neon (PostgreSQL con pgvector).
 - Almacenamiento temporal de importaciones: Vercel Blob. Cola de tareas: tabla en PostgreSQL (Neon) detrás de una interfaz.
 - Backend FastAPI en Render (Docker); frontend en Vercel. Dominio: apruebatuexamen.cl (comprado en NIC Chile; DNS delegado a Vercel). El frontend reenvía `/api` al backend de Render.
