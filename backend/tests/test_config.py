@@ -30,6 +30,8 @@ REQUIRED = {
     "BILLING_PROVIDER": "fake",
     "BILLING_MONTHLY_PRICE_CLP": "9990",
     "BILLING_TRIAL_DAYS": "7",
+    "EMAIL_PROVIDER": "console",
+    "EMAIL_FROM": "Aprueba tu examen <no-reply@apruebatuexamen.cl>",
 }
 
 
@@ -103,14 +105,37 @@ def test_mercadopago_exige_credenciales(env):
 def test_produccion_prohibe_el_simulador_de_pagos(env):
     env.setenv("APP_ENV", "production")
     env.setenv("AUTH_COOKIE_SECURE", "true")
+    env.setenv("EMAIL_PROVIDER", "resend")
+    env.setenv("RESEND_API_KEY", "re_prueba")
     with pytest.raises(ValidationError, match="simulador de pagos"):
         Settings(_env_file=None)
 
 
 def test_produccion_exige_cookie_segura(env):
     env.setenv("APP_ENV", "production")
+    env.setenv("EMAIL_PROVIDER", "resend")
+    env.setenv("RESEND_API_KEY", "re_prueba")
     env.setenv("BILLING_PROVIDER", "mercadopago")
     env.setenv("MERCADOPAGO_ACCESS_TOKEN", "APP_USR-token")
     env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
     with pytest.raises(ValidationError, match="AUTH_COOKIE_SECURE"):
         Settings(_env_file=None)
+
+
+def test_resend_exige_clave(env):
+    env.setenv("EMAIL_PROVIDER", "resend")
+    with pytest.raises(ValidationError, match="RESEND_API_KEY"):
+        Settings(_env_file=None)
+
+
+def test_produccion_exige_envio_real_de_correos(env):
+    env.setenv("APP_ENV", "production")
+    env.setenv("AUTH_COOKIE_SECURE", "true")
+    env.setenv("BILLING_PROVIDER", "mercadopago")
+    env.setenv("MERCADOPAGO_ACCESS_TOKEN", "APP_USR-token")
+    env.setenv("MERCADOPAGO_WEBHOOK_SECRET", "secreto")
+    with pytest.raises(ValidationError, match="EMAIL_PROVIDER=resend"):
+        Settings(_env_file=None)
+    env.setenv("EMAIL_PROVIDER", "resend")
+    env.setenv("RESEND_API_KEY", "re_prueba")
+    assert Settings(_env_file=None).app_env == "production"

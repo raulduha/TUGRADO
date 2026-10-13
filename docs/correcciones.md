@@ -100,3 +100,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 
 - Frontend en Vercel (`vercel.json` con un solo servicio, `frontend`); backend en Render con Docker. Se resuelve el pendiente 1.
 - Dominio apruebatuexamen.cl, comprado en NIC Chile.
+
+## M. Marca y correo (2026-10-12)
+
+- Marca visible "Aprueba tu examen" (antes TUGRADO en la interfaz; el código y el repo conservan el nombre interno). Como el nombre podría leerse como promesa, se mantiene el aviso de que las evaluaciones son orientativas y no garantizan la aprobación (AGENTS.md).
+- Correo con Resend (región São Paulo): registros DKIM `resend._domainkey`, SPF `send` y `rsend` (CNAME) y DMARC `_dmarc` (p=none) creados en el DNS de Vercel. Se resuelve el pendiente 2.
+- Un fallo del proveedor de correo no interrumpe el registro ni revela si la cuenta existe; se registra sin destinatario y el estudiante puede pedir el reenvío.

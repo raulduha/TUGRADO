@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     # Origen del frontend: base de los enlaces de correo y origen aceptado (validación de Origin).
     frontend_base_url: str
 
+    # Correo (verificación y recuperación). console = solo log, prohibido en producción.
+    email_provider: Literal["console", "resend"]
+    email_from: str
+    resend_api_key: SecretStr | None = None
+
     # Suscripción (FR-029 a FR-031). Precio en pesos chilenos, sin decimales.
     billing_provider: Literal["mercadopago", "fake"]
     billing_monthly_price_clp: int = Field(gt=0)
@@ -71,7 +76,11 @@ class Settings(BaseSettings):
                 "billing_provider=mercadopago requiere MERCADOPAGO_ACCESS_TOKEN y "
                 "MERCADOPAGO_WEBHOOK_SECRET"
             )
+        if self.email_provider == "resend" and not _filled(self.resend_api_key):
+            raise ValueError("email_provider=resend requiere RESEND_API_KEY")
         if self.app_env == "production":
+            if self.email_provider == "console":
+                raise ValueError("En producción los correos deben enviarse (EMAIL_PROVIDER=resend)")
             if self.billing_provider == "fake":
                 raise ValueError("El simulador de pagos no puede usarse en producción")
             if not self.auth_cookie_secure:

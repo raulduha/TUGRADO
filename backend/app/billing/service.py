@@ -23,7 +23,7 @@ from app.persistence.billing_models import (
     SubscriptionStatus,
 )
 
-SUBSCRIPTION_REASON = "TUGRADO - Suscripción mensual"
+SUBSCRIPTION_REASON = "Aprueba tu examen - Suscripción mensual"
 
 
 class BillingError(Exception):

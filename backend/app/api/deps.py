@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth.email import ConsoleEmailSender, EmailSender
+from app.auth.email import ConsoleEmailSender, EmailSender, ResendEmailSender
 from app.auth.service import AuthenticatedUser, AuthService
 from app.billing.gateway import FakeGateway, MercadoPagoGateway, SubscriptionGateway
 from app.billing.service import BillingPlan, BillingService
@@ -26,9 +26,18 @@ def get_clock() -> Callable[[], datetime]:
 
 
 @lru_cache
-def get_email_sender() -> EmailSender:
-    # Proveedor de producción pendiente (README): por ahora solo consola.
+def _email_sender_for(provider: str, api_key: str | None, from_address: str) -> EmailSender:
+    if provider == "resend":
+        assert api_key is not None
+        return ResendEmailSender(api_key, from_address)
     return ConsoleEmailSender()
+
+
+def get_email_sender(settings: Annotated[Settings, Depends(get_settings)]) -> EmailSender:
+    key = settings.resend_api_key
+    return _email_sender_for(
+        settings.email_provider, key.get_secret_value() if key else None, settings.email_from
+    )
 
 
 def get_auth_service(

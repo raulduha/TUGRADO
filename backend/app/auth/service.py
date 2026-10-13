@@ -7,6 +7,7 @@ Las respuestas no revelan si un correo está registrado, salvo el aviso de bloqu
 
 from __future__ import annotations
 
+import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.auth.email import EmailMessage, EmailSender
+from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.passwords import hash_password, needs_rehash, validate_password, verify_password
 from app.auth.policy import AuthPolicy
 from app.auth.tokens import hash_token, new_token
@@ -27,6 +28,8 @@ from app.persistence.auth_models import (
     UserAccountRow,
     UserRoleRow,
 )
+
+logger = logging.getLogger("tugrado.auth")
 
 # Escribir last_used_at en cada solicitud es innecesario: basta con esta resolución.
 _SESSION_TOUCH_RESOLUTION_SECONDS = 60
@@ -75,7 +78,7 @@ class AuthService:
             # Misma respuesta que un registro nuevo; el aviso llega solo al dueño del correo.
             self._send(
                 email,
-                "Ya tienes una cuenta en TUGRADO",
+                "Ya tienes una cuenta en Aprueba tu examen",
                 "Alguien intentó registrarse con este correo, que ya tiene una cuenta. "
                 "Si fuiste tú, inicia sesión o recupera tu contraseña. Si no, ignora este correo.",
             )
@@ -86,7 +89,7 @@ class AuthService:
         self.db.flush()
         message = self._verification_message(user)
         self.db.commit()
-        self.email_sender.send(message)
+        self._deliver(message)
 
     def create_administrator(self, email: str, password: str | None) -> tuple[uuid.UUID, bool]:
         """Crea un administrador verificado o promueve una cuenta existente (uso por consola).
@@ -126,7 +129,7 @@ class AuthService:
         if user is not None and user.email_verified_at is None:
             message = self._verification_message(user)
             self.db.commit()
-            self.email_sender.send(message)
+            self._deliver(message)
 
     # ------------------------------------------------------------ inicio de sesión
 
@@ -226,7 +229,7 @@ class AuthService:
         minutes = int(self.policy.password_reset_ttl.total_seconds() // 60)
         message = EmailMessage(
             to=user.email,
-            subject="Recupera tu contraseña de TUGRADO",
+            subject="Recupera tu contraseña de Aprueba tu examen",
             body=(
                 f"Para elegir una nueva contraseña abre este enlace (válido por {minutes} minutos "
                 f"y una sola vez):\n{self.frontend_base_url}/restablecer-contrasena?token={token}"
@@ -235,7 +238,7 @@ class AuthService:
         )
         # El correo sale después del commit: nunca se envía un enlace que no quedó guardado.
         self.db.commit()
-        self.email_sender.send(message)
+        self._deliver(message)
 
     def reset_password(self, token: str, new_password: str) -> None:
         validate_password(new_password, self.policy)
@@ -274,7 +277,7 @@ class AuthService:
         hours = int(self.policy.email_verification_ttl.total_seconds() // 3600)
         return EmailMessage(
             to=user.email,
-            subject="Verifica tu correo en TUGRADO",
+            subject="Verifica tu correo en Aprueba tu examen",
             body=(
                 f"Para activar tu cuenta abre este enlace (válido por {hours} horas y una sola "
                 f"vez):\n{self.frontend_base_url}/verificar-correo?token={token}"
@@ -317,7 +320,15 @@ class AuthService:
         return row
 
     def _send(self, to: str, subject: str, body: str) -> None:
-        self.email_sender.send(EmailMessage(to=to, subject=subject, body=body))
+        self._deliver(EmailMessage(to=to, subject=subject, body=body))
+
+    def _deliver(self, message: EmailMessage) -> None:
+        # Un fallo del proveedor no interrumpe la operación ni revela si la cuenta existe:
+        # se registra (sin destinatario) y el estudiante puede pedir el reenvío del enlace.
+        try:
+            self.email_sender.send(message)
+        except EmailDeliveryError as exc:
+            logger.error("No se pudo enviar el correo «%s»: %s", message.subject, exc)
 
 
 def _invalid_credentials() -> AuthError:

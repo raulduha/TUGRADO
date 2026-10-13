@@ -8,7 +8,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: { default: "TUGRADO", template: "%s · TUGRADO" },
+  title: { default: "Aprueba tu examen", template: "%s · Aprueba tu examen" },
   description: "Preparación para el examen de grado de Derecho.",
 };
 

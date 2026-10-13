@@ -26,7 +26,7 @@ export function AuthShell({
       <aside className="relative hidden w-[42%] flex-col justify-between overflow-hidden bg-brand p-10 text-on-brand lg:flex">
         <Link href="/" className="rounded-lg focus-visible:outline-2 focus-visible:outline-on-brand">
           <span className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight">
-            TUGRADO
+            Aprueba tu examen
           </span>
         </Link>
         <div>
