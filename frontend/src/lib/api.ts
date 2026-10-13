@@ -55,3 +55,22 @@ export async function api<T = unknown>(
 }
 
 export type Me = { id: string; email: string; roles: Array<"student" | "administrator"> };
+
+export type SubscriptionStatus = "pending" | "authorized" | "paused" | "cancelled";
+
+export type Subscription = {
+  status: SubscriptionStatus | null;
+  has_access: boolean;
+  amount_clp: number;
+  trial_days: number;
+  next_payment_date: string | null;
+  checkout_url: string | null;
+};
+
+export function formatClp(amount: number): string {
+  return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(amount);
+}
+
+export function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat("es-CL", { dateStyle: "long" }).format(new Date(iso));
+}

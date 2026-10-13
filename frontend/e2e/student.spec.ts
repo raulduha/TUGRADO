@@ -109,3 +109,32 @@ test("sin verificar el correo no se puede entrar", async ({ page }, testInfo) =>
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Reenviar correo de verificación" })).toBeVisible();
 });
+
+test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ page }, testInfo) => {
+  const email = uniqueEmail(`${testInfo.project.name}-sub`);
+  await registerAndVerify(page, email);
+  await page.getByRole("link", { name: "Iniciar sesión" }).click();
+  await login(page, email);
+
+  // Sin suscripción, el panel invita a activarla.
+  await expect(page).toHaveURL(/\/panel$/);
+  await expect(page.getByText("Activa tu suscripción para estudiar")).toBeVisible();
+  await page.getByRole("link", { name: "Ver plan" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Tu suscripción" })).toBeVisible();
+  await expect(page.getByText("$9.990 / mes")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("suscripcion.png"), fullPage: true });
+  await page.getByRole("button", { name: "Comenzar 7 días gratis" }).click();
+
+  // BILLING_PROVIDER=fake: el simulador reemplaza la página de Mercado Pago.
+  await expect(page).toHaveURL(/\/suscripcion\/simulador/);
+  await page.getByRole("button", { name: "Aprobar pago simulado" }).click();
+  await expect(page).toHaveURL(/\/suscripcion\/retorno$/);
+  await expect(page.getByText("¡Listo! Tu suscripción está activa.")).toBeVisible();
+
+  await page.getByRole("link", { name: "Ver mi suscripción" }).click();
+  await expect(page.getByText("Tu suscripción está activa.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Cancelar suscripción" }).click();
+  await page.getByRole("button", { name: "Sí, cancelar" }).click();
+  await expect(page.getByRole("button", { name: "Comenzar 7 días gratis" })).toBeVisible();
+});

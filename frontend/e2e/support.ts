@@ -25,7 +25,9 @@ export function lastEmailToken(email: string): string {
   return match[1];
 }
 
-/** Borra las cuentas creadas por las pruebas (sus comentarios se borran en cascada). */
+const E2E_ACCOUNTS = `u.email LIKE '${E2E_EMAIL_PREFIX}%@ejemplo.cl'`;
+
+/** Borra las cuentas creadas por las pruebas, con sus suscripciones (los comentarios se borran en cascada). */
 export function deleteE2eAccounts(): void {
   docker([
     "exec",
@@ -37,6 +39,11 @@ export function deleteE2eAccounts(): void {
     "-d",
     "tugrado",
     "-c",
-    `DELETE FROM user_account WHERE email LIKE '${E2E_EMAIL_PREFIX}%@ejemplo.cl';`,
+    // Las suscripciones y sus eventos no se borran en cascada (RESTRICT): primero ellos.
+    [
+      `DELETE FROM billing_event WHERE subscription_id IN (SELECT s.id FROM subscription s JOIN user_account u ON u.id = s.user_id WHERE ${E2E_ACCOUNTS});`,
+      `DELETE FROM subscription WHERE user_id IN (SELECT id FROM user_account u WHERE ${E2E_ACCOUNTS});`,
+      `DELETE FROM user_account u WHERE ${E2E_ACCOUNTS};`,
+    ].join(" "),
   ]);
 }

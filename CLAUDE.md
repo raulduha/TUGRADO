@@ -92,7 +92,8 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 - Las llamadas pasan por `src/lib/api.ts`, que devuelve `{ok, status, data | error{code, message}}` con los códigos de error del backend.
 - Las pantallas que leen `?token=` o `?next=` usan `useSearchParams` dentro de `<Suspense>` (exigido por Cache Components). `?next=` pasa por `safeNext()` para evitar redirecciones abiertas.
 - **Cache Components conserva hasta 3 páginas visitadas con su estado** (React `<Activity>`; ver `docs/01-app/02-guides/preserving-ui-state.md`). No redirijas desde un `useEffect` según un estado de "éxito": al volver a la página el efecto se repite (eso causó un bucle entre login y panel). Navega dentro del envío y limpia los datos del usuario al cerrar sesión.
-- Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: el panel consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401.
+- Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: las páginas con sesión usan `useRequireUser()` (`src/lib/use-user.ts`), que consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401, y el encabezado compartido `AppHeader`.
+- Suscripción: `/suscripcion`, `/suscripcion/retorno` (consulta el estado real con `/billing/subscription/sync`) y `/suscripcion/simulador`, que reemplaza a Mercado Pago solo con `BILLING_PROVIDER=fake`.
 - Botones: `buttonStyles` y `ButtonLink` de `src/components/button.tsx`; no repitas clases de botón.
 - Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
 - El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.
