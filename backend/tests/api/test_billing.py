@@ -9,12 +9,13 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import SubscribedUser, get_clock, get_email_sender, get_subscription_gateway
 from app.billing.gateway import FakeGateway, ProviderError
+from app.billing.grants import GrantError, grant_access, revoke_access
 from app.billing.signature import sign
 from app.cli import create_admin
 from app.config import get_settings
 from app.db import get_engine
-from app.persistence.billing_models import BillingEventRow, SubscriptionRow
-from tests.api.test_auth import code, login, verified_account
+from app.persistence.billing_models import AccessGrantRow, BillingEventRow, SubscriptionRow
+from tests.api.test_auth import EMAIL, code, login, verified_account
 
 pytestmark = pytest.mark.integration
 
@@ -43,8 +44,13 @@ def _app(engine, clock, outbox, gateway):
 
 
 @pytest.fixture
-def billing_api(engine, clock, outbox, gateway):
-    """App con el simulador de pagos (BILLING_PROVIDER=fake, como en desarrollo)."""
+def billing_api(engine, clock, outbox, gateway, monkeypatch):
+    """App con el simulador de pagos (BILLING_PROVIDER=fake, como en desarrollo), sin las
+    claves de Mercado Pago que pueda tener el .env local."""
+    monkeypatch.setenv("BILLING_PROVIDER", "fake")
+    monkeypatch.setenv("MERCADOPAGO_ACCESS_TOKEN", "")
+    monkeypatch.setenv("MERCADOPAGO_WEBHOOK_SECRET", "")
+    get_settings.cache_clear()
     return _app(engine, clock, outbox, gateway)
 
 
@@ -198,6 +204,45 @@ def test_administrador_accede_sin_suscripcion(billing_api, engine, monkeypatch):
     create_admin("admin@ejemplo.cl", engine=engine)
     login(billing_api, email="admin@ejemplo.cl", password="administra el banco 2026")
     assert billing_api.get("/estudio-de-prueba").status_code == 200
+
+
+# ------------------------------------------------------- accesos de cortesía (FR-032)
+
+
+def test_un_acceso_de_cortesia_da_acceso_sin_suscripcion(billing_api, outbox, engine, clock):
+    student(billing_api, outbox)
+    assert billing_api.get("/estudio-de-prueba").status_code == 402
+
+    with Session(engine) as db:
+        assert grant_access(db, EMAIL.upper(), "Cuenta de prueba", "equipo@proda.cl", clock())
+        # Repetirlo no crea un segundo acceso.
+        assert not grant_access(db, EMAIL, "Otra vez", "equipo@proda.cl", clock())
+
+    view = billing_api.get("/billing/subscription").json()
+    assert view["has_access"] is True and view["status"] is None
+    assert billing_api.get("/estudio-de-prueba").status_code == 200
+
+
+def test_revocar_el_acceso_lo_quita_y_conserva_el_historial(billing_api, outbox, engine, clock):
+    student(billing_api, outbox)
+    with Session(engine) as db:
+        grant_access(db, EMAIL, "Cuenta de prueba", "equipo@proda.cl", clock())
+        assert revoke_access(db, EMAIL, clock())
+        assert not revoke_access(db, EMAIL, clock())
+
+    assert billing_api.get("/estudio-de-prueba").status_code == 402
+    with Session(engine) as db:
+        grants = list(db.scalars(select(AccessGrantRow)))
+    assert len(grants) == 1 and grants[0].revoked_at is not None
+    assert grants[0].reason == "Cuenta de prueba" and grants[0].granted_by == "equipo@proda.cl"
+
+
+def test_el_acceso_exige_cuenta_existente_y_motivo(engine, clock):
+    with Session(engine) as db:
+        with pytest.raises(GrantError):
+            grant_access(db, "nadie@ejemplo.cl", "Pruebas", "equipo@proda.cl", clock())
+        with pytest.raises(GrantError):
+            grant_access(db, "nadie@ejemplo.cl", " ", "equipo@proda.cl", clock())
 
 
 # ------------------------------------------------------------------------ webhooks

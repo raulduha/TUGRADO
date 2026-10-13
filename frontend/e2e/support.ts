@@ -27,6 +27,25 @@ export function lastEmailToken(email: string): string {
 
 const E2E_ACCOUNTS = `u.email LIKE '${E2E_EMAIL_PREFIX}%@ejemplo.cl'`;
 
+/** Acceso de cortesía (FR-032) con el CLI del backend: la cuenta entra al panel sin suscripción. */
+export function grantAccess(email: string): void {
+  docker([
+    "exec",
+    "-T",
+    "backend",
+    "python",
+    "-m",
+    "app.cli",
+    "grant-access",
+    "--email",
+    email,
+    "--reason",
+    "Prueba e2e",
+    "--by",
+    "e2e@ejemplo.cl",
+  ]);
+}
+
 /** Borra las cuentas creadas por las pruebas, con sus suscripciones (los comentarios se borran en cascada). */
 export function deleteE2eAccounts(): void {
   docker([

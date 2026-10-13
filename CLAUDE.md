@@ -37,7 +37,7 @@ uv run alembic revision --autogenerate -m "..."   # nueva migración; revísala 
 uv run alembic check                              # falla si los modelos y las migraciones divergen
 ```
 
-Crear o promover un administrador (no hay registro público de administradores): `uv run python -m app.cli create-admin --email admin@ejemplo.cl`, o dentro de Docker `docker compose exec backend python -m app.cli create-admin --email …`. La contraseña se pide por consola o se lee de `ADMIN_PASSWORD`. En desarrollo los correos (verificación y recuperación) no se envían: aparecen en `docker compose logs backend`.
+Crear o promover un administrador (no hay registro público de administradores): `uv run python -m app.cli create-admin --email admin@ejemplo.cl`, o dentro de Docker `docker compose exec backend python -m app.cli create-admin --email …`. La contraseña se pide por consola o se lee de `ADMIN_PASSWORD`. Acceso sin suscripción para cuentas de prueba (FR-032): `python -m app.cli grant-access --email … --reason … --by …` y `revoke-access --email …`. En desarrollo los correos (verificación y recuperación) no se envían: aparecen en `docker compose logs backend`.
 
 Las pruebas `integration` usan `TEST_DATABASE_URL` (base `tugrado_test`). La crean y migran solas, y vacían las tablas después de cada prueba.
 
@@ -93,7 +93,7 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 - Las pantallas que leen `?token=` o `?next=` usan `useSearchParams` dentro de `<Suspense>` (exigido por Cache Components). `?next=` pasa por `safeNext()` para evitar redirecciones abiertas.
 - **Cache Components conserva hasta 3 páginas visitadas con su estado** (React `<Activity>`; ver `docs/01-app/02-guides/preserving-ui-state.md`). No redirijas desde un `useEffect` según un estado de "éxito": al volver a la página el efecto se repite (eso causó un bucle entre login y panel). Navega dentro del envío y limpia los datos del usuario al cerrar sesión.
 - Los formularios usan `useActionState` en componentes de cliente. El backend es la autoridad: las páginas con sesión usan `useRequireUser()` (`src/lib/use-user.ts`), que consulta `/api/auth/me` y redirige a `/iniciar-sesion` si responde 401, y el encabezado compartido `AppHeader`.
-- Suscripción: `/suscripcion`, `/suscripcion/retorno` (consulta el estado real con `/billing/subscription/sync`) y `/suscripcion/simulador`, que reemplaza a Mercado Pago solo con `BILLING_PROVIDER=fake`.
+- Suscripción: sin acceso, el panel lleva a `/suscripcion` (el estudio exige suscripción, cortesía o rol de administrador). Páginas: `/suscripcion`, `/suscripcion/retorno` (consulta el estado real con `/billing/subscription/sync`) y `/suscripcion/simulador`, que reemplaza a Mercado Pago solo con `BILLING_PROVIDER=fake`.
 - Botones: `buttonStyles` y `ButtonLink` de `src/components/button.tsx`; no repitas clases de botón.
 - Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
 - El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.

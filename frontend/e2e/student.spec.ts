@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { E2E_PASSWORD, lastEmailToken, uniqueEmail } from "./support";
+import { E2E_PASSWORD, grantAccess, lastEmailToken, uniqueEmail } from "./support";
 
 // Recorrido real de un estudiante contra el backend (AC-036, AC-037, Gate 10).
 
@@ -25,6 +25,7 @@ async function login(page: Page, email: string) {
 test("un estudiante se registra, entra al panel, comenta y cierra sesión", async ({ page }, testInfo) => {
   const email = uniqueEmail(testInfo.project.name);
   await registerAndVerify(page, email);
+  grantAccess(email);
 
   await page.getByRole("link", { name: "Iniciar sesión" }).click();
   await login(page, email);
@@ -116,11 +117,8 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await page.getByRole("link", { name: "Iniciar sesión" }).click();
   await login(page, email);
 
-  // Sin suscripción, el panel invita a activarla.
-  await expect(page).toHaveURL(/\/panel$/);
-  await expect(page.getByText("Activa tu suscripción para estudiar")).toBeVisible();
-  await page.getByRole("link", { name: "Ver plan" }).click();
-
+  // Sin suscripción no se entra al panel: primero la prueba gratis.
+  await expect(page).toHaveURL(/\/suscripcion$/);
   await expect(page.getByRole("heading", { level: 1, name: "Tu suscripción" })).toBeVisible();
   await expect(page.getByText("$9.990 / mes")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("suscripcion.png"), fullPage: true });
@@ -131,10 +129,16 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await page.getByRole("button", { name: "Aprobar pago simulado" }).click();
   await expect(page).toHaveURL(/\/suscripcion\/retorno$/);
   await expect(page.getByText("¡Listo! Tu suscripción está activa.")).toBeVisible();
+  await page.getByRole("link", { name: "Ir a mi panel" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "¡Hola! Qué bueno verte" })).toBeVisible();
+  await page.getByRole("link", { name: "Suscripción" }).click();
 
-  await page.getByRole("link", { name: "Ver mi suscripción" }).click();
   await expect(page.getByText("Tu suscripción está activa.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Cancelar suscripción" }).click();
   await page.getByRole("button", { name: "Sí, cancelar" }).click();
   await expect(page.getByRole("button", { name: "Comenzar 7 días gratis" })).toBeVisible();
+
+  // Sin acceso, el panel vuelve a llevar a la suscripción.
+  await page.goto("/panel");
+  await expect(page).toHaveURL(/\/suscripcion$/);
 });

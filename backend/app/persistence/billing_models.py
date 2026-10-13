@@ -1,4 +1,5 @@
-"""Suscripciones y su registro de cambios (FR-029 a FR-031). Sin datos de tarjeta."""
+"""Suscripciones, su registro de cambios y accesos de cortesía (FR-029 a FR-032). Sin datos de
+tarjeta."""
 
 import uuid
 from datetime import datetime
@@ -70,3 +71,30 @@ class BillingEventRow(Base):
     previous_status: Mapped[str | None] = mapped_column(String(20))
     new_status: Mapped[str] = mapped_column(String(20))
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AccessGrantRow(Base):
+    """Acceso de cortesía sin suscripción (FR-032), otorgado por el equipo desde el CLI.
+
+    Revocar no borra la fila: se registra `revoked_at`, así queda el historial."""
+
+    __tablename__ = "access_grant"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), index=True
+    )
+    reason: Mapped[str] = mapped_column(String(200))
+    granted_by: Mapped[str] = mapped_column(String(320))
+    granted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        # A lo más un acceso vigente por cuenta.
+        Index(
+            "uq_access_grant_one_active_per_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("revoked_at IS NULL"),
+        ),
+    )
