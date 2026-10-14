@@ -39,6 +39,14 @@ Vercel solo necesita `BACKEND_URL=https://api.apruebatuexamen.cl` (Production y 
 
 Los secretos viven únicamente en los paneles de Render y Vercel; nunca en el repositorio.
 
+## Recordatorios por correo (Vercel Cron)
+
+`vercel.json` programa una llamada diaria a `/api/engagement/reminders/run`. Vercel la envía con `Authorization: Bearer <CRON_SECRET>`.
+
+- En **Vercel** (proyecto `tugrado` → Settings → Environment Variables, Production): `CRON_SECRET`.
+- En **Render**: `CRON_SECRET`, con el **mismo valor**.
+- Sin `CRON_SECRET` en Render el endpoint responde 404 y no se envían recordatorios.
+
 ## Mercado Pago: claves de suscripción
 
 Solo se usan dos valores (la Public Key y el Client ID/Secret no hacen falta, porque el pago

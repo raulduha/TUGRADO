@@ -11,6 +11,7 @@ const PAGES = [
   { path: "/restablecer-contrasena?token=x", heading: "Elige una nueva contraseña" },
   { path: "/privacidad", heading: "Política de privacidad" },
   { path: "/terminos", heading: "Términos y condiciones" },
+  { path: "/correos/baja?token=x", heading: "Recordatorios por correo" },
 ];
 
 for (const { path, heading } of PAGES) {

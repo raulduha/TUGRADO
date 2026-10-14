@@ -16,6 +16,8 @@ class EmailMessage:
     body: str
     # Versión HTML opcional; `body` es siempre la versión de texto plano.
     html: str | None = None
+    # Encabezados extra (p. ej. List-Unsubscribe en los recordatorios).
+    headers: dict[str, str] | None = None
 
 
 class EmailSender(Protocol):
@@ -57,6 +59,8 @@ class ResendEmailSender:
         }
         if message.html:
             body["html"] = message.html
+        if message.headers:
+            body["headers"] = message.headers
         try:
             response = self._client.post("/emails", json=body, headers=self._headers)
         except httpx.HTTPError as exc:

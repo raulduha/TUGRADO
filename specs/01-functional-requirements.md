@@ -152,3 +152,6 @@ El equipo puede dar acceso sin suscripción a una cuenta específica (por ejempl
 
 ### FR-033 — Rachas
 Cada día (hora de Chile) en que el estudiante entra al panel queda registrado. El panel muestra la racha actual de días seguidos, la mejor racha y los últimos 7 días, y celebra la primera visita del día. La racha mide constancia de uso; no es una medida de desempeño ni promete aprobar el examen.
+
+### FR-034 — Recordatorio por correo
+Una vez al día, el sistema escribe a cada estudiante con acceso al estudio que lleva 2 días o más sin entrar: un solo correo por ausencia, que no se repite hasta que vuelva a entrar. El correo anima sin prometer la aprobación del examen e incluye un enlace para darse de baja de estos recordatorios sin iniciar sesión. La tarea la ejecuta Vercel Cron con una clave (`CRON_SECRET`); sin la clave, los recordatorios quedan desactivados.
