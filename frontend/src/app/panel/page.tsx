@@ -7,10 +7,12 @@ import { AppHeader } from "@/components/app-header";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
+import { DevSimBanner, DevTools } from "@/components/dev-tools";
 import { StreakCard, StreakCelebration } from "@/components/streak";
 import { LEVELS, StudyMap } from "@/components/study-map";
 import { Icon, type IconName } from "@/components/illustrations";
 import { api, formatDate, type Me, type Streak, type Subscription } from "@/lib/api";
+import { useDevSim } from "@/lib/devsim";
 import { useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
@@ -60,8 +62,25 @@ export default function PanelPage() {
     };
   }, [me, router]);
 
-  const done = LEVELS.filter((level) => level.done).length;
-  const percent = Math.round((done / LEVELS.length) * 100);
+  // Herramientas de admin: con la simulación activa, el panel muestra un estudiante ficticio.
+  const isAdmin = me?.roles.includes("administrator") ?? false;
+  const sim = useDevSim(isAdmin);
+  const simDone = Math.round((sim.percent / 100) * LEVELS.length);
+  const levels = sim.enabled ? LEVELS.map((l, i) => ({ ...l, done: i < simDone })) : LEVELS;
+  const shownStreak: Streak | null = sim.enabled
+    ? {
+        current: sim.streak,
+        best: Math.max(sim.streak, streak?.best ?? 0),
+        new_today: false,
+        week: Array.from({ length: 7 }, (_, i) => i >= 7 - Math.min(7, sim.streak)),
+      }
+    : streak;
+  const statValues: Array<string | null> = sim.enabled
+    ? [String(Math.round(sim.percent * 3.2)), String(Math.round(sim.percent / 8)), `${sim.percent} %`]
+    : [null, null, null];
+
+  const done = levels.filter((level) => level.done).length;
+  const percent = Math.round((done / levels.length) * 100);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -89,14 +108,18 @@ export default function PanelPage() {
                   {me.email} · {me.roles.map((role) => ROLE_LABELS[role]).join(", ")}
                 </p>
                 <p className="mt-4 max-w-md text-pretty">
-                  Ya diste los primeros pasos. Muy pronto podrás practicar y simular tu examen
-                  desde aquí.
+                  {percent >= 100
+                    ? "Completaste todo tu mapa de estudio. ¡A darlo todo en el examen!"
+                    : percent >= 50
+                      ? "Vas por buen camino: ya pasaste la mitad de tu mapa de estudio."
+                      : "Ya diste los primeros pasos. Sigue avanzando nivel a nivel."}
                 </p>
               </div>
-              <ProgressRing percent={percent} label={`${done} de ${LEVELS.length} niveles`} />
+              <ProgressRing percent={percent} label={`${done} de ${levels.length} niveles`} />
             </section>
 
-            {streak ? <StreakCard streak={streak} /> : null}
+            <DevSimBanner sim={sim} />
+            {shownStreak ? <StreakCard streak={shownStreak} /> : null}
 
             <section aria-labelledby="mapa">
               <h2 id="mapa" className="text-xl font-semibold tracking-tight">
@@ -106,7 +129,7 @@ export default function PanelPage() {
                 Toca un nivel para que Apruvi te cuente de qué se trata.
               </p>
               <div className="mt-4">
-                <StudyMap />
+                <StudyMap key={sim.enabled ? `sim-${simDone}` : "real"} levels={levels} />
               </div>
             </section>
 
@@ -117,16 +140,22 @@ export default function PanelPage() {
                 Tu progreso
               </h2>
               <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-                {STATS.map((stat) => (
+                {STATS.map((stat, i) => (
                   <li key={stat.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">
                       <Icon name={stat.icon} />
                     </span>
-                    <p className="mt-4 text-3xl font-semibold" aria-label="Sin datos">
-                      —
-                    </p>
+                    {statValues[i] ? (
+                      <p className="mt-4 text-3xl font-semibold">{statValues[i]}</p>
+                    ) : (
+                      <p className="mt-4 text-3xl font-semibold" aria-label="Sin datos">
+                        —
+                      </p>
+                    )}
                     <p className="mt-1 font-medium">{stat.label}</p>
-                    <p className="mt-1 text-sm text-muted">Aparecerá cuando empieces a estudiar.</p>
+                    <p className="mt-1 text-sm text-muted">
+                      {statValues[i] ? "Dato simulado." : "Aparecerá cuando empieces a estudiar."}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -136,6 +165,7 @@ export default function PanelPage() {
       </main>
 
       {me ? <FeedbackButton /> : null}
+      {isAdmin ? <DevTools sim={sim} /> : null}
       {celebrate && streak ? (
         <StreakCelebration streak={streak} onClose={() => setCelebrate(false)} />
       ) : null}
