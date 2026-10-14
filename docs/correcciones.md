@@ -158,3 +158,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Importación desde la plantilla Excel, todo o nada con errores por fila (AC-044). Panel `/admin/preguntas`.
 - `/practica` usa las preguntas publicadas y vuelve a las de ejemplo solo si no hay ninguna.
 - Aún no se modelan la jurisdicción ni el programa de estudio; quedan para cuando estén las materias reales. La edición desde el panel tampoco existe todavía: solo está el endpoint.
+
+## U. Herramientas de administrador: simular estudiante (2026-10-14)
+
+- Pedido del usuario: una herramienta tipo "cheat code" para que los administradores recorran el journey de un estudiante con cualquier porcentaje de avance.
+- Botón flotante solo para administradores en el panel. Ajusta el avance del mapa, los días de racha y tiene atajos (Nuevo, A mitad de camino, Listo para el examen).
+- Es solo visual: se guarda en el navegador del administrador, no toca la base de datos y ningún estudiante lo ve. Mientras está activa, el panel muestra "Modo simulación" y las estadísticas dicen "Dato simulado".

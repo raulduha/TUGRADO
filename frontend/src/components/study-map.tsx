@@ -78,10 +78,9 @@ const ROW = 112;
 const TOP = 56;
 
 export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
-  const current = Math.max(
-    0,
-    levels.findIndex((level) => !level.done),
-  );
+  // Nivel en curso: el primero sin terminar; con todo completado, Apruvi llega a la meta.
+  const firstPending = levels.findIndex((level) => !level.done);
+  const current = firstPending === -1 ? levels.length - 1 : firstPending;
   const [selected, setSelected] = useState(current);
   const points = levels.map((_, i) => ({ x: X[i % X.length], y: TOP + i * ROW }));
   const height = TOP * 2 + (levels.length - 1) * ROW;

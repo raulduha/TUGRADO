@@ -98,7 +98,7 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 - Suscripción: sin acceso, el panel lleva a `/suscripcion` (el estudio exige suscripción, cortesía o rol de administrador). Páginas: `/suscripcion`, `/suscripcion/retorno` (consulta el estado real con `/billing/subscription/sync`) y `/suscripcion/simulador`, que reemplaza a Mercado Pago solo con `BILLING_PROVIDER=fake`.
 - Botones: `buttonStyles` y `ButtonLink` de `src/components/button.tsx`; no repitas clases de botón.
 - Tema claro único: los colores son tokens en `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-brand-soft`…). Las ilustraciones e íconos son SVG propios en `src/components/illustrations.tsx`.
-- El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío.
+- El panel no muestra cifras inventadas: el progreso sin datos se muestra como estado vacío. La excepción es la simulación de administradores (`src/lib/devsim.ts`, `DevTools`): solo visual, guardada en localStorage, marcada como "Modo simulación".
 - Gate 10: `e2e/responsive.spec.ts` recorre las pantallas públicas en 390, 768 y 1280 px y falla si hay desplazamiento horizontal. `e2e/student.spec.ts` hace el recorrido real de un estudiante: el token de verificación se lee del log del backend (`docker compose logs`) y las cuentas `e2e-*@ejemplo.cl` se borran al terminar.
 
 ## Mapa de especificaciones

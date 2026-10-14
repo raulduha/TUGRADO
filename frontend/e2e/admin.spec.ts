@@ -52,4 +52,15 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.goto("/practica");
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
   await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeHidden();
+
+  // Herramientas de admin: simular un estudiante que completó todo el mapa.
+  await page.goto("/panel");
+  await page.getByRole("button", { name: "Herramientas de administrador" }).click();
+  await page.getByRole("button", { name: "Listo para el examen" }).click();
+  await expect(page.getByText("Modo simulación (solo tú lo ves):")).toBeVisible();
+  await expect(page.getByRole("img", { name: "Mapa completado al 100 %" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Tu racha" })).toContainText("45 días seguidos");
+  await page.screenshot({ path: testInfo.outputPath("devtools.png"), fullPage: true });
+  await page.getByRole("checkbox", { name: "Activa" }).uncheck();
+  await expect(page.getByText("Modo simulación (solo tú lo ves):")).toBeHidden();
 });
