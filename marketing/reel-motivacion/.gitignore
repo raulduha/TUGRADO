@@ -1,0 +1,6 @@
+# Renders y artefactos pesados o regenerables: no van al repo.
+renders/
+.hyperframes/
+node_modules/
+# La música no se redistribuye en un repo público (ya cubierta por *.mp3 en la raíz).
+assets/*.mp3

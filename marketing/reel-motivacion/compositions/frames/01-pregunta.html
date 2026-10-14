@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="01-pregunta"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: linear-gradient(180deg, #eef1fa 0%, #fbf8f3 60%, #f7efe2 100%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="01-pregunta"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="01-pregunta"] .layer { position: absolute; inset: 0; }
+[data-composition-id="01-pregunta"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="01-pregunta"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="01-pregunta"] #q-text { top: 320px; font-size: 118px; line-height: 1.0; }
+[data-composition-id="01-pregunta"] #q-l2 { color: #2f5bd3; }
+[data-composition-id="01-pregunta"] #q-ap { left: 200px; top: 900px; width: 470px; height: 509px; }
+[data-composition-id="01-pregunta"] #q-flame { position: absolute; left: 720px; top: 1180px; width: 150px; height: 188px; filter: grayscale(1); opacity: .45; }
+
+</style>
+<div id="01-pregunta" data-composition-id="01-pregunta" data-width="1080" data-height="1920" data-duration="3.3">
+
+<div class="t" id="q-text"><div id="q-l1">¿Un par de días</div><div id="q-l2">sin estudiar?</div></div>
+
+<svg id="q-ap" class="apruvi" viewBox="0 0 120 130" >
+  <ellipse id="q-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14"/>
+  <g id="q-ap-body">
+    <ellipse cx="46" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <ellipse cx="74" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <path d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3"/>
+    <ellipse cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92"/>
+    <path id="q-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path id="q-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <g id="q-ap-eyes">
+      <ellipse cx="47" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <ellipse cx="73" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <circle cx="48.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="71.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="50.5" cy="65.5" r="2" fill="#fff"/>
+      <circle cx="73.5" cy="65.5" r="2" fill="#fff"/>
+    </g>
+    <ellipse cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <ellipse cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <path d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d"/>
+    <path d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864"/>
+    <g id="q-ap-tassel">
+      <path d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="88" cy="46" r="3.6" fill="#f5a524"/>
+    </g>
+    <circle cx="60" cy="28" r="2.4" fill="#f5a524"/>
+  </g>
+</svg>
+<svg id="q-flame" viewBox="0 0 32 40">
+  <path class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316"/>
+  <path class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24"/>
+</svg>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+// Ritmo de frase: entradas lentas, sin golpes.
+tl.fromTo('#q-ap', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, 0);
+tl.fromTo('#q-flame', { opacity: 0 }, { opacity: 0.45, duration: 0.9, ease: 'power1.out' }, 0.2);
+apruviLife(tl, 'q-ap', 3.3, [2.6]);
+tl.fromTo('#q-l1', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 1.04 - 0.2);
+tl.fromTo('#q-l2', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 1.81 - 0.2);
+// Apruvi inclina la cabeza, pensativo.
+tl.to('#q-ap', { rotation: -6, duration: 1.2, ease: 'sine.inOut', transformOrigin: '50% 100%' }, 1.6);
+
+tl.seek(0);
+window.__timelines["01-pregunta"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>

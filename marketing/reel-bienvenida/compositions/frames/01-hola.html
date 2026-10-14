@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="01-hola"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: linear-gradient(180deg, #e8eefc 0%, #fbf8f3 55%, #fdf1dc 100%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="01-hola"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="01-hola"] .layer { position: absolute; inset: 0; }
+[data-composition-id="01-hola"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="01-hola"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="01-hola"] .bubble { position: absolute; background: #fff; border: 3px solid #e7e1d6; border-radius: 56px;
+  padding: 36px 48px; font-size: 76px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05;
+  box-shadow: 0 30px 70px rgba(31,36,48,.12); text-align: center; }
+
+[data-composition-id="01-hola"] #h-ap { left: 250px; top: 760px; width: 580px; height: 628px; }
+[data-composition-id="01-hola"] #h-bubble { left: 120px; right: 120px; top: 330px; }
+[data-composition-id="01-hola"] #h-welcome { top: 1410px; font-size: 84px; }
+[data-composition-id="01-hola"] #h-welcome .b { color: #2f5bd3; }
+
+</style>
+<div id="01-hola" data-composition-id="01-hola" data-width="1080" data-height="1920" data-duration="3.39">
+
+
+<svg id="h-ap" class="apruvi" viewBox="0 0 120 130" >
+  <ellipse id="h-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14"/>
+  <g id="h-ap-body">
+    <ellipse cx="46" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <ellipse cx="74" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <path d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3"/>
+    <ellipse cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92"/>
+    <path id="h-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path id="h-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <g id="h-ap-eyes">
+      <ellipse cx="47" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <ellipse cx="73" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <circle cx="48.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="71.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="50.5" cy="65.5" r="2" fill="#fff"/>
+      <circle cx="73.5" cy="65.5" r="2" fill="#fff"/>
+    </g>
+    <ellipse cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <ellipse cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <path d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d"/>
+    <path d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864"/>
+    <g id="h-ap-tassel">
+      <path d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="88" cy="46" r="3.6" fill="#f5a524"/>
+    </g>
+    <circle cx="60" cy="28" r="2.4" fill="#f5a524"/>
+  </g>
+</svg>
+<div class="bubble" id="h-bubble">¡Hola! Soy Apruvi</div>
+<div class="t" id="h-welcome">Te damos la <span class="b">bienvenida</span></div>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+tl.fromTo('#h-ap', { scale: 0.4, opacity: 0, transformOrigin: '50% 100%' }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.25);
+apruviLife(tl, 'h-ap', 3.39, [2.2]);
+tl.fromTo('#h-ap-arm-r', { rotation: 0 }, { rotation: -60, duration: 0.22, yoyo: true, repeat: 5, ease: 'sine.inOut', transformOrigin: '10% 10%' }, 0.8);
+popIn(tl, '#h-bubble', 1.81 - 0.12, { scale: 0.6, y: 60 });
+popIn(tl, '#h-welcome', 2.6 - 0.12, { y: 50 });
+
+tl.seek(0);
+window.__timelines["01-hola"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>
