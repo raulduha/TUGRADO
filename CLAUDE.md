@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 @AGENTS.md
 
+**Antes de diseñar, generar o animar algo** (pantallas, correos, videos, piezas para redes), lee `motion.md`: colores, tipografía, formas, Apruvi y reglas de timing del sitio (https://apruebatuexamen.cl).
+
 ## Estado del repositorio
 
 Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints ni pantallas.

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="03-racha"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: radial-gradient(circle at 50% 38%, #fff1e6 0%, #fdf1dc 42%, #fbf8f3 75%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="03-racha"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="03-racha"] .layer { position: absolute; inset: 0; }
+[data-composition-id="03-racha"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="03-racha"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="03-racha"] #r-title { top: 300px; font-size: 100px; }
+[data-composition-id="03-racha"] #r-rays { position: absolute; left: 540px; top: 700px; width: 0; height: 0; }
+[data-composition-id="03-racha"] .ray { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+[data-composition-id="03-racha"] .ray i { position: absolute; left: -9px; top: -460px; width: 18px; height: 150px; border-radius: 9px; background: #f97316; opacity: .5; }
+[data-composition-id="03-racha"] #r-flame { position: absolute; left: 380px; top: 470px; width: 320px; height: 400px; overflow: visible; }
+[data-composition-id="03-racha"] #r-num .n { position: absolute; left: 0; right: 0; opacity: 0; }
+[data-composition-id="03-racha"] #r-num { top: 900px; height: 340px; font-size: 330px; font-weight: 800; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
+[data-composition-id="03-racha"] #r-lbl { top: 1220px; font-size: 64px; font-weight: 600; color: #5d6474; letter-spacing: -0.02em; }
+[data-composition-id="03-racha"] #r-week { position: absolute; left: 110px; right: 110px; top: 1330px; display: flex; justify-content: space-between; }
+[data-composition-id="03-racha"] .dot { position: relative; width: 104px; height: 104px; border-radius: 50%; background: #fff; border: 3px solid #e7e1d6; display: grid; place-items: center; }
+[data-composition-id="03-racha"] .dot span { position: absolute; bottom: -54px; font-size: 32px; font-weight: 600; color: #5d6474; }
+[data-composition-id="03-racha"] .dflame { width: 54px; height: 68px; opacity: 0; }
+[data-composition-id="03-racha"] #r-ap { left: -40px; top: 980px; width: 300px; height: 325px; }
+
+</style>
+<div data-hf-id="hf-4dcq" id="03-racha" data-composition-id="03-racha" data-width="1080" data-height="1920" data-duration="3.39">
+
+<div data-hf-id="hf-09a1" id="r-rays"><div data-hf-id="hf-ttqq" class="ray" style="transform:rotate(0deg)"><i data-hf-id="hf-wt6k"></i></div><div data-hf-id="hf-u6j9" class="ray" style="transform:rotate(30deg)"><i data-hf-id="hf-zeb8"></i></div><div data-hf-id="hf-i69q" class="ray" style="transform:rotate(60deg)"><i data-hf-id="hf-y7e5"></i></div><div data-hf-id="hf-lv4v" class="ray" style="transform:rotate(90deg)"><i data-hf-id="hf-ylp6"></i></div><div data-hf-id="hf-ymhl" class="ray" style="transform:rotate(120deg)"><i data-hf-id="hf-0l8b"></i></div><div data-hf-id="hf-cx0k" class="ray" style="transform:rotate(150deg)"><i data-hf-id="hf-0zjc"></i></div><div data-hf-id="hf-i5pf" class="ray" style="transform:rotate(180deg)"><i data-hf-id="hf-zsm9"></i></div><div data-hf-id="hf-stpb" class="ray" style="transform:rotate(210deg)"><i data-hf-id="hf-06xa"></i></div><div data-hf-id="hf-wwvk" class="ray" style="transform:rotate(240deg)"><i data-hf-id="hf-26gf"></i></div><div data-hf-id="hf-gjch" class="ray" style="transform:rotate(270deg)"><i data-hf-id="hf-2krg"></i></div><div data-hf-id="hf-du7h" class="ray" style="transform:rotate(300deg)"><i data-hf-id="hf-oz7w"></i></div><div data-hf-id="hf-9tf0" class="ray" style="transform:rotate(330deg)"><i data-hf-id="hf-okwv"></i></div></div>
+<svg data-hf-id="hf-fpym" id="r-flame" viewBox="0 0 32 40">
+  <path data-hf-id="hf-a2qf" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-xan4" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg>
+<div data-hf-id="hf-41fb" class="t" id="r-title">Rachas con fueguito</div>
+<div data-hf-id="hf-1gez" class="t" id="r-num"><span data-hf-id="hf-gmey" class="n" id="r-n1">1</span><span data-hf-id="hf-u96q" class="n" id="r-n2">2</span><span data-hf-id="hf-c5ne" class="n" id="r-n3">3</span><span data-hf-id="hf-oskq" class="n" id="r-n4">4</span><span data-hf-id="hf-hkd6" class="n" id="r-n5">5</span><span data-hf-id="hf-mzj6" class="n" id="r-n6">6</span><span data-hf-id="hf-0u0q" class="n" id="r-n7">7</span></div>
+<div data-hf-id="hf-7p2h" class="t" id="r-lbl">días seguidos</div>
+<div data-hf-id="hf-e75q" id="r-week"><div data-hf-id="hf-flch" class="dot" id="r-d0" data-layout-allow-overflow=""><span data-hf-id="hf-hm6v">L</span><svg data-hf-id="hf-6ggd" class="dflame" id="r-df0" viewBox="0 0 32 40">
+  <path data-hf-id="hf-dvmf" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-1el4" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-etoo" class="dot" id="r-d1" data-layout-allow-overflow=""><span data-hf-id="hf-i0hw">M</span><svg data-hf-id="hf-mnlk" class="dflame" id="r-df1" viewBox="0 0 32 40">
+  <path data-hf-id="hf-dhbe" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-07o1" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-pp6b" class="dot" id="r-d2" data-layout-allow-overflow=""><span data-hf-id="hf-bnzw">M</span><svg data-hf-id="hf-gyvr" class="dflame" id="r-df2" viewBox="0 0 32 40">
+  <path data-hf-id="hf-d30d" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-0lz2" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-lr2a" class="dot" id="r-d3" data-layout-allow-overflow=""><span data-hf-id="hf-iesx">J</span><svg data-hf-id="hf-8jwa" class="dflame" id="r-df3" viewBox="0 0 32 40">
+  <path data-hf-id="hf-fv5k" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-zf1z" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-2zcl" class="dot" id="r-d4" data-layout-allow-overflow=""><span data-hf-id="hf-dn4l">V</span><svg data-hf-id="hf-vlu1" class="dflame" id="r-df4" viewBox="0 0 32 40">
+  <path data-hf-id="hf-fguj" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-ztd0" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-27os" class="dot" id="r-d5" data-layout-allow-overflow=""><span data-hf-id="hf-fmnq">S</span><svg data-hf-id="hf-tor8" class="dflame" id="r-df5" viewBox="0 0 32 40">
+  <path data-hf-id="hf-f2ji" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-ymfx" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div><div data-hf-id="hf-avkn" class="dot" id="r-d6" data-layout-allow-overflow=""><span data-hf-id="hf-ksn3">D</span><svg data-hf-id="hf-your" class="dflame" id="r-df6" viewBox="0 0 32 40">
+  <path data-hf-id="hf-eo8h" class="fl-out" d="M16 2c1 7 9 10 9 21a9 9 0 0 1-18 0c0-5 3-8 5-11 0 4 2 6 3 6-1-6 0-11 1-16Z" fill="#f97316" />
+  <path data-hf-id="hf-z0qy" class="fl-in" d="M16 18c1 4 5 6 5 11a5 5 0 0 1-10 0c0-3 2-5 3-7 0 2 1 3 2 3-1-3 0-5 0-7Z" fill="#fbbf24" />
+</svg></div></div>
+
+<svg data-hf-id="hf-xmiz" id="r-ap" class="apruvi" viewBox="0 0 120 130" data-layout-allow-overflow="">
+  <ellipse data-hf-id="hf-5hws" id="r-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14" />
+  <g data-hf-id="hf-atvk" id="r-ap-body">
+    <ellipse data-hf-id="hf-kgmw" cx="46" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <ellipse data-hf-id="hf-ibhv" cx="74" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <path data-hf-id="hf-wwtd" d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3" />
+    <ellipse data-hf-id="hf-pasd" cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92" />
+    <path data-hf-id="hf-3kcp" id="r-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-b6mj" id="r-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <g data-hf-id="hf-i1i2" id="r-ap-eyes">
+      <ellipse data-hf-id="hf-5heb" cx="47" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <ellipse data-hf-id="hf-xtz0" cx="73" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <circle data-hf-id="hf-7vwe" cx="48.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-lvy6" cx="71.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-hgjx" cx="50.5" cy="65.5" r="2" fill="#fff" />
+      <circle data-hf-id="hf-s2hs" cx="73.5" cy="65.5" r="2" fill="#fff" />
+    </g>
+    <ellipse data-hf-id="hf-f4o8" cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <ellipse data-hf-id="hf-dfb7" cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <path data-hf-id="hf-onh5" d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-emcs" d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d" />
+    <path data-hf-id="hf-yzax" d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864" />
+    <g data-hf-id="hf-yns0" id="r-ap-tassel">
+      <path data-hf-id="hf-ahtc" d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round" />
+      <circle data-hf-id="hf-823b" cx="88" cy="46" r="3.6" fill="#f5a524" />
+    </g>
+    <circle data-hf-id="hf-n9ia" cx="60" cy="28" r="2.4" fill="#f5a524" />
+  </g>
+</svg>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+// Subida: zoom brusco a la llama y rayos hacia afuera.
+tl.fromTo('#r-flame', { scale: 3.2, opacity: 0.4 }, { scale: 1, opacity: 1, duration: 0.36, ease: 'expo.out', transformOrigin: '50% 80%' }, 0);
+tl.fromTo('#r-rays .ray i', { scaleY: 0.2, opacity: 0.8 }, { scaleY: 1.4, opacity: 0, y: -160, duration: 0.7, ease: 'power3.out', transformOrigin: '50% 100%' }, 0);
+tl.fromTo('#r-flame .fl-out', { scaleX: 1, scaleY: 1 }, { scaleX: 0.95, scaleY: 1.06, duration: 0.4, yoyo: true, repeat: 7, ease: 'sine.inOut', transformOrigin: '50% 100%' }, 0.36);
+tl.fromTo('#r-flame .fl-in', { scaleX: 1, scaleY: 1 }, { scaleX: 1.05, scaleY: 0.94, duration: 0.28, yoyo: true, repeat: 10, ease: 'sine.inOut', transformOrigin: '50% 100%' }, 0.36);
+popIn(tl, '#r-title', 0.08, { y: 30 });
+popIn(tl, '#r-lbl', 0.3, { y: 20 });
+popIn(tl, '#r-week', 0.3, { y: 30 });
+popIn(tl, '#r-num', 0.12, { scale: 0.5 });
+// Contador 1 → 7 entre los golpes (0,96 … 2,61); cada número enciende un día.
+const steps = [0.96, 1.24, 1.5, 1.63, 1.98, 2.3, 2.61];
+tl.set('#r-n1', { opacity: 1 }, 0);
+steps.forEach(function (t, i) {
+  if (i > 0) { tl.set('#r-n' + i, { opacity: 0 }, t); tl.set('#r-n' + (i + 1), { opacity: 1 }, t); }
+  tl.fromTo('#r-num', { scale: 1.16 }, { scale: 1, duration: 0.22, ease: 'power3.out' }, t);
+  tl.to('#r-d' + i, { backgroundColor: '#fff1e6', borderColor: '#f97316', duration: 0.12 }, t);
+  tl.fromTo('#r-df' + i, { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(3)' }, t);
+});
+// Fijación con golpe en 2,61 y rayos otra vez.
+tl.fromTo('#r-num', { scale: 1.35, color: '#c2410c' }, { scale: 1, color: '#c2410c', duration: 0.45, ease: 'back.out(2.5)', immediateRender: false }, 2.61);
+tl.fromTo('#r-rays .ray i', { scaleY: 0.2, opacity: 0.7, y: 0 }, { scaleY: 1.4, opacity: 0, y: -160, duration: 0.6, ease: 'power3.out', transformOrigin: '50% 100%', immediateRender: false }, 2.61);
+// Apruvi asoma desde la izquierda en 1,63 y celebra.
+tl.fromTo('#r-ap', { x: -320, rotation: -12 }, { x: 0, rotation: 0, duration: 0.42, ease: 'back.out(2)' }, 1.5);
+tl.fromTo('#r-ap-arm-r', { rotation: 0 }, { rotation: -60, duration: 0.2, yoyo: true, repeat: 5, ease: 'sine.inOut', transformOrigin: '10% 10%' }, 1.9);
+apruviLife(tl, 'r-ap', 3.39, [2.9]);
+
+tl.seek(0);
+window.__timelines["03-racha"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>
