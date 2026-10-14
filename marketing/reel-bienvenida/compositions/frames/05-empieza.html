@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="05-empieza"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: linear-gradient(180deg, #e8eefc 0%, #fbf8f3 55%, #fdf1dc 100%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="05-empieza"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="05-empieza"] .layer { position: absolute; inset: 0; }
+[data-composition-id="05-empieza"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="05-empieza"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="05-empieza"] #e-btn { position: absolute; left: 130px; right: 130px; top: 330px; text-align: center; background: #2f5bd3; color: #fff;
+  font-size: 92px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; border-radius: 60px; padding: 50px 0;
+  box-shadow: 0 18px 0 #2448ad, 0 40px 80px rgba(47,91,211,.3); }
+[data-composition-id="05-empieza"] #e-ap { left: 380px; top: 720px; width: 320px; height: 347px; }
+[data-composition-id="05-empieza"] #e-lock { position: absolute; left: 0; right: 0; top: 1150px; display: flex; gap: 26px; justify-content: center; align-items: center; font-size: 78px; font-weight: 700; letter-spacing: -0.03em; }
+[data-composition-id="05-empieza"] #e-logo { width: 120px; height: 120px; }
+[data-composition-id="05-empieza"] #e-url { top: 1300px; font-size: 58px; font-weight: 600; color: #2f5bd3; }
+[data-composition-id="05-empieza"] .cf { position: absolute; width: 26px; height: 16px; opacity: 0; }
+
+</style>
+<div id="05-empieza" data-composition-id="05-empieza" data-width="1080" data-height="1920" data-duration="2.56">
+
+<div id="e-confetti"><i class="cf" id="e-c0" style="background:#2f5bd3;border-radius:50%"></i><i class="cf" id="e-c1" style="background:#f5a524;border-radius:4px"></i><i class="cf" id="e-c2" style="background:#067647;border-radius:4px"></i><i class="cf" id="e-c3" style="background:#f97316;border-radius:50%"></i><i class="cf" id="e-c4" style="background:#f7a8b8;border-radius:4px"></i><i class="cf" id="e-c5" style="background:#2448ad;border-radius:4px"></i><i class="cf" id="e-c6" style="background:#2f5bd3;border-radius:50%"></i><i class="cf" id="e-c7" style="background:#f5a524;border-radius:4px"></i><i class="cf" id="e-c8" style="background:#067647;border-radius:4px"></i><i class="cf" id="e-c9" style="background:#f97316;border-radius:50%"></i><i class="cf" id="e-c10" style="background:#f7a8b8;border-radius:4px"></i><i class="cf" id="e-c11" style="background:#2448ad;border-radius:4px"></i><i class="cf" id="e-c12" style="background:#2f5bd3;border-radius:50%"></i><i class="cf" id="e-c13" style="background:#f5a524;border-radius:4px"></i><i class="cf" id="e-c14" style="background:#067647;border-radius:4px"></i><i class="cf" id="e-c15" style="background:#f97316;border-radius:50%"></i><i class="cf" id="e-c16" style="background:#f7a8b8;border-radius:4px"></i><i class="cf" id="e-c17" style="background:#2448ad;border-radius:4px"></i><i class="cf" id="e-c18" style="background:#2f5bd3;border-radius:50%"></i><i class="cf" id="e-c19" style="background:#f5a524;border-radius:4px"></i><i class="cf" id="e-c20" style="background:#067647;border-radius:4px"></i><i class="cf" id="e-c21" style="background:#f97316;border-radius:50%"></i><i class="cf" id="e-c22" style="background:#f7a8b8;border-radius:4px"></i><i class="cf" id="e-c23" style="background:#2448ad;border-radius:4px"></i><i class="cf" id="e-c24" style="background:#2f5bd3;border-radius:50%"></i><i class="cf" id="e-c25" style="background:#f5a524;border-radius:4px"></i><i class="cf" id="e-c26" style="background:#067647;border-radius:4px"></i><i class="cf" id="e-c27" style="background:#f97316;border-radius:50%"></i></div>
+<div id="e-btn">Empieza tus<br>7 días gratis</div>
+
+<svg id="e-ap" class="apruvi" viewBox="0 0 120 130" >
+  <ellipse id="e-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14"/>
+  <g id="e-ap-body">
+    <ellipse cx="46" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <ellipse cx="74" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <path d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3"/>
+    <ellipse cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92"/>
+    <path id="e-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path id="e-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <g id="e-ap-eyes">
+      <ellipse cx="47" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <ellipse cx="73" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <circle cx="48.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="71.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="50.5" cy="65.5" r="2" fill="#fff"/>
+      <circle cx="73.5" cy="65.5" r="2" fill="#fff"/>
+    </g>
+    <ellipse cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <ellipse cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <path d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d"/>
+    <path d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864"/>
+    <g id="e-ap-tassel">
+      <path d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="88" cy="46" r="3.6" fill="#f5a524"/>
+    </g>
+    <circle cx="60" cy="28" r="2.4" fill="#f5a524"/>
+  </g>
+</svg>
+<div id="e-lock"><svg id="e-logo" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="9" fill="#2f5bd3"/>
+  <path d="M16 8 5 13l11 5 11-5-11-5Z" fill="#fff"/>
+  <path d="M9.5 15.2v4.6c0 1.6 2.9 3.2 6.5 3.2s6.5-1.6 6.5-3.2v-4.6L16 18.1l-6.5-2.9Z" fill="#fff" opacity=".85"/>
+  <path d="M26 13.5v5.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="26" cy="20" r="1.4" fill="#f5a524"/>
+</svg><span>Aprueba tu examen</span></div>
+<div class="t" id="e-url">apruebatuexamen.cl</div>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+function burst(tl, prefix, n, t, cx, cy) {
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + (i % 2) * 0.2;
+    const r = 340 + (i % 5) * 70;
+    const dx = Math.cos(a) * r, dy = Math.sin(a) * r * 0.75 - 200;
+    tl.set('#' + prefix + i, { opacity: 1, x: 0, y: 0, rotation: 0, left: cx, top: cy }, t);
+    tl.to('#' + prefix + i, { x: dx, y: dy, rotation: (i % 2 ? 1 : -1) * (200 + i * 12), duration: 0.55, ease: 'power3.out' }, t);
+    tl.to('#' + prefix + i, { y: dy + 380, opacity: 0, duration: 0.8, ease: 'power1.in' }, t + 0.55);
+  }
+}
+
+popIn(tl, '#e-btn', 0, { scale: 0.5, y: 80 });
+tl.fromTo('#e-ap', { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'back.out(1.8)' }, 0.1);
+apruviLife(tl, 'e-ap', 2.56, [1.0]);
+tl.fromTo('#e-ap-arm-r', { rotation: 0 }, { rotation: -60, duration: 0.18, yoyo: true, repeat: 5, ease: 'sine.inOut', transformOrigin: '10% 10%' }, 0.6);
+tl.set(['#e-lock', '#e-url'], { opacity: 0 }, 0);
+popIn(tl, '#e-lock', 1.48, { scale: 0.6, y: 60 });
+popIn(tl, '#e-url', 1.62, { y: 30 });
+burst(tl, 'e-c', 28, 1.52, 540, 1200);
+
+tl.seek(0);
+window.__timelines["05-empieza"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>

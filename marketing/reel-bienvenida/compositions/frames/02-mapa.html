@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8" /></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="02-mapa"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: linear-gradient(180deg, #e8eefc 0%, #fbf8f3 55%, #fdf1dc 100%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="02-mapa"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="02-mapa"] .layer { position: absolute; inset: 0; }
+[data-composition-id="02-mapa"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="02-mapa"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="02-mapa"] #m-title { top: 300px; font-size: 90px; }
+[data-composition-id="02-mapa"] #m-sub { top: 405px; font-size: 52px; font-weight: 600; color: #2f5bd3; }
+[data-composition-id="02-mapa"] .node { position: absolute; width: 160px; height: 160px; border-radius: 50%; border-bottom: 16px solid; display: grid; place-items: center; }
+[data-composition-id="02-mapa"] #m-ap { left: 0; top: 0; width: 230px; height: 249px; }
+
+</style>
+<div id="02-mapa" data-composition-id="02-mapa" data-width="1080" data-height="1920" data-duration="4.18">
+
+<div class="t" id="m-title">Tu mapa de estudio</div>
+<div class="t" id="m-sub">nivel a nivel</div>
+<svg class="layer" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <path id="m-path" d="M 540 720 C 540 840, 780 840, 780 960 C 780 1080, 330 1080, 330 1200 C 330 1320, 600 1320, 600 1420" fill="none" stroke="#e7e1d6" stroke-width="44" stroke-linecap="round"/>
+</svg>
+<div class="node" id="m-n0" style="left:460px;top:640px;background:#067647;border-bottom-color:#05603a"><svg viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 l5 5 L20 7"/></svg></div><div class="node" id="m-n1" style="left:700px;top:880px;background:#2f5bd3;border-bottom-color:#2448ad"><svg viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg></div><div class="node" id="m-n2" style="left:250px;top:1120px;background:#ece7de;border-bottom-color:#d6cfc2"><svg viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#5d6474" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3"/></svg></div><div class="node" id="m-n3" style="left:520px;top:1340px;background:#ece7de;border-bottom-color:#d6cfc2"><svg viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#5d6474" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5ZM6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg></div>
+
+<svg id="m-ap" class="apruvi" viewBox="0 0 120 130" >
+  <ellipse id="m-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14"/>
+  <g id="m-ap-body">
+    <ellipse cx="46" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <ellipse cx="74" cy="116" rx="9" ry="5" fill="#2448ad"/>
+    <path d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3"/>
+    <ellipse cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92"/>
+    <path id="m-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path id="m-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <g id="m-ap-eyes">
+      <ellipse cx="47" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <ellipse cx="73" cy="66" rx="9" ry="10.5" fill="#fff"/>
+      <circle cx="48.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="71.5" cy="68" r="5.5" fill="#1f2430"/>
+      <circle cx="50.5" cy="65.5" r="2" fill="#fff"/>
+      <circle cx="73.5" cy="65.5" r="2" fill="#fff"/>
+    </g>
+    <ellipse cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <ellipse cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8"/>
+    <path d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <path d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d"/>
+    <path d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864"/>
+    <g id="m-ap-tassel">
+      <path d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="88" cy="46" r="3.6" fill="#f5a524"/>
+    </g>
+    <circle cx="60" cy="28" r="2.4" fill="#f5a524"/>
+  </g>
+</svg>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+popIn(tl, '#m-title', 0, { y: 30 });
+popIn(tl, '#m-sub', 0.25, { y: 20 });
+const path = document.querySelector('#m-path');
+const len = path.getTotalLength();
+tl.set('#m-path', { strokeDasharray: len, strokeDashoffset: len }, 0);
+tl.to('#m-path', { strokeDashoffset: 0, duration: 3.39, ease: 'none' }, 0);
+const beats = [1.02, 1.63, 2.6, 3.39];
+const pts = [[540, 720], [780, 960], [330, 1200], [600, 1420]];
+beats.forEach(function (t, i) {
+  tl.fromTo('#m-n' + i, { scale: 0, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(2.4)' }, t - 0.1);
+});
+// Apruvi salta de nodo en nodo (se para a la derecha de cada nodo).
+tl.set('#m-ap', { x: pts[0][0] + 70, y: pts[0][1] - 230 }, 0);
+for (let i = 1; i < 4; i++) {
+  const t = beats[i] - 0.4;
+  tl.to('#m-ap', { x: pts[i][0] + 70, duration: 0.4, ease: 'power1.inOut' }, t);
+  tl.to('#m-ap', { y: pts[i][1] - 380, duration: 0.2, ease: 'power2.out' }, t);
+  tl.to('#m-ap', { y: pts[i][1] - 230, duration: 0.2, ease: 'power2.in' }, t + 0.2);
+}
+apruviLife(tl, 'm-ap', 4.18, [3.8]);
+
+tl.seek(0);
+window.__timelines["02-mapa"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>
