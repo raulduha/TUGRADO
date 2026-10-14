@@ -23,6 +23,7 @@ Este paquete consolida las decisiones confirmadas más recientes en los document
 - La evaluación oral usa una escala de 1 a 7. No es una calificación académica oficial.
 - Se conservan transcripciones y resultados durante 12 meses; el audio original no se conserva. El audio temporal se elimina al terminar la transcripción, con un tope de seguridad de 1 hora para restos.
 - Documentos importables: PDF, DOCX y TXT, de hasta 25 MB.
+- Preguntas de alternativas: dificultad de 1 a 3 (fácil, media, difícil) y entre 2 y 5 alternativas. Se cargan con la plantilla `docs/plantillas/preguntas-alternativas.xlsx`; la importación es todo o nada y cada fila entra como borrador para revisión.
 - RAG recupera fuentes jurídicas y material académico aprobado; el contenido generado por IA requiere revisión humana antes de publicarse.
 - Cuotas de IA iniciales, configurables y reajustables con datos reales de costo: 5 simulaciones orales por día y 100 por mes por usuario, con alerta al 80 % y un error claro al alcanzar el límite.
 - `abandoned`: la sesión pasa a este estado cuando el estudiante la cierra voluntariamente sin terminar. Las respuestas ya evaluadas se conservan y las pendientes no puntúan.

@@ -1,0 +1,55 @@
+import path from "node:path";
+
+import { expect, type Page, test } from "@playwright/test";
+
+import { createAdmin, E2E_PASSWORD, uniqueEmail } from "./support";
+
+// Banco de preguntas (FR-013, FR-014, AC-029): importar la plantilla, revisar y publicar con
+// dos administradores. Solo en escritorio: los proyectos corren en paralelo sobre la misma base.
+
+const TEMPLATE = path.resolve(__dirname, "..", "..", "docs", "plantillas", "preguntas-alternativas.xlsx");
+
+async function loginAs(page: Page, email: string) {
+  await page.goto("/iniciar-sesion");
+  await page.getByLabel("Correo").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill(E2E_PASSWORD);
+  await page.getByRole("button", { name: "Iniciar sesión" }).click();
+  await expect(page).toHaveURL(/\/panel$/);
+  // Primera visita del día: se cierra la celebración de la racha.
+  await page.getByRole("dialog").getByRole("button", { name: "¡Vamos!" }).click();
+}
+
+test("una autora importa y otro administrador revisa y publica", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "escritorio", "Solo en escritorio (datos compartidos)");
+  const author = uniqueEmail("admin-autora");
+  const reviewer = uniqueEmail("admin-revisor");
+  createAdmin(author);
+  createAdmin(reviewer);
+
+  await loginAs(page, author);
+  await page.getByRole("link", { name: "Preguntas" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Banco de preguntas" })).toBeVisible();
+  await page.locator('input[type="file"]').setInputFiles(TEMPLATE);
+  await expect(page.getByText("Se importaron 2 preguntas como borradores.")).toBeVisible();
+
+  await page.getByRole("tab", { name: "Borrador" }).click();
+  await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
+  await page.getByRole("button", { name: "Enviar a revisión" }).click();
+  await expect(page.getByText("Tú creaste esta versión: otro administrador debe revisarla.")).toBeVisible();
+
+  // Otro administrador aprueba y publica.
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await loginAs(page, reviewer);
+  await page.goto("/admin/preguntas");
+  await page.getByRole("tab", { name: "En revisión" }).click();
+  await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
+  await page.getByRole("button", { name: "Aprobar" }).click();
+  await page.getByRole("button", { name: "Publicar" }).click();
+  await expect(page.getByRole("region", { name: "Detalle" }).getByText(/^Publicada · v1$/)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("banco.png"), fullPage: true });
+
+  // La pregunta publicada aparece en la práctica (sin aviso de ejemplo).
+  await page.goto("/practica");
+  await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
+  await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeHidden();
+});

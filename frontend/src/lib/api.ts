@@ -28,12 +28,22 @@ export async function api<T = unknown>(
   options: { method?: "GET" | "POST"; body?: unknown } = {},
 ): Promise<ApiResult<T>> {
   let response: Response;
+  // Un archivo (Blob/File) se envía tal cual, en binario; el resto como JSON.
+  const isFile = options.body instanceof Blob;
   try {
     response = await fetch(`/api${path}`, {
       method: options.method ?? (options.body === undefined ? "GET" : "POST"),
       credentials: "same-origin",
-      headers: options.body === undefined ? undefined : { "Content-Type": "application/json" },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      headers:
+        options.body === undefined
+          ? undefined
+          : { "Content-Type": isFile ? "application/octet-stream" : "application/json" },
+      body:
+        options.body === undefined
+          ? undefined
+          : isFile
+            ? (options.body as Blob)
+            : JSON.stringify(options.body),
       cache: "no-store",
     });
   } catch {
@@ -77,3 +87,19 @@ export function formatDate(iso: string): string {
 }
 
 export type Streak = { current: number; best: number; new_today: boolean; week: boolean[] };
+
+export type PracticeQuestion = {
+  id: string;
+  subject: string;
+  subtopic: string | null;
+  difficulty: number;
+  prompt: string;
+  options: string[];
+};
+
+export type PracticeResult = {
+  correct: boolean;
+  correct_position: number;
+  explanation: string;
+  source: string;
+};
