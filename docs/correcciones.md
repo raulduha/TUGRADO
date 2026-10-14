@@ -141,3 +141,12 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Pendiente: el correo de ánimo. Necesita una tarea programada y una forma de darse de baja; el mensaje anima sin prometer la aprobación.
 
 - Correo de ánimo (FR-034, AC-043). Decisiones del usuario: Vercel Cron, que es gratis, y un solo correo cuando el estudiante lleva 2 días sin entrar, con enlace de baja y `List-Unsubscribe`. Se ejecuta a las 13:00 UTC (10:00 en Chile en horario de verano).
+
+## S. Vistas previas con datos de ejemplo (2026-10-13)
+
+- Pedido del usuario: mientras no estén las preguntas reales, "todo lo de datos" va como mockup.
+- `/practica`, `/simulacion` y `/plan` son vistas previas solo de frontend, sin backend ni persistencia, con un aviso visible de datos de ejemplo. Se llega a ellas desde el mapa de estudio ("Probar (vista previa)").
+- La práctica usa 5 preguntas de ejemplo sobre normas verificables (Código Civil arts. 2, 6–7, 26 y 74; Constitución art. 25), con su fuente. No es contenido revisado ni publicado (FR-013/014 siguen pendientes).
+- La simulación no usa el micrófono ni IA (pendiente 3). Sí aplica las reglas decididas: modo de retroalimentación fijado al comenzar, tiempo de procesamiento sin descuento y escala 0–100 ponderada a 1,0–7,0 con un decimal.
+- El plan muestra la regla de prioridad decidida (peso × brecha), los estados de las tareas y el plan original conservado como línea base.
+- Siguen abiertas: dificultad, materias o cedulario, número de alternativas y proveedores de IA.

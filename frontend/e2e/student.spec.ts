@@ -158,3 +158,47 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await page.goto("/panel");
   await expect(page).toHaveURL(/\/suscripcion$/);
 });
+
+test("las vistas previas de práctica, simulación oral y plan funcionan", async ({ page }, testInfo) => {
+  const email = uniqueEmail(`${testInfo.project.name}-demo`);
+  await registerAndVerify(page, email);
+  grantAccess(email);
+  await page.getByRole("link", { name: "Iniciar sesión" }).click();
+  await login(page, email);
+  await expect(page).toHaveURL(/\/panel$/);
+  await page.getByRole("dialog").getByRole("button", { name: "¡Vamos!" }).click();
+
+  // Desde el mapa: Apruvi ofrece la vista previa del nivel.
+  const map = page.getByRole("region", { name: "Tu mapa de estudio" });
+  await map.getByRole("button", { name: /^Nivel 4:/ }).click();
+  await map.getByRole("link", { name: "Probar (vista previa) →" }).click();
+
+  // Práctica: elegir, comprobar y ver la explicación con su fuente.
+  await expect(page).toHaveURL(/\/practica$/);
+  await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeVisible();
+  await page.getByRole("button", { name: /Al nacer/ }).click();
+  await page.getByRole("button", { name: "Comprobar" }).click();
+  await expect(page.getByText("¡Correcto!")).toBeVisible();
+  await expect(page.getByText("Fuente: Código Civil, art. 74")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("practica.png"), fullPage: true });
+
+  // Simulación oral: configurar, "grabar" y ver la evaluación orientativa (5,7 / 7,0).
+  await page.goto("/simulacion");
+  await page.getByRole("button", { name: "Comenzar simulación" }).click();
+  await page.getByRole("button", { name: "Responder en voz alta" }).click();
+  await page.getByRole("button", { name: "Terminar respuesta" }).click();
+  await expect(page.getByText("Evaluación orientativa")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/5,7\s*\/ 7,0/)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("simulacion.png"), fullPage: true });
+
+  // Plan de estudio.
+  await page.goto("/plan");
+  await expect(page.getByRole("heading", { level: 1, name: "Tu plan de estudio" })).toBeVisible();
+  await page.getByRole("button", { name: "Ver plan original" }).click();
+  await expect(page.getByText(/Se conserva siempre como línea base/)).toBeVisible();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow, "no debe haber desplazamiento horizontal").toBeLessThanOrEqual(0);
+  await page.screenshot({ path: testInfo.outputPath("plan.png"), fullPage: true });
+});
