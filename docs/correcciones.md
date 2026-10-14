@@ -150,3 +150,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - La simulación no usa el micrófono ni IA (pendiente 3). Sí aplica las reglas decididas: modo de retroalimentación fijado al comenzar, tiempo de procesamiento sin descuento y escala 0–100 ponderada a 1,0–7,0 con un decimal.
 - El plan muestra la regla de prioridad decidida (peso × brecha), los estados de las tareas y el plan original conservado como línea base.
 - Siguen abiertas: dificultad, materias o cedulario, número de alternativas y proveedores de IA.
+
+## T. Banco de preguntas (2026-10-13)
+
+- Decisión del usuario: dificultad de 1 a 3. El importador acepta entre 2 y 5 alternativas mientras no se fije un número.
+- Implementado: `Question` y `QuestionVersion` inmutable (draft → in_review → approved → published → retired), `AnswerOption`, `ContentReview`, auditoría en `content_event` y `PracticeAttempt`. Editar crea la versión siguiente. Publicar retira la versión publicada anterior. Quien crea una versión no la aprueba ni la publica (AC-029).
+- Importación desde la plantilla Excel, todo o nada con errores por fila (AC-044). Panel `/admin/preguntas`.
+- `/practica` usa las preguntas publicadas y vuelve a las de ejemplo solo si no hay ninguna.
+- Aún no se modelan la jurisdicción ni el programa de estudio; quedan para cuando estén las materias reales. La edición desde el panel tampoco existe todavía: solo está el endpoint.

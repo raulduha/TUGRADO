@@ -73,7 +73,8 @@ def engine(migrated_engine):
     with migrated_engine.begin() as conn:
         tables = (
             "user_account, simulation_session, user_feedback, subscription, billing_event,"
-            " access_grant, activity_day, reminder_state"
+            " access_grant, activity_day, reminder_state, practice_attempt, content_event,"
+            " content_review, answer_option, question_version, question, subtopic, subject"
         )
         conn.execute(text(f"TRUNCATE {tables} CASCADE"))
 

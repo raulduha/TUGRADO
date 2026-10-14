@@ -15,6 +15,10 @@ STATUS_BY_CODE = {
     "already_subscribed": status.HTTP_409_CONFLICT,
     "no_subscription": status.HTTP_404_NOT_FOUND,
     "billing_unavailable": status.HTTP_503_SERVICE_UNAVAILABLE,
+    "question_not_found": status.HTTP_404_NOT_FOUND,
+    "invalid_transition": status.HTTP_409_CONFLICT,
+    "author_cannot_review": status.HTTP_403_FORBIDDEN,
+    "file_too_large": status.HTTP_413_CONTENT_TOO_LARGE,
 }
 
 

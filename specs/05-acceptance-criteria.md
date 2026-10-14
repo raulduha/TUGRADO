@@ -130,3 +130,6 @@ La primera visita del día suma un día a la racha y muestra una celebración un
 
 ## AC-043 — Recordatorio por correo
 Un estudiante con acceso que lleva 2 días sin entrar recibe un solo recordatorio; no recibe otro hasta volver a entrar y ausentarse de nuevo. Quien se da de baja no recibe más, y el enlace de baja sirve más de una vez. No reciben recordatorios quienes no tienen acceso. La tarea rechaza llamadas sin la clave correcta.
+
+## AC-044 — Importación del banco de preguntas
+Un administrador importa la plantilla de preguntas: si alguna fila es inválida no se importa ninguna y se informa cada fila con su error; si todas son válidas, cada una queda como versión 1 en borrador. Una pregunta solo aparece en la práctica cuando otro administrador la aprueba y la publica, y la práctica no envía la respuesta correcta antes de que el estudiante responda.

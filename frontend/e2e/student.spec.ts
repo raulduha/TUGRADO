@@ -173,13 +173,13 @@ test("las vistas previas de práctica, simulación oral y plan funcionan", async
   await map.getByRole("button", { name: /^Nivel 4:/ }).click();
   await map.getByRole("link", { name: "Probar (vista previa) →" }).click();
 
-  // Práctica: elegir, comprobar y ver la explicación con su fuente.
+  // Práctica: elegir, comprobar y ver la explicación con su fuente. Puede haber preguntas
+  // publicadas (otra prueba las publica en paralelo) o las de ejemplo.
   await expect(page).toHaveURL(/\/practica$/);
-  await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeVisible();
-  await page.getByRole("button", { name: /Al nacer/ }).click();
+  await page.getByRole("list", { name: "Alternativas" }).getByRole("button").first().click();
   await page.getByRole("button", { name: "Comprobar" }).click();
-  await expect(page.getByText("¡Correcto!")).toBeVisible();
-  await expect(page.getByText("Fuente: Código Civil, art. 74")).toBeVisible();
+  await expect(page.getByText(/^¡Correcto!$|^Respuesta correcta: [A-E]$/)).toBeVisible();
+  await expect(page.getByText(/^Fuente: /)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("practica.png"), fullPage: true });
 
   // Simulación oral: configurar, "grabar" y ver la evaluación orientativa (5,7 / 7,0).

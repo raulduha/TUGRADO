@@ -26,6 +26,11 @@ export function AppHeader({ me, onLoggedOut }: { me: Me | null; onLoggedOut?: ()
         {me ? (
           <div className="flex min-w-0 items-center gap-3">
             <span className="hidden truncate text-sm text-muted md:inline">{me.email}</span>
+            {me.roles.includes("administrator") ? (
+              <Link href="/admin/preguntas" className="text-sm font-medium text-brand hover:underline">
+                Preguntas
+              </Link>
+            ) : null}
             <Link href="/suscripcion" className="text-sm font-medium text-brand hover:underline">
               Suscripción
             </Link>
