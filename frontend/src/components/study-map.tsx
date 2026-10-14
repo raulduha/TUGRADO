@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { Apruvi } from "@/components/apruvi";
@@ -11,6 +12,8 @@ export type Level = {
   /** Lo que dice Apruvi al elegir el nivel. */
   says: string;
   done: boolean;
+  /** Pantalla de vista previa (mockup con datos de ejemplo) mientras no exista la real. */
+  preview?: string;
 };
 
 // Recorrido real del estudiante según las specs (FR-003 a FR-020). Solo se marca como hecho lo
@@ -33,18 +36,21 @@ export const LEVELS: Level[] = [
     title: "Arma tu plan",
     says: "Armaremos un plan hasta la fecha de tu examen, según el tiempo que tengas cada semana.",
     done: false,
+    preview: "/plan",
   },
   {
     icon: "book",
     title: "Practica con alternativas",
     says: "Responderás preguntas de alternativas. Si te equivocas, verás la explicación.",
     done: false,
+    preview: "/practica",
   },
   {
     icon: "mic",
     title: "Tu primera simulación oral",
     says: "Respira hondo: responderás en voz alta, como en el examen, y verás una evaluación orientativa.",
     done: false,
+    preview: "/simulacion",
   },
   {
     icon: "repeat",
@@ -175,6 +181,14 @@ export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
               Apruvi · Nivel {selected + 1}: {levels[selected].title}
             </p>
             <p className="mt-1 text-sm">{levels[selected].says}</p>
+            {levels[selected].preview ? (
+              <Link
+                href={levels[selected].preview}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
+              >
+                Probar (vista previa) →
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>
