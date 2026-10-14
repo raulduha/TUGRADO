@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"></head>
+<body>
+<template>
+<style>
+
+@font-face { font-family: "Geist"; src: url("assets/fonts/Geist-latin.woff2") format("woff2"); font-weight: 100 900; }
+
+[data-composition-id="02-mapa"] {
+  position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden;
+  font-family: "Geist", system-ui, sans-serif; color: #1f2430; background: linear-gradient(180deg, #e8eefc 0%, #fbf8f3 55%, #fdf1dc 100%);
+  
+--bg:#fbf8f3; --fg:#1f2430; --muted:#5d6474; --line:#e7e1d6; --brand:#2f5bd3; --brand-strong:#2448ad;
+--brand-soft:#e8eefc; --accent:#f5a524; --accent-soft:#fdf1dc; --success:#067647;
+--flame:#f97316; --flame-in:#fbbf24;
+
+}
+[data-composition-id="02-mapa"] * { box-sizing: border-box; margin: 0; }
+[data-composition-id="02-mapa"] .layer { position: absolute; inset: 0; }
+[data-composition-id="02-mapa"] .apruvi { position: absolute; overflow: visible; }
+[data-composition-id="02-mapa"] .t { position: absolute; left: 80px; right: 80px; text-align: center; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+[data-composition-id="02-mapa"] #m-title { top: 300px; font-size: 104px; line-height: 0.98; }
+[data-composition-id="02-mapa"] #m-sub { top: 520px; font-size: 48px; font-weight: 600; color: #5d6474; letter-spacing: -0.01em; }
+[data-composition-id="02-mapa"] .node { position: absolute; width: 160px; height: 160px; border-radius: 50%; border-bottom: 16px solid; display: grid; place-items: center; }
+[data-composition-id="02-mapa"] .halo { position: absolute; inset: -26px; border-radius: 50%; background: rgba(47,91,211,.16); z-index: -1; }
+[data-composition-id="02-mapa"] #m-ap { left: 820px; top: 600px; width: 230px; height: 249px; }
+[data-composition-id="02-mapa"] #m-big { left: 70px; top: 1010px; width: 470px; height: 509px; }
+[data-composition-id="02-mapa"] #m-bubble { position: absolute; left: 360px; right: 70px; top: 760px; background: #fff; border: 3px solid #e7e1d6;
+  border-radius: 56px; padding: 44px 50px; font-size: 76px; font-weight: 700; line-height: 1.05; letter-spacing: -0.03em;
+  box-shadow: 0 30px 70px rgba(31,36,48,.12); }
+[data-composition-id="02-mapa"] #m-bubble::after { content: ""; position: absolute; left: 60px; bottom: -34px; width: 70px; height: 70px; background: #fff;
+  border-right: 3px solid #e7e1d6; border-bottom: 3px solid #e7e1d6; transform: rotate(45deg); border-radius: 0 0 14px 0; }
+[data-composition-id="02-mapa"] #m-bubble .b { color: #2f5bd3; }
+
+</style>
+<div data-hf-id="hf-lxqo" id="02-mapa" data-composition-id="02-mapa" data-width="1080" data-height="1920" data-duration="6.61">
+
+<div data-hf-id="hf-n3gl" class="layer" id="g1">
+  <div data-hf-id="hf-5ms8" class="t" id="m-title">Tu mapa<br data-hf-id="hf-x5px">de estudio</div>
+  <div data-hf-id="hf-hupo" class="t" id="m-sub">Avanza paso a paso</div>
+  <svg data-hf-id="hf-s792" class="layer" viewBox="0 0 1080 1920" width="1080" height="1920">
+    <path data-hf-id="hf-aj2r" id="m-path" d="M 540 700 C 540 820, 780 820, 780 940 C 780 1060, 330 1060, 330 1180 C 330 1300, 600 1300, 600 1400" fill="none" stroke="#e7e1d6" stroke-width="44" stroke-linecap="round" />
+    <path data-hf-id="hf-pfi4" id="m-dash" d="M 540 700 C 540 820, 780 820, 780 940 C 780 1060, 330 1060, 330 1180 C 330 1300, 600 1300, 600 1400" fill="none" stroke="#fff" stroke-width="10" stroke-dasharray="4 28" stroke-linecap="round" />
+    <path data-hf-id="hf-2pqu" id="m-done" d="M 540 700 C 540 820, 780 820, 780 940" fill="none" stroke="#067647" stroke-width="44" stroke-linecap="round" opacity=".55" />
+  </svg>
+  
+<div data-hf-id="hf-0sae" class="node" id="m-n0" style="left:460px;top:620px;background:#067647;border-bottom-color:#05603a">
+  <svg data-hf-id="hf-6en4" viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-kpwq" d="M5 12 l5 5 L20 7" /></svg>
+</div>
+<div data-hf-id="hf-7jt0" class="node" id="m-n1" style="left:700px;top:860px;background:#2f5bd3;border-bottom-color:#2448ad">
+  <div data-hf-id="hf-d1uq" class="halo"></div><svg data-hf-id="hf-gyhk" viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-45fk" d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></svg>
+</div>
+<div data-hf-id="hf-6e8d" class="node" id="m-n2" style="left:250px;top:1100px;background:#ece7de;border-bottom-color:#d6cfc2">
+  <svg data-hf-id="hf-tj5w" viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#5d6474" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-vc1h" d="M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3" /></svg>
+</div>
+<div data-hf-id="hf-w5nw" class="node" id="m-n3" style="left:520px;top:1320px;background:#ece7de;border-bottom-color:#d6cfc2">
+  <svg data-hf-id="hf-2s8s" viewBox="0 0 24 24" width="76" height="76" fill="none" stroke="#5d6474" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path data-hf-id="hf-6a7w" d="M12 4 2 9l10 5 10-5-10-5ZM6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" /></svg>
+</div>
+  
+<svg data-hf-id="hf-zemn" id="m-ap" class="apruvi" viewBox="0 0 120 130">
+  <ellipse data-hf-id="hf-32qp" id="m-ap-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14" />
+  <g data-hf-id="hf-tm6r" id="m-ap-body">
+    <ellipse data-hf-id="hf-kgmw" cx="46" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <ellipse data-hf-id="hf-ibhv" cx="74" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <path data-hf-id="hf-wwtd" d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3" />
+    <ellipse data-hf-id="hf-pasd" cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92" />
+    <path data-hf-id="hf-80i2" id="m-ap-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-0xk4" id="m-ap-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <g data-hf-id="hf-tub1" id="m-ap-eyes">
+      <ellipse data-hf-id="hf-5heb" cx="47" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <ellipse data-hf-id="hf-xtz0" cx="73" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <circle data-hf-id="hf-7vwe" cx="48.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-lvy6" cx="71.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-hgjx" cx="50.5" cy="65.5" r="2" fill="#fff" />
+      <circle data-hf-id="hf-s2hs" cx="73.5" cy="65.5" r="2" fill="#fff" />
+    </g>
+    <ellipse data-hf-id="hf-f4o8" cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <ellipse data-hf-id="hf-dfb7" cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <path data-hf-id="hf-onh5" d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-emcs" d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d" />
+    <path data-hf-id="hf-yzax" d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864" />
+    <g data-hf-id="hf-ufsb" id="m-ap-tassel">
+      <path data-hf-id="hf-ahtc" d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round" />
+      <circle data-hf-id="hf-823b" cx="88" cy="46" r="3.6" fill="#f5a524" />
+    </g>
+    <circle data-hf-id="hf-n9ia" cx="60" cy="28" r="2.4" fill="#f5a524" />
+  </g>
+</svg>
+</div>
+<div data-hf-id="hf-r1km" class="layer" id="g2">
+  
+<svg data-hf-id="hf-stce" id="m-big" class="apruvi" viewBox="0 0 120 130">
+  <ellipse data-hf-id="hf-o2pm" id="m-big-shadow" cx="60" cy="122" rx="30" ry="5" fill="#1f2430" opacity=".14" />
+  <g data-hf-id="hf-r426" id="m-big-body">
+    <ellipse data-hf-id="hf-nxn4" cx="46" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <ellipse data-hf-id="hf-sbgz" cx="74" cy="116" rx="9" ry="5" fill="#2448ad" />
+    <path data-hf-id="hf-iiwl" d="M60 38c24 0 38 18 38 42 0 22-16 36-38 36S22 102 22 80c0-24 14-42 38-42Z" fill="#2f5bd3" />
+    <ellipse data-hf-id="hf-6229" cx="60" cy="90" rx="22" ry="19" fill="#ffffff" opacity=".92" />
+    <path data-hf-id="hf-ks5j" id="m-big-arm-l" d="M24 82c-7 2-10 8-8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-1kbp" id="m-big-arm-r" d="M96 82c7 2 10 8 8 13" stroke="#2f5bd3" stroke-width="8" stroke-linecap="round" fill="none" />
+    <g data-hf-id="hf-c56s" id="m-big-eyes">
+      <ellipse data-hf-id="hf-rtf7" cx="47" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <ellipse data-hf-id="hf-hi7o" cx="73" cy="66" rx="9" ry="10.5" fill="#fff" />
+      <circle data-hf-id="hf-41eq" cx="48.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-a2g2" cx="71.5" cy="68" r="5.5" fill="#1f2430" />
+      <circle data-hf-id="hf-omyp" cx="50.5" cy="65.5" r="2" fill="#fff" />
+      <circle data-hf-id="hf-hj14" cx="73.5" cy="65.5" r="2" fill="#fff" />
+    </g>
+    <ellipse data-hf-id="hf-5tgg" cx="37" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <ellipse data-hf-id="hf-f9kz" cx="83" cy="78" rx="5.5" ry="3.5" fill="#f7a8b8" />
+    <path data-hf-id="hf-guy5" d="M53 79c3.5 4 10.5 4 14 0" stroke="#1f2430" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    <path data-hf-id="hf-9550" d="M60 14 26 28l34 14 34-14-34-14Z" fill="#1f2a4d" />
+    <path data-hf-id="hf-7y8d" d="M40 34v8c0 4 9 7 20 7s20-3 20-7v-8l-20 8-20-8Z" fill="#2b3864" />
+    <g data-hf-id="hf-hf5i" id="m-big-tassel">
+      <path data-hf-id="hf-3iiw" d="M88 30v14" stroke="#f5a524" stroke-width="2.4" stroke-linecap="round" />
+      <circle data-hf-id="hf-pr4n" cx="88" cy="46" r="3.6" fill="#f5a524" />
+    </g>
+    <circle data-hf-id="hf-gpfq" cx="60" cy="28" r="2.4" fill="#f5a524" />
+  </g>
+</svg>
+  <div data-hf-id="hf-jhg4" id="m-bubble">Nivel a nivel,<br data-hf-id="hf-rsrt"><span data-hf-id="hf-tp33" class="b">yo te acompaño.</span></div>
+</div>
+
+</div>
+<script>
+(function () {
+
+function apruviLife(tl, pid, dur, blinks) {
+  const body = '#' + pid + '-body';
+  const n = Math.max(0, Math.floor(dur / 1.9) - 1);
+  tl.fromTo(body, { scaleX: 1, scaleY: 1 }, { scaleX: 0.985, scaleY: 1.035, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 100%' }, 0);
+  tl.fromTo('#' + pid + '-tassel', { rotation: -5 }, { rotation: 6, duration: 1.9, ease: 'sine.inOut',
+    yoyo: true, repeat: n, transformOrigin: '50% 0%' }, 0);
+  blinks.forEach(function (t) {
+    tl.to('#' + pid + '-eyes', { scaleY: 0.1, duration: 0.07, yoyo: true, repeat: 1, ease: 'none',
+      transformOrigin: '50% 55%' }, t);
+  });
+}
+function popIn(tl, sel, t, from) {
+  tl.fromTo(sel, Object.assign({ opacity: 0, scale: 0.85, y: 40 }, from || {}),
+    { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(2.2)' }, t);
+}
+
+const tl = gsap.timeline({ paused: true });
+
+// g1 visible todo el tramo (queda atenuado detrás de g2); g2 entra en 3,39.
+tl.set('#g2', { autoAlpha: 0 }, 0);
+tl.set('#g2', { autoAlpha: 1 }, 3.39);
+popIn(tl, '#m-title', 0, { y: 30 });
+popIn(tl, '#m-sub', 0.2, { y: 20 });
+// El camino se dibuja hasta cada nodo; un nodo por pulso.
+const path = document.querySelector('#m-path');
+const len = path.getTotalLength();
+['#m-path', '#m-dash'].forEach(function (s) {
+  tl.set(s, { strokeDasharray: s === '#m-dash' ? '4 28' : len, strokeDashoffset: s === '#m-dash' ? 0 : len }, 0);
+});
+tl.set('#m-dash', { opacity: 0 }, 0);
+tl.to('#m-path', { strokeDashoffset: 0, duration: 2.44, ease: 'none' }, 0);
+tl.to('#m-dash', { opacity: 1, duration: 0.3 }, 2.3);
+const done = document.querySelector('#m-done');
+const dl = done.getTotalLength();
+tl.set('#m-done', { strokeDasharray: dl, strokeDashoffset: dl }, 0);
+tl.to('#m-done', { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, 0.1);
+[0, 0.88, 1.67, 2.44].forEach(function (t, i) {
+  tl.fromTo('#m-n' + i, { scale: 0, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.42, ease: 'back.out(2.4)' }, Math.max(0, t - 0.1));
+});
+// Apruvi junto al primer nodo; salta al nodo actual en 0,88 y celebra en los pulsos siguientes.
+tl.set('#m-ap', { x: -190, y: 0 }, 0);
+tl.to('#m-ap', { x: 0, duration: 0.42, ease: 'power1.inOut' }, 0.46);
+tl.to('#m-ap', { y: -120, duration: 0.21, ease: 'power2.out' }, 0.46);
+tl.to('#m-ap', { y: 240, duration: 0.21, ease: 'power2.in' }, 0.67);
+tl.to('#m-ap', { scaleX: 1.15, scaleY: 0.86, duration: 0.07, transformOrigin: '50% 100%' }, 0.88);
+tl.to('#m-ap', { scaleX: 1, scaleY: 1, duration: 0.4, ease: 'elastic.out(1,0.5)' }, 0.95);
+[1.67, 2.44].forEach(function (t) {
+  tl.to('#m-ap', { y: 200, duration: 0.17, ease: 'power2.out' }, t - 0.02);
+  tl.to('#m-ap', { y: 240, duration: 0.18, ease: 'power2.in' }, t + 0.15);
+});
+apruviLife(tl, 'm-ap', 3.39, [1.2, 3.0]);
+// g2: el mapa se atenúa; Apruvi grande sube y habla durante la pausa.
+tl.to('#g1', { opacity: 0.28, scale: 0.97, duration: 0.35, ease: 'power2.out', transformOrigin: '50% 55%' }, 3.39);
+tl.fromTo('#m-big', { y: 520 }, { y: 0, duration: 0.5, ease: 'back.out(1.6)' }, 3.39);
+apruviLife(tl, 'm-big', 6.61, [5.0, 6.2]);
+popIn(tl, '#m-bubble', 4.06, { scale: 0.6, y: 60, transformOrigin: '15% 100%' });
+tl.fromTo('#m-big-arm-r', { rotation: 0 }, { rotation: -55, duration: 0.25, yoyo: true, repeat: 3, ease: 'sine.inOut', transformOrigin: '10% 10%' }, 4.2);
+
+tl.seek(0);
+window.__timelines["02-mapa"] = tl;
+})();
+</script>
+</template>
+</body>
+</html>
