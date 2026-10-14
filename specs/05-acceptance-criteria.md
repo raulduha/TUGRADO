@@ -127,3 +127,6 @@ Una cuenta con acceso de cortesía vigente entra al panel y al estudio sin suscr
 
 ## AC-042 — Rachas
 La primera visita del día suma un día a la racha y muestra una celebración una sola vez; volver el mismo día no suma ni repite la celebración. Un día sin entrar reinicia la racha actual y se conserva la mejor. Los días se cuentan en hora de Chile.
+
+## AC-043 — Recordatorio por correo
+Un estudiante con acceso que lleva 2 días sin entrar recibe un solo recordatorio; no recibe otro hasta volver a entrar y ausentarse de nuevo. Quien se da de baja no recibe más, y el enlace de baja sirve más de una vez. No reciben recordatorios quienes no tienen acceso. La tarea rechaza llamadas sin la clave correcta.

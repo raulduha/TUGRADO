@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     # Firma la cookie temporal del ingreso con Google (state, nonce, PKCE).
     oauth_state_secret: SecretStr | None = None
 
+    # Tareas programadas (Vercel Cron): clave que el programador envía como Bearer. Sin ella,
+    # los recordatorios por correo (FR-034) quedan desactivados.
+    cron_secret: SecretStr | None = None
+
     @property
     def google_enabled(self) -> bool:
         return bool(self.google_client_id)

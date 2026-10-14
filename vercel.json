@@ -9,7 +9,15 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": { "service": "frontend" }
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/engagement/reminders/run",
+      "schedule": "0 13 * * *"
     }
   ]
 }

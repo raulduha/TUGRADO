@@ -34,6 +34,7 @@ def compose(
     frontend_base_url: str,
     action: Action | None = None,
     note: str | None = None,
+    unsubscribe_url: str | None = None,
 ) -> EmailMessage:
     """Arma el correo. `note` va en letra chica bajo el botón (p. ej. «si no lo pediste…»)."""
     text_parts = [heading, *paragraphs]
@@ -41,13 +42,24 @@ def compose(
         text_parts.append(f"{action.label}: {action.url}")
     if note:
         text_parts.append(note)
+    if unsubscribe_url:
+        text_parts.append(f"Para no recibir más estos recordatorios: {unsubscribe_url}")
     text_parts.append(FOOTER)
     body = "\n\n".join(text_parts)
     return EmailMessage(
         to=to,
         subject=subject,
         body=body,
-        html=_html(subject, heading, paragraphs, action, note, frontend_base_url.rstrip("/")),
+        html=_html(
+            subject,
+            heading,
+            paragraphs,
+            action,
+            note,
+            frontend_base_url.rstrip("/"),
+            unsubscribe_url,
+        ),
+        headers={"List-Unsubscribe": f"<{unsubscribe_url}>"} if unsubscribe_url else None,
     )
 
 
@@ -58,6 +70,7 @@ def _html(
     action: Action | None,
     note: str | None,
     base: str,
+    unsubscribe_url: str | None = None,
 ) -> str:
     font = "font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"
     paras = "".join(
@@ -86,6 +99,11 @@ def _html(
         else ""
     )
     footer = "<br>".join(escape(line) for line in FOOTER.split("\n"))
+    if unsubscribe_url:
+        footer += (
+            f'<br><a href="{escape(unsubscribe_url, quote=True)}" style="color:{MUTED};">'
+            "No quiero recibir estos recordatorios</a>"
+        )
     return f"""<!doctype html>
 <html lang="es">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
