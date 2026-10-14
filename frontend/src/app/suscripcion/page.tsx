@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
+import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
 import { Field } from "@/components/field";
 import { Icon } from "@/components/illustrations";
@@ -82,9 +83,7 @@ export default function SubscriptionPage() {
         ) : null}
 
         {!sub ? (
-          <p role="status" className="mt-6 text-muted">
-            Cargando…
-          </p>
+          <ApruviLoader label="Cargando tu suscripción…" />
         ) : (
           <section className="mt-6 overflow-hidden rounded-3xl border border-line bg-surface">
             <div className="bg-gradient-to-br from-brand-soft to-accent-soft p-6 sm:p-8">

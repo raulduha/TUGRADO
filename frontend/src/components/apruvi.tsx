@@ -1,11 +1,28 @@
 /** Apruvi, la mascota de Aprueba tu examen: una bolita azul con birrete que acompaña al
  * estudiante por el mapa. Respira, parpadea y mece la borla (animaciones en globals.css,
  * desactivadas con `prefers-reduced-motion`). */
-export function Apruvi({ className = "h-24 w-24" }: { className?: string }) {
+export function Apruvi({
+  className = "h-24 w-24",
+  shadow = true,
+}: {
+  className?: string;
+  /** Sin sombra propia cuando la animación de afuera dibuja la suya (p. ej., al saltar). */
+  shadow?: boolean;
+}) {
   return (
     <svg viewBox="0 0 120 130" className={className} aria-hidden="true">
       {/* Sombra en el suelo: se achica un poco al inhalar. */}
-      <ellipse className="apruvi-shadow" cx="60" cy="122" rx="30" ry="5" fill="var(--foreground)" opacity=".12" />
+      {shadow ? (
+        <ellipse
+          className="apruvi-shadow"
+          cx="60"
+          cy="122"
+          rx="30"
+          ry="5"
+          fill="var(--foreground)"
+          opacity=".12"
+        />
+      ) : null}
 
       <g className="apruvi-breathe">
         {/* Pies */}

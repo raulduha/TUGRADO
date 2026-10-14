@@ -106,3 +106,30 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .flame-outer, .flame-inner, .pop-in { animation: none; }
 }
+
+/* Carga: Apruvi da saltitos (se aplasta al caer) y su sombra crece al acercarse al suelo. */
+.apruvi-hop { animation: apruvi-hop 1.1s cubic-bezier(0.45, 0, 0.55, 1) infinite; transform-origin: 50% 100%; }
+.apruvi-hop-shadow { animation: apruvi-hop-shadow 1.1s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.loader-dot { animation: loader-dot 0.9s ease-in-out infinite; }
+.loader-tip { animation: loader-tip 0.4s ease-out both; }
+@keyframes apruvi-hop {
+  0%, 100% { transform: translateY(6px) scale(1.06, 0.92); }
+  15% { transform: translateY(0) scale(0.97, 1.04); }
+  50% { transform: translateY(-22px) scale(1, 1); }
+  85% { transform: translateY(0) scale(0.98, 1.02); }
+}
+@keyframes apruvi-hop-shadow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.6); opacity: 0.5; }
+}
+@keyframes loader-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-5px); opacity: 1; }
+}
+@keyframes loader-tip {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apruvi-hop, .apruvi-hop-shadow, .loader-dot, .loader-tip { animation: none; }
+}

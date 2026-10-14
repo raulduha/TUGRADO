@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
+import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
 import { api, formatDate, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
@@ -37,9 +38,7 @@ export default function SubscriptionReturnPage() {
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estado de tu pago</h1>
         {failure ? <Alert tone="error">{failure}</Alert> : null}
         {!sub && !failure ? (
-          <p role="status" className="text-muted">
-            Consultando a Mercado Pago…
-          </p>
+          <ApruviLoader label="Consultando a Mercado Pago…" />
         ) : null}
         {sub ? <Result sub={sub} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
