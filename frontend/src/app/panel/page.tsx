@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/app-header";
+import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
 import { FeedbackButton } from "@/components/feedback-button";
 import { StreakCard, StreakCelebration } from "@/components/streak";
@@ -78,9 +79,7 @@ export default function PanelPage() {
             {userError ?? error}
           </p>
         ) : !me || !sub ? (
-          <p role="status" className="text-muted">
-            Cargando tu panel…
-          </p>
+          <ApruviLoader label="Cargando tu panel…" />
         ) : (
           <div className="space-y-10">
             <section className="flex flex-col gap-6 rounded-3xl bg-gradient-to-br from-brand-soft to-accent-soft p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
