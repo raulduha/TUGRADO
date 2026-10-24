@@ -170,3 +170,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Reporte del usuario: en producción, Mercado Pago cobró los $9.990 apenas se autorizó la suscripción, pese a anunciar 7 días gratis. La prueba de §P (`free_trial` en días, primer cobro desplazado) se hizo con la API de prueba y no se repite en producción en suscripciones sin plan asociado.
 - Corrección: ya no se envía `free_trial`. El primer cobro se fija con `auto_recurring.start_date` = creación del pago pendiente + `BILLING_TRIAL_DAYS`. Un pago pendiente de más de una hora no se reutiliza: se cancela y se crea otro, para que la prueba se cuente completa desde que el estudiante paga.
 - Por validar en producción: que el primer cobro ocurra en `start_date` y no al autorizar. A quienes ya se les cobró durante la prueba hay que revisarlos en el panel de Mercado Pago (reembolso a decidir por el equipo).
+
+## W. Banco de preguntas en Excel de ida y vuelta (2026-10-24)
+
+- Pedido del usuario: que el administrador pueda agregar y sacar preguntas descargando una planilla base, completándola y volviéndola a subir.
+- `/admin/preguntas` descarga la plantilla vacía (`GET /admin/questions/template`) o el banco actual (`GET /admin/questions/export`: última versión de cada pregunta no retirada, con su id y estado). La planilla suma las columnas opcionales `id`, `estado` (informativa) y `retirar`; la plantilla antigua sigue sirviendo.
+- Al subir: fila sin id = pregunta nueva; con id y cambios = versión siguiente en borrador (la publicada sigue visible hasta publicar la nueva); con «sí» en `retirar` = se retiran todas sus versiones vigentes; sin cambios = nada. Todo o nada, con errores por fila (AC-044 actualizado).
+- Decisión de diseño: quitar una fila de la planilla no retira la pregunta, para que un descuido no saque contenido; para sacarla hay que marcar `retirar`. Retirar ahora procede desde cualquier estado (antes solo desde `published`) y queda en `content_event`.
+

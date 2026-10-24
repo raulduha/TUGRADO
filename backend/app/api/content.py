@@ -2,10 +2,11 @@
 
 import uuid
 from collections.abc import Callable
+from dataclasses import asdict
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, aliased
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session, aliased
 from app.api.deps import AdminUser, SubscribedUser, get_clock
 from app.content.importer import parse_workbook
 from app.content.service import ContentError, ContentService, QuestionContent
+from app.content.workbook import ExportRow, build_workbook
 from app.db import get_db
 from app.persistence.auth_models import UserAccountRow
 from app.persistence.content_models import (
@@ -37,6 +39,7 @@ Db = Annotated[Session, Depends(get_db)]
 Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # documentos importables: hasta 25 MB (README)
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 def service(db: Db, clock: Clock) -> ContentService:
@@ -50,20 +53,47 @@ Service = Annotated[ContentService, Depends(service)]
 
 
 class ImportOut(BaseModel):
-    imported: int
+    created: int = 0
+    updated: int = 0
+    retired: int = 0
+    unchanged: int = 0
     errors: list[dict]
 
 
 @admin_router.post("/import")
 async def import_questions(request: Request, admin: AdminUser, svc: Service) -> ImportOut:
-    """Recibe el .xlsx como cuerpo binario. Todo o nada: con errores no importa ninguna fila."""
+    """Recibe el .xlsx como cuerpo binario. Todo o nada: con errores no aplica ninguna fila."""
     data = await request.body()
     if len(data) > MAX_UPLOAD_BYTES:
         raise ContentError("file_too_large", "El archivo supera los 25 MB")
     parsed, errors = parse_workbook(data)
-    if errors:
-        return ImportOut(imported=0, errors=[{"row": e.row, "message": e.message} for e in errors])
-    return ImportOut(imported=svc.import_questions(parsed, admin.id), errors=[])
+    summary = None
+    if not errors:
+        summary, errors = svc.apply_workbook(parsed, admin.id)
+    if errors or summary is None:
+        return ImportOut(errors=[{"row": e.row, "message": e.message} for e in errors])
+    return ImportOut(**asdict(summary), errors=[])
+
+
+def _xlsx(data: bytes, filename: str) -> Response:
+    return Response(
+        content=data,
+        media_type=XLSX,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@admin_router.get("/template")
+def download_template(_: AdminUser) -> Response:
+    """Planilla vacía, con las columnas e instrucciones."""
+    return _xlsx(build_workbook([]), "plantilla-preguntas.xlsx")
+
+
+@admin_router.get("/export")
+def export_questions(_: AdminUser, svc: Service, clock: Clock) -> Response:
+    """El banco actual (última versión de cada pregunta no retirada), para editar y resubir."""
+    rows = [ExportRow(qid, content, status) for qid, content, status in svc.export_rows()]
+    return _xlsx(build_workbook(rows), f"banco-preguntas-{clock():%Y-%m-%d}.xlsx")
 
 
 class VersionSummary(BaseModel):

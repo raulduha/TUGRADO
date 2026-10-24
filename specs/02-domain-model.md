@@ -16,7 +16,7 @@ Este modelo es lógico y no prescribe todavía un motor de base de datos.
 - **ContentChunk**: fragmento indexado para recuperación RAG, con metadatos y vínculo al documento fuente.
 - **ContentImport**: ejecución de importación, estado, errores y resultados propuestos.
 - **Question**: identidad estable de una pregunta.
-- **QuestionVersion**: contenido inmutable versionado de una pregunta, tipo (`multiple_choice` u `oral`), ámbito, dificultad, respuesta correcta o referencia, explicación, fuentes y, para preguntas orales, referencia a la `EvaluationRubricVersion` aplicable. Estado de publicación: `draft`, `in_review`, `approved`, `published`, `retired`. Solo `published` es elegible en sesiones ordinarias.
+- **QuestionVersion**: contenido inmutable versionado de una pregunta, tipo (`multiple_choice` u `oral`), ámbito, dificultad, respuesta correcta o referencia, explicación, fuentes y, para preguntas orales, referencia a la `EvaluationRubricVersion` aplicable. Estado de publicación: `draft`, `in_review`, `approved`, `published`, `retired`. Solo `published` es elegible en sesiones ordinarias. Un administrador puede retirar una pregunta: todas sus versiones vigentes, en cualquier estado, pasan a `retired`; nada se borra.
 - **AnswerOption**: alternativas asociadas a una versión de pregunta.
 - **ContentReview**: revisión de una versión concreta (de pregunta, rúbrica, fuente o documento), revisor, estado (`pending`, `approved`, `rejected`, `changes_requested`), comentarios y fechas. Aprobar no publica: la publicación es una acción auditada posterior.
 - **EvaluationRubricVersion**: criterios y pesos de evaluación versionados e inmutables; sujetos a `ContentReview`.

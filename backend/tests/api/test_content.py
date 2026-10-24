@@ -1,10 +1,14 @@
 """Banco de preguntas: importación, revisión por otro administrador y práctica (FR-006,
 FR-013, FR-014, AC-029)."""
 
+from io import BytesIO
+
 import pytest
+from openpyxl import Workbook, load_workbook
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.content import XLSX
 from app.billing.grants import grant_access
 from app.cli import create_admin
 from app.persistence.content_models import ContentEventRow, PracticeAttemptRow
@@ -31,7 +35,13 @@ def as_admin(api, email):
 def import_one(api) -> str:
     as_admin(api, AUTHOR)
     response = api.post("/admin/questions/import", content=xlsx([row()]))
-    assert response.json() == {"imported": 1, "errors": []}
+    assert response.json() == {
+        "created": 1,
+        "updated": 0,
+        "retired": 0,
+        "unchanged": 0,
+        "errors": [],
+    }
     [version] = api.get("/admin/questions").json()
     return version["id"]
 
@@ -48,7 +58,7 @@ def test_importar_con_errores_no_importa_nada(api, admins):
     as_admin(api, AUTHOR)
     response = api.post("/admin/questions/import", content=xlsx([row(), row(dificultad=9)]))
     body = response.json()
-    assert body["imported"] == 0 and body["errors"][0]["row"] == 3
+    assert body["created"] == 0 and body["errors"][0]["row"] == 3
     assert api.get("/admin/questions").json() == []
 
 
@@ -131,6 +141,8 @@ def test_un_estudiante_no_administra_el_banco(api, outbox):
     login(api)
     assert api.get("/admin/questions").status_code == 403
     assert api.post("/admin/questions/import", content=b"x").status_code == 403
+    assert api.get("/admin/questions/export").status_code == 403
+    assert api.get("/admin/questions/template").status_code == 403
 
 
 def test_la_practica_solo_usa_publicadas_y_revela_la_respuesta_al_responder(
@@ -163,3 +175,92 @@ def test_la_practica_exige_acceso(api, outbox):
     verified_account(api, outbox)
     login(api)
     assert api.get("/practice/questions").status_code == 402
+
+
+# ------------------------------------------------- planilla de ida y vuelta (AC-044)
+
+
+def download(api, path: str) -> list[list]:
+    """Descarga la planilla y devuelve sus filas (encabezado incluido) como listas."""
+    response = api.get(path)
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith(XLSX)
+    assert "attachment" in response.headers["content-disposition"]
+    ws = load_workbook(BytesIO(response.content))["Preguntas"]
+    return [list(r) for r in ws.iter_rows(values_only=True)]
+
+
+def upload(api, rows: list[list]) -> dict:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Preguntas"
+    for r in rows:
+        ws.append(r)
+    out = BytesIO()
+    wb.save(out)
+    return api.post("/admin/questions/import", content=out.getvalue()).json()
+
+
+def test_la_plantilla_vacia_trae_columnas_e_instrucciones(api, admins):
+    as_admin(api, AUTHOR)
+    [header] = download(api, "/admin/questions/template")
+    assert header[0] == "id" and header[-2:] == ["estado", "retirar"]
+
+
+def test_descargar_modificar_retirar_agregar_y_volver_a_subir(api, admins, engine):
+    vid = import_one(api)
+    api.post(f"/admin/questions/{vid}/submit")
+    approve_and_publish(api, vid)
+    as_admin(api, AUTHOR)
+    api.post("/admin/questions/import", content=xlsx([row(enunciado="Otra pregunta")]))
+
+    header, *rows = download(api, "/admin/questions/export")
+    col = {name: i for i, name in enumerate(header)}
+    assert len(rows) == 2
+    by_prompt = {r[col["enunciado"]]: r for r in rows}
+    published = by_prompt["¿Cuándo principia la existencia legal?"]
+    other = by_prompt["Otra pregunta"]
+    assert published[col["estado"]] == "v1 publicada"
+
+    # Sin cambios, no pasa nada.
+    assert upload(api, [header, *rows])["unchanged"] == 2
+
+    published[col["explicacion"]] = "Principia al nacer (art. 74)."  # se modifica
+    other[col["retirar"]] = "sí"  # se retira
+    new = [None] * len(header)
+    for name, value in zip(header[1:-2], row(enunciado="Pregunta nueva"), strict=True):
+        new[col[name]] = value
+    result = upload(api, [header, published, other, new])
+    assert result == {"created": 1, "updated": 1, "retired": 1, "unchanged": 0, "errors": []}
+
+    # La publicada sigue publicada; la versión 2 queda como borrador hasta que se publique.
+    assert api.get(f"/admin/questions/{vid}").json()["status"] == "published"
+    versions = api.get("/admin/questions").json()
+    v2 = next(v for v in versions if v["question_id"] == published[0] and v["number"] == 2)
+    assert v2["status"] == "draft"
+    assert next(v for v in versions if v["question_id"] == other[0])["status"] == "retired"
+
+    # La retirada ya no aparece al descargar; la modificada muestra ambas versiones.
+    _, *after = download(api, "/admin/questions/export")
+    estados = {r[col["enunciado"]]: r[col["estado"]] for r in after}
+    assert "Otra pregunta" not in estados
+    assert estados["¿Cuándo principia la existencia legal?"] == "v2 borrador · v1 publicada"
+    assert estados["Pregunta nueva"] == "v1 borrador"
+    with Session(engine) as db:
+        retired = db.scalars(
+            select(ContentEventRow).where(ContentEventRow.action == "retired")
+        ).all()
+    assert len(retired) == 1
+
+
+def test_un_id_desconocido_no_aplica_ningun_cambio(api, admins):
+    import_one(api)
+    header, *rows = download(api, "/admin/questions/export")
+    rows[0][1] = "Derecho Procesal"
+    ghost = list(rows[0])
+    ghost[0] = "6f1c1f4e-0000-4000-8000-000000000000"
+    result = upload(api, [header, rows[0], ghost])
+    assert result["errors"] == [
+        {"row": 3, "message": "No existe una pregunta con ese id en el banco."}
+    ]
+    assert len(api.get("/admin/questions").json()) == 1  # la modificación tampoco se aplicó

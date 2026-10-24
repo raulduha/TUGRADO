@@ -31,7 +31,29 @@ type Detail = Summary & {
   reviews: Array<{ decision: string; comment: string | null; reviewer: string; created_at: string }>;
 };
 
-type ImportResult = { imported: number; errors: Array<{ row: number; message: string }> };
+type ImportResult = {
+  created: number;
+  updated: number;
+  retired: number;
+  unchanged: number;
+  errors: Array<{ row: number; message: string }>;
+};
+
+function plural(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+/** Resumen de lo que hizo la planilla, sin mencionar lo que no aplica. */
+function summary(r: ImportResult) {
+  const parts = [
+    r.created ? plural(r.created, "pregunta nueva", "preguntas nuevas") : "",
+    r.updated ? plural(r.updated, "pregunta modificada", "preguntas modificadas") : "",
+    r.retired ? plural(r.retired, "pregunta retirada", "preguntas retiradas") : "",
+  ].filter(Boolean);
+  if (parts.length === 0) return "La planilla no trae cambios.";
+  const drafts = r.created + r.updated > 0 ? " Lo nuevo y lo modificado queda como borrador." : "";
+  return `Listo: ${parts.join(", ")}.${drafts}`;
+}
 
 const STATUS: Record<Status, { label: string; className: string }> = {
   draft: { label: "Borrador", className: "bg-background text-muted" },
@@ -44,8 +66,9 @@ const FILTERS: Array<Status | "all"> = ["all", "draft", "in_review", "approved",
 const LETTERS = "ABCDE";
 const DIFFICULTY = ["", "Fácil", "Media", "Difícil"];
 
-/** Banco de preguntas (FR-013, FR-014): importar la planilla y llevar cada versión por
- * revisión y publicación. El backend impide que quien creó una versión la apruebe o publique. */
+/** Banco de preguntas (FR-013, FR-014, AC-044): planilla de ida y vuelta (descargar, editar y
+ * subir) y cada versión por revisión y publicación. El backend impide que quien creó una
+ * versión la apruebe o publique. */
 export default function QuestionBankPage() {
   const { me, setMe } = useRequireUser("/admin/preguntas");
   const isAdmin = me?.roles.includes("administrator") ?? false;
@@ -88,7 +111,8 @@ export default function QuestionBankPage() {
       return;
     }
     setImportResult(result.data);
-    if (result.data.imported > 0) await load();
+    const { created, updated, retired } = result.data;
+    if (created + updated + retired > 0) await load();
   }
 
   async function show(id: string) {
@@ -117,39 +141,60 @@ export default function QuestionBankPage() {
           <Alert tone="error">Esta sección es solo para administradores.</Alert>
         ) : (
           <>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Banco de preguntas</h1>
                 <p className="text-muted">
-                  Importa la planilla, envía a revisión y publica. Otra persona debe aprobar y
-                  publicar lo que tú creaste.
+                  Descarga el banco en Excel, agrega, modifica o retira preguntas y vuelve a
+                  subirlo. Otra persona debe aprobar y publicar lo que tú creaste o cambiaste.
                 </p>
               </div>
-              <label className={`cursor-pointer ${buttonStyles.primary}`}>
-                {importing ? "Importando…" : "Importar planilla (.xlsx)"}
-                <input
-                  type="file"
-                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  className="sr-only"
-                  disabled={importing}
-                  onChange={(event) => {
-                    const file = event.currentTarget.files?.[0];
-                    event.currentTarget.value = "";
-                    if (file) void upload(file);
-                  }}
-                />
-              </label>
+              <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                {/* Descargas directas: el backend responde el .xlsx como adjunto. */}
+                <a href="/api/admin/questions/template" download className={`whitespace-nowrap ${buttonStyles.secondary}`}>
+                  Plantilla vacía
+                </a>
+                <a href="/api/admin/questions/export" download className={`whitespace-nowrap ${buttonStyles.secondary}`}>
+                  Descargar banco (.xlsx)
+                </a>
+                <label className={`cursor-pointer whitespace-nowrap ${buttonStyles.primary}`}>
+                  {importing ? "Subiendo…" : "Subir planilla (.xlsx)"}
+                  <input
+                    type="file"
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    className="sr-only"
+                    disabled={importing}
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (file) void upload(file);
+                    }}
+                  />
+                </label>
+              </div>
             </div>
+
+            <details className="rounded-2xl border border-line bg-surface p-4 text-sm">
+              <summary className="cursor-pointer font-semibold">Cómo usar la planilla</summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+                <li>Fila sin id: pregunta nueva.</li>
+                <li>
+                  Fila con id y algún cambio: nueva versión en borrador. La publicada sigue visible
+                  hasta que se publique la nueva.
+                </li>
+                <li>Escribe «sí» en la columna retirar para sacar una pregunta. No se borra: queda en el historial.</li>
+                <li>Borrar una fila del Excel no retira la pregunta. No modifiques la columna id.</li>
+                <li>Si una fila tiene un error, no se aplica nada y se indica cada fila.</li>
+              </ul>
+            </details>
 
             {error ? <Alert tone="error">{error}</Alert> : null}
             {importResult ? (
               importResult.errors.length === 0 ? (
-                <Alert tone="success">
-                  Se importaron {importResult.imported} preguntas como borradores.
-                </Alert>
+                <Alert tone="success">{summary(importResult)}</Alert>
               ) : (
                 <Alert tone="error">
-                  <p className="font-semibold">No se importó nada: corrige estas filas y vuelve a subir.</p>
+                  <p className="font-semibold">No se aplicó ningún cambio: corrige estas filas y vuelve a subir.</p>
                   <ul className="mt-2 list-disc pl-5">
                     {importResult.errors.map((e) => (
                       <li key={`${e.row}-${e.message}`}>
@@ -185,8 +230,8 @@ export default function QuestionBankPage() {
                   <p className="text-muted">Cargando…</p>
                 ) : items.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-line p-6 text-center text-muted">
-                    No hay preguntas en este estado. Importa la plantilla de
-                    docs/plantillas/preguntas-alternativas.xlsx.
+                    No hay preguntas en este estado. Descarga la plantilla vacía, complétala y
+                    súbela.
                   </p>
                 ) : (
                   items.map((item) => (

@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` y `/plan` son vistas previas con datos de ejemplo. El banco de preguntas (`app/content/`, `app/api/content.py`) importa la plantilla `docs/plantillas/preguntas-alternativas.xlsx`, sigue el flujo borrador → revisión → aprobada → publicada y alimenta `/practica`; el panel admin está en `/admin/preguntas`.
+Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` y `/plan` son vistas previas con datos de ejemplo. El banco de preguntas (`app/content/`, `app/api/content.py`) funciona con una planilla Excel de ida y vuelta (`app/content/importer.py` lee y `workbook.py` genera; plantilla en `docs/plantillas/preguntas-alternativas.xlsx`): fila sin `id` crea, con `id` y cambios crea la versión siguiente, con `retirar` retira, y quitar una fila no hace nada. Sigue el flujo borrador → revisión → aprobada → publicada y alimenta `/practica`; el panel admin está en `/admin/preguntas`.
 
 ## Entorno local (Docker)
 
