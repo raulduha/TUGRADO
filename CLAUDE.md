@@ -41,6 +41,8 @@ uv run alembic check                              # falla si los modelos y las m
 
 Crear o promover un administrador (no hay registro público de administradores): `uv run python -m app.cli create-admin --email admin@ejemplo.cl`, o dentro de Docker `docker compose exec backend python -m app.cli create-admin --email …`. La contraseña se pide por consola o se lee de `ADMIN_PASSWORD`. Acceso sin suscripción para cuentas de prueba (FR-032): `python -m app.cli grant-access --email … --reason … --by …` y `revoke-access --email …`. En desarrollo los correos (verificación y recuperación) no se envían: aparecen en `docker compose logs backend`.
 
+CI (`.github/workflows/ci.yml`) ejecuta, con `.env.example` copiado como `.env`: `uv sync --locked`, ruff (check y format), `alembic upgrade head`, `alembic check` y `pytest`; en el frontend, `pnpm lint`, `pnpm typecheck` y `pnpm build`. Las pruebas e2e no corren en CI.
+
 Las pruebas `integration` usan `TEST_DATABASE_URL` (base `tugrado_test`). La crean y migran solas, y vacían las tablas después de cada prueba.
 
 - `app/config.py` (`Settings`, pydantic-settings) es el único punto de entrada de configuración. Los campos sin valor por defecto son obligatorios y `create_app()` falla al arrancar si faltan. Los parámetros de negocio decididos (extensiones, latido, `recovery_window`, cuotas…) van aquí como campos obligatorios, con su valor confirmado en `.env.example`, no como constantes en el código.
@@ -74,6 +76,15 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 - En pruebas, el reloj (`get_clock`), el correo (`get_email_sender`) y la base (`get_engine`) se reemplazan con los fixtures `api`, `clock` y `outbox` de `tests/conftest.py`.
 - `app/auth/data/common_passwords.txt` se generó a partir de SecLists; su origen está en el README de esa carpeta.
 
+### Suscripción y hábito (`app/billing/`, `app/engagement/`)
+
+- `billing/gateway.py` define el proveedor de suscripciones como interfaz: Mercado Pago real o simulador local (`BILLING_PROVIDER=fake`). La app nunca recibe datos de tarjeta; crea la suscripción `pending` y el estudiante la autoriza en Mercado Pago. `grants.py` gestiona el acceso de cortesía (FR-032).
+- `engagement/streaks.py` (rachas, FR-033) calcula de forma pura y registra de forma idempotente. `engagement/reminders.py` (FR-034, AC-043) envía un solo correo de ánimo por ausencia y nunca a quien se dio de baja.
+
+## Marketing (`marketing/`)
+
+Videos de Apruvi hechos con HyperFrames: un proyecto por reel (`reel-*/`, cada uno con su propio `CLAUDE.md` y `STORYBOARD.md`), utilidades compartidas en `marketing/shared/` y renders finales en `marketing/final/`. Usa las skills de HyperFrames (empieza por `/hyperframes`) y `motion.md` antes de tocarlos.
+
 Toda la documentación está en español. Mantén ese idioma en specs, commits y textos de interfaz.
 
 ## Frontend (`frontend/`)
@@ -105,7 +116,7 @@ pnpm e2e --project=movil e2e/responsive.spec.ts   # un proyecto o archivo
 
 Las reglas de un mismo tema están repartidas entre varios archivos. Crúzalos antes de implementar:
 
-- `README.md`: decisiones confirmadas (con los valores concretos de tiempo, cuotas, retención, escala, cuentas e infraestructura) y la **lista única de pendientes**. Hoy quedan tres: hosting del backend, proveedor de correo y proveedores de IA.
+- `README.md`: decisiones confirmadas (con los valores concretos de tiempo, cuotas, retención, escala, cuentas e infraestructura) y la **lista única de pendientes** ("Pendientes explícitos"). Hosting del backend (Render) y correo (Resend) ya están resueltos; siguen abiertos los proveedores de IA, el estado de un `QuestionAttempt` cuando falla el procesamiento, el acceso tras cancelar la suscripción, las credenciales de Mercado Pago y las obligaciones tributarias del cobro. Consulta siempre la lista del README: este resumen puede quedar desactualizado.
 - `specs/01-functional-requirements.md`: requisitos `FR-xxx`.
 - `specs/02-domain-model.md`: entidades, máquinas de estado (`SimulationSession`, `QuestionAttempt`, `ContentReport`, `StudyTask`) y reglas de integridad numeradas.
 - `specs/03-architecture.md`: componentes, temporizadores, extensión, desconexión, voz por turnos, RAG y costos.
