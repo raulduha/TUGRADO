@@ -31,7 +31,29 @@ type Detail = Summary & {
   reviews: Array<{ decision: string; comment: string | null; reviewer: string; created_at: string }>;
 };
 
-type ImportResult = { imported: number; errors: Array<{ row: number; message: string }> };
+type ImportResult = {
+  created: number;
+  updated: number;
+  retired: number;
+  unchanged: number;
+  errors: Array<{ row: number; message: string }>;
+};
+
+function plural(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+/** Resumen de lo que hizo la planilla, sin mencionar lo que no aplica. */
+function summary(r: ImportResult) {
+  const parts = [
+    r.created ? plural(r.created, "pregunta nueva", "preguntas nuevas") : "",
+    r.updated ? plural(r.updated, "pregunta modificada", "preguntas modificadas") : "",
+    r.retired ? plural(r.retired, "pregunta retirada", "preguntas retiradas") : "",
+  ].filter(Boolean);
+  if (parts.length === 0) return "La planilla no trae cambios.";
+  const drafts = r.created + r.updated > 0 ? " Lo nuevo y lo modificado queda como borrador." : "";
+  return `Listo: ${parts.join(", ")}.${drafts}`;
+}
 
 const STATUS: Record<Status, { label: string; className: string }> = {
   draft: { label: "Borrador", className: "bg-background text-muted" },
@@ -40,12 +62,21 @@ const STATUS: Record<Status, { label: string; className: string }> = {
   published: { label: "Publicada", className: "bg-success/10 text-success" },
   retired: { label: "Retirada", className: "bg-line text-muted" },
 };
+// Acción masiva disponible según el filtro: el backend aplica las mismas reglas que a una sola.
+const BULK: Partial<Record<Status, { action: string; label: string }>> = {
+  draft: { action: "submit", label: "Enviar todas a revisión" },
+  in_review: { action: "approve", label: "Aprobar todas" },
+  approved: { action: "publish", label: "Publicar todas" },
+};
+type BulkResult = { done: number; skipped: Array<{ id: string; message: string }> };
+
 const FILTERS: Array<Status | "all"> = ["all", "draft", "in_review", "approved", "published", "retired"];
 const LETTERS = "ABCDE";
 const DIFFICULTY = ["", "Fácil", "Media", "Difícil"];
 
-/** Banco de preguntas (FR-013, FR-014): importar la planilla y llevar cada versión por
- * revisión y publicación. El backend impide que quien creó una versión la apruebe o publique. */
+/** Banco de preguntas (FR-013, FR-014, AC-044): planilla de ida y vuelta (descargar, editar y
+ * subir) y cada versión por revisión y publicación. El backend impide que quien creó una
+ * versión la apruebe o publique. */
 export default function QuestionBankPage() {
   const { me, setMe } = useRequireUser("/admin/preguntas");
   const isAdmin = me?.roles.includes("administrator") ?? false;
@@ -55,9 +86,11 @@ export default function QuestionBankPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [open, setOpen] = useState<Detail | null>(null);
+  const [bulking, setBulking] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const query = filter === "all" ? "" : `?status=${filter}`;
+    const query = filter === "all" ? "?limit=500" : `?status=${filter}&limit=500`;
     const result = await api<Summary[]>(`/admin/questions${query}`);
     if (result.ok) setItems(result.data);
     else setError(result.error.message);
@@ -66,7 +99,7 @@ export default function QuestionBankPage() {
   useEffect(() => {
     if (!isAdmin) return;
     let cancelled = false;
-    const query = filter === "all" ? "" : `?status=${filter}`;
+    const query = filter === "all" ? "?limit=500" : `?status=${filter}&limit=500`;
     api<Summary[]>(`/admin/questions${query}`).then((result) => {
       if (cancelled) return;
       if (result.ok) setItems(result.data);
@@ -88,7 +121,31 @@ export default function QuestionBankPage() {
       return;
     }
     setImportResult(result.data);
-    if (result.data.imported > 0) await load();
+    const { created, updated, retired } = result.data;
+    if (created + updated + retired > 0) await load();
+  }
+
+  async function bulk(action: string) {
+    if (!items || items.length === 0) return;
+    setError(null);
+    setBulkMessage(null);
+    setBulking(true);
+    const result = await api<BulkResult>("/admin/questions/bulk", {
+      body: { action, ids: items.map((i) => i.id) },
+    });
+    setBulking(false);
+    if (!result.ok) {
+      setError(result.error.message);
+      return;
+    }
+    const { done, skipped } = result.data;
+    const reasons = [...new Set(skipped.map((s) => s.message))];
+    setBulkMessage(
+      `${done} ${done === 1 ? "pregunta avanzó" : "preguntas avanzaron"}.` +
+        (skipped.length ? ` ${skipped.length} no se pudieron mover: ${reasons.join(" ")}` : ""),
+    );
+    setOpen(null);
+    await load();
   }
 
   async function show(id: string) {
@@ -117,39 +174,60 @@ export default function QuestionBankPage() {
           <Alert tone="error">Esta sección es solo para administradores.</Alert>
         ) : (
           <>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Banco de preguntas</h1>
                 <p className="text-muted">
-                  Importa la planilla, envía a revisión y publica. Otra persona debe aprobar y
-                  publicar lo que tú creaste.
+                  Descarga el banco en Excel, agrega, modifica o retira preguntas y vuelve a
+                  subirlo. Otra persona debe aprobar y publicar lo que tú creaste o cambiaste.
                 </p>
               </div>
-              <label className={`cursor-pointer ${buttonStyles.primary}`}>
-                {importing ? "Importando…" : "Importar planilla (.xlsx)"}
-                <input
-                  type="file"
-                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  className="sr-only"
-                  disabled={importing}
-                  onChange={(event) => {
-                    const file = event.currentTarget.files?.[0];
-                    event.currentTarget.value = "";
-                    if (file) void upload(file);
-                  }}
-                />
-              </label>
+              <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                {/* Descargas directas: el backend responde el .xlsx como adjunto. */}
+                <a href="/api/admin/questions/template" download className={`whitespace-nowrap ${buttonStyles.secondary}`}>
+                  Plantilla vacía
+                </a>
+                <a href="/api/admin/questions/export" download className={`whitespace-nowrap ${buttonStyles.secondary}`}>
+                  Descargar banco (.xlsx)
+                </a>
+                <label className={`cursor-pointer whitespace-nowrap ${buttonStyles.primary}`}>
+                  {importing ? "Subiendo…" : "Subir planilla (.xlsx)"}
+                  <input
+                    type="file"
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    className="sr-only"
+                    disabled={importing}
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (file) void upload(file);
+                    }}
+                  />
+                </label>
+              </div>
             </div>
+
+            <details className="rounded-2xl border border-line bg-surface p-4 text-sm">
+              <summary className="cursor-pointer font-semibold">Cómo usar la planilla</summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+                <li>Fila sin id: pregunta nueva.</li>
+                <li>
+                  Fila con id y algún cambio: nueva versión en borrador. La publicada sigue visible
+                  hasta que se publique la nueva.
+                </li>
+                <li>Escribe «sí» en la columna retirar para sacar una pregunta. No se borra: queda en el historial.</li>
+                <li>Borrar una fila del Excel no retira la pregunta. No modifiques la columna id.</li>
+                <li>Si una fila tiene un error, no se aplica nada y se indica cada fila.</li>
+              </ul>
+            </details>
 
             {error ? <Alert tone="error">{error}</Alert> : null}
             {importResult ? (
               importResult.errors.length === 0 ? (
-                <Alert tone="success">
-                  Se importaron {importResult.imported} preguntas como borradores.
-                </Alert>
+                <Alert tone="success">{summary(importResult)}</Alert>
               ) : (
                 <Alert tone="error">
-                  <p className="font-semibold">No se importó nada: corrige estas filas y vuelve a subir.</p>
+                  <p className="font-semibold">No se aplicó ningún cambio: corrige estas filas y vuelve a subir.</p>
                   <ul className="mt-2 list-disc pl-5">
                     {importResult.errors.map((e) => (
                       <li key={`${e.row}-${e.message}`}>
@@ -179,14 +257,32 @@ export default function QuestionBankPage() {
               ))}
             </div>
 
+            {filter !== "all" && BULK[filter] && items && items.length > 0 ? (
+              <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted">
+                  {items.length} {items.length === 1 ? "pregunta" : "preguntas"} en este estado. Lo que tú creaste
+                  debe aprobarlo y publicarlo otro administrador.
+                </p>
+                <button
+                  type="button"
+                  disabled={bulking}
+                  onClick={() => void bulk(BULK[filter]!.action)}
+                  className={`whitespace-nowrap ${buttonStyles.primary}`}
+                >
+                  {bulking ? "Aplicando…" : `${BULK[filter]!.label} (${items.length})`}
+                </button>
+              </div>
+            ) : null}
+            {bulkMessage ? <Alert tone="success">{bulkMessage}</Alert> : null}
+
             <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
               <section aria-label="Versiones" className="space-y-2">
                 {items === null ? (
                   <p className="text-muted">Cargando…</p>
                 ) : items.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-line p-6 text-center text-muted">
-                    No hay preguntas en este estado. Importa la plantilla de
-                    docs/plantillas/preguntas-alternativas.xlsx.
+                    No hay preguntas en este estado. Descarga la plantilla vacía, complétala y
+                    súbela.
                   </p>
                 ) : (
                   items.map((item) => (

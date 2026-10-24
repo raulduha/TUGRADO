@@ -97,6 +97,24 @@ export type PracticeQuestion = {
   options: string[];
 };
 
+export type LessonSummary = {
+  id: string;
+  title: string;
+  subtopics: string[];
+  total: number;
+  answered: number;
+  correct: number;
+  completed: boolean;
+  stars: number;
+};
+
+export type StudyPath = {
+  units: Array<{ subject: string; lessons: LessonSummary[] }>;
+  xp: number;
+};
+
+export type LessonDetail = LessonSummary & { subject: string; questions: PracticeQuestion[] };
+
 export type PracticeResult = {
   correct: boolean;
   correct_position: number;

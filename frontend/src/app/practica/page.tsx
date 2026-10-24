@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
@@ -9,7 +10,7 @@ import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
 import { DemoBanner } from "@/components/demo-banner";
 import { Icon } from "@/components/illustrations";
-import { api, type PracticeQuestion, type PracticeResult } from "@/lib/api";
+import { api, type LessonDetail, type PracticeQuestion, type PracticeResult } from "@/lib/api";
 import { SAMPLE_QUESTIONS } from "@/lib/practice-sample";
 import { useStudyAccess } from "@/lib/use-access";
 
@@ -35,10 +36,33 @@ function sampleResult(id: string, position: number): PracticeResult {
   };
 }
 
+/** Estrellas de una lección, con la misma regla que el backend (app/content/path.py). */
+function starsFor(score: number, total: number) {
+  if (score === total) return 3;
+  return score * 5 >= total * 4 ? 2 : 1;
+}
+
 /** Práctica de alternativas (FR-006): preguntas publicadas del banco; la respuesta correcta
- * la entrega el backend recién al responder. */
+ * la entrega el backend recién al responder. Con `?leccion=` juega una lección de la ruta. */
 export default function PracticePage() {
-  const { me, setMe, hasAccess } = useStudyAccess("/practica");
+  return (
+    <Suspense fallback={<ApruviLoader label="Preparando tu práctica…" />}>
+      <PracticeRoute />
+    </Suspense>
+  );
+}
+
+function PracticeRoute() {
+  const lessonId = useSearchParams().get("leccion");
+  // La clave reinicia la sesión al cambiar de lección: la página conserva su estado entre visitas.
+  return <PracticeSession key={lessonId ?? "libre"} lessonId={lessonId} />;
+}
+
+function PracticeSession({ lessonId }: { lessonId: string | null }) {
+  const returnTo = lessonId ? `/practica?leccion=${encodeURIComponent(lessonId)}` : "/practica";
+  const { me, setMe, hasAccess } = useStudyAccess(returnTo);
+  const [lesson, setLesson] = useState<LessonDetail | null>(null);
+  const exit = lessonId ? "/ruta" : "/panel";
   const [questions, setQuestions] = useState<PracticeQuestion[] | null>(null);
   const [demo, setDemo] = useState(false);
   const [index, setIndex] = useState(0);
@@ -52,20 +76,32 @@ export default function PracticePage() {
   useEffect(() => {
     if (!hasAccess) return;
     let cancelled = false;
-    api<PracticeQuestion[]>("/practice/questions?limit=10").then((response) => {
-      if (cancelled) return;
-      if (response.ok && response.data.length > 0) {
-        setQuestions(response.data);
-        setDemo(false);
-      } else {
-        setQuestions(SAMPLE);
-        setDemo(true);
-      }
-    });
+    if (lessonId) {
+      api<LessonDetail>(`/practice/lessons/${encodeURIComponent(lessonId)}`).then((response) => {
+        if (cancelled) return;
+        if (response.ok && response.data.questions.length > 0) {
+          setLesson(response.data);
+          setQuestions(response.data.questions);
+        } else {
+          setError(response.ok ? "Esta lección no tiene preguntas." : response.error.message);
+        }
+      });
+    } else {
+      api<PracticeQuestion[]>("/practice/questions?limit=10").then((response) => {
+        if (cancelled) return;
+        if (response.ok && response.data.length > 0) {
+          setQuestions(response.data);
+          setDemo(false);
+        } else {
+          setQuestions(SAMPLE);
+          setDemo(true);
+        }
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [hasAccess]);
+  }, [hasAccess, lessonId]);
 
   const question = questions?.[index];
   const total = questions?.length ?? 0;
@@ -118,8 +154,43 @@ export default function PracticePage() {
     <div className="flex flex-1 flex-col">
       <AppHeader me={me} onLoggedOut={() => setMe(null)} />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-40 pt-6">
-        {!ready ? (
+        {!ready && error ? (
+          <div className="mt-6 space-y-4">
+            <Alert tone="error">{error}</Alert>
+            <ButtonLink href={exit} variant="secondary">
+              Volver a mi ruta
+            </ButtonLink>
+          </div>
+        ) : !ready ? (
           <ApruviLoader label="Preparando tu práctica…" />
+        ) : done && lesson ? (
+          <section className="pop-in mt-6 rounded-3xl border border-line bg-surface p-8 text-center">
+            <Apruvi className="mx-auto h-28 w-28" />
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">¡Lección completada!</h1>
+            <p className="mt-1 text-sm text-muted">{lesson.subtopics.join(" · ")}</p>
+            <div className="mt-4 flex justify-center gap-1" role="img" aria-label={`${starsFor(score, total)} de 3 estrellas`}>
+              {[0, 1, 2].map((i) => (
+                <svg key={i} viewBox="0 0 24 24" className={`h-10 w-10 ${i < starsFor(score, total) ? "text-accent" : "text-line"}`} aria-hidden="true">
+                  <path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
+                </svg>
+              ))}
+            </div>
+            <p className="mt-3 text-lg">
+              Acertaste <span className="font-semibold text-success">{score}</span> de {total} ·{" "}
+              <span className="font-semibold text-accent">+{score * 10} XP</span>
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              {score === total
+                ? "¡Impecable! La siguiente lección ya está abierta."
+                : "La siguiente lección ya está abierta. Si quieres las tres estrellas, repasa esta."}
+            </p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <ButtonLink href="/ruta">Volver a mi ruta</ButtonLink>
+              <button type="button" onClick={restart} className={buttonStyles.secondary}>
+                Repetir la lección
+              </button>
+            </div>
+          </section>
         ) : done ? (
           <section className="pop-in mt-6 rounded-3xl border border-line bg-surface p-8 text-center">
             <Apruvi className="mx-auto h-28 w-28" />
@@ -148,7 +219,7 @@ export default function PracticePage() {
             ) : null}
 
             <div className="mt-5 flex items-center gap-3">
-              <ButtonLink href="/panel" variant="secondary" className="!px-3 !py-2">
+              <ButtonLink href={exit} variant="secondary" className="!px-3 !py-2">
                 ✕
               </ButtonLink>
               <div

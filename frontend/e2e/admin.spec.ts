@@ -4,7 +4,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { createAdmin, E2E_PASSWORD, uniqueEmail } from "./support";
 
-// Banco de preguntas (FR-013, FR-014, AC-029): importar la plantilla, revisar y publicar con
+// Banco de preguntas (FR-013, FR-014, AC-029, AC-044): importar y descargar la planilla, revisar y publicar con
 // dos administradores. Solo en escritorio: los proyectos corren en paralelo sobre la misma base.
 
 const TEMPLATE = path.resolve(__dirname, "..", "..", "docs", "plantillas", "preguntas-alternativas.xlsx");
@@ -30,7 +30,14 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.getByRole("link", { name: "Preguntas" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Banco de preguntas" })).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles(TEMPLATE);
-  await expect(page.getByText("Se importaron 2 preguntas como borradores.")).toBeVisible();
+  await expect(
+    page.getByText("Listo: 2 preguntas nuevas. Lo nuevo y lo modificado queda como borrador."),
+  ).toBeVisible();
+
+  // El banco se descarga como Excel para editarlo y volver a subirlo.
+  const download = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Descargar banco (.xlsx)" }).click();
+  expect((await download).suggestedFilename()).toMatch(/^banco-preguntas-\d{4}-\d{2}-\d{2}\.xlsx$/);
 
   await page.getByRole("tab", { name: "Borrador" }).click();
   await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
@@ -43,8 +50,8 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.goto("/admin/preguntas");
   await page.getByRole("tab", { name: "En revisión" }).click();
   await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
-  await page.getByRole("button", { name: "Aprobar" }).click();
-  await page.getByRole("button", { name: "Publicar" }).click();
+  await page.getByRole("button", { name: "Aprobar", exact: true }).click();
+  await page.getByRole("button", { name: "Publicar", exact: true }).click();
   await expect(page.getByRole("region", { name: "Detalle" }).getByText(/^Publicada · v1$/)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("banco.png"), fullPage: true });
 
@@ -52,6 +59,16 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.goto("/practica");
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
   await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeHidden();
+
+  // La pregunta publicada forma parte de la ruta de estudio, en la unidad de su materia.
+  await page.goto("/ruta");
+  await expect(page.getByRole("heading", { level: 1, name: "Tu ruta de estudio" })).toBeVisible();
+  const unit = page.getByRole("region", { name: /: Derecho Civil$/ });
+  await expect(unit).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("ruta.png"), fullPage: true });
+  await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
+  await expect(page).toHaveURL(/\/practica\?leccion=/);
+  await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
 
   // Herramientas de admin: simular un estudiante que completó todo el mapa.
   await page.goto("/panel");
