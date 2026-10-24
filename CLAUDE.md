@@ -41,7 +41,7 @@ uv run alembic check                              # falla si los modelos y las m
 
 Crear o promover un administrador (no hay registro público de administradores): `uv run python -m app.cli create-admin --email admin@ejemplo.cl`, o dentro de Docker `docker compose exec backend python -m app.cli create-admin --email …`. La contraseña se pide por consola o se lee de `ADMIN_PASSWORD`. Acceso sin suscripción para cuentas de prueba (FR-032): `python -m app.cli grant-access --email … --reason … --by …` y `revoke-access --email …`. En desarrollo los correos (verificación y recuperación) no se envían: aparecen en `docker compose logs backend`.
 
-CI (`.github/workflows/ci.yml`) ejecuta, con `.env.example` copiado como `.env`: `uv sync --locked`, ruff (check y format), `alembic upgrade head`, `alembic check` y `pytest`; en el frontend, `pnpm lint`, `pnpm typecheck` y `pnpm build`. Las pruebas e2e no corren en CI.
+Controles antes de cada merge, **en local**: GitHub Actions no se usa (la cuenta no paga Actions) y `.github/workflows/ci.yml` solo corre a mano (`workflow_dispatch`). En el backend: `uv sync --locked`, ruff (check y format), `alembic upgrade head`, `alembic check` y `pytest`; en el frontend: `pnpm lint`, `pnpm typecheck` y `BACKEND_URL=http://127.0.0.1:8000 pnpm build`. Las e2e se corren aparte con la app levantada.
 
 Las pruebas `integration` usan `TEST_DATABASE_URL` (base `tugrado_test`). La crean y migran solas, y vacían las tablas después de cada prueba.
 
