@@ -1,9 +1,9 @@
 name: CI
 
+# Solo manual: los controles se corren en local antes de cada merge (ver CLAUDE.md), para no
+# consumir minutos de GitHub Actions.
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
