@@ -50,8 +50,8 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.goto("/admin/preguntas");
   await page.getByRole("tab", { name: "En revisión" }).click();
   await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
-  await page.getByRole("button", { name: "Aprobar" }).click();
-  await page.getByRole("button", { name: "Publicar" }).click();
+  await page.getByRole("button", { name: "Aprobar", exact: true }).click();
+  await page.getByRole("button", { name: "Publicar", exact: true }).click();
   await expect(page.getByRole("region", { name: "Detalle" }).getByText(/^Publicada · v1$/)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("banco.png"), fullPage: true });
 
@@ -59,6 +59,16 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.goto("/practica");
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
   await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeHidden();
+
+  // La pregunta publicada forma parte de la ruta de estudio, en la unidad de su materia.
+  await page.goto("/ruta");
+  await expect(page.getByRole("heading", { level: 1, name: "Tu ruta de estudio" })).toBeVisible();
+  const unit = page.getByRole("region", { name: /: Derecho Civil$/ });
+  await expect(unit).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("ruta.png"), fullPage: true });
+  await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
+  await expect(page).toHaveURL(/\/practica\?leccion=/);
+  await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
 
   // Herramientas de admin: simular un estudiante que completó todo el mapa.
   await page.goto("/panel");

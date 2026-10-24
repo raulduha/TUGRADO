@@ -34,6 +34,8 @@ Antes de una sesión, el estudiante puede elegir una materia, uno o más subtema
 ### FR-006 — Preguntas de alternativas
 El estudiante puede responder preguntas de alternativas y recibir retroalimentación inmediata en este modo. Si la respuesta es incorrecta, el sistema muestra la alternativa correcta y una explicación aprobada.
 
+La práctica se organiza en una ruta de estudio: cada materia es una unidad y sus subtemas se agrupan en lecciones cortas, en el orden del temario con que se cargó el banco. Cada lección se desbloquea al completar la anterior dentro de su unidad (los administradores pueden abrir cualquiera), y muestra estrellas según los aciertos del último intento y experiencia (XP) por respuesta correcta. El avance se calcula en el backend con las respuestas registradas; nunca se muestra avance inventado. Una guía pública resume qué entra en el examen de grado (las cédulas oficiales y sus temas) con enlace a la fuente.
+
 ### FR-007 — Simulación oral
 El estudiante responde oralmente a preguntas, recibe transcripción y evaluación asistida por IA según una respuesta de referencia y una rúbrica versionadas. Cada versión de pregunta oral referencia la versión de rúbrica con la que se evalúa. La evaluación usa una escala de 1 a 7 (cada criterio de 0 a 100, ponderado según la rúbrica y convertido linealmente a 1,0–7,0 con un decimal) y no es una calificación académica oficial. Una simulación contiene un solo tipo de pregunta.
 

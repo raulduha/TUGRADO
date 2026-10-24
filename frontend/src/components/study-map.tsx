@@ -14,6 +14,10 @@ export type Level = {
   done: boolean;
   /** Pantalla de vista previa (mockup con datos de ejemplo) mientras no exista la real. */
   preview?: string;
+  /** Pantalla real del nivel, cuando ya existe. */
+  href?: string;
+  /** Texto del enlace a la pantalla real. */
+  cta?: string;
 };
 
 // Recorrido real del estudiante según las specs (FR-003 a FR-020). Solo se marca como hecho lo
@@ -40,10 +44,11 @@ export const LEVELS: Level[] = [
   },
   {
     icon: "book",
-    title: "Practica con alternativas",
-    says: "Responderás preguntas de alternativas. Si te equivocas, verás la explicación.",
+    title: "Tu ruta de estudio",
+    says: "Lecciones cortas, tema por tema, siguiendo el temario. Si te equivocas, verás la explicación.",
     done: false,
-    preview: "/practica",
+    href: "/ruta",
+    cta: "Ir a mi ruta",
   },
   {
     icon: "mic",
@@ -119,7 +124,13 @@ export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
         <ol aria-label="Niveles">
           {levels.map((level, i) => {
             const p = points[i];
-            const state = level.done ? "done" : i === current ? "current" : "locked";
+            const state = level.done
+              ? "done"
+              : i === current
+                ? "current"
+                : level.href
+                  ? "available"
+                  : "locked";
             const labelRight = p.x < 50;
             return (
               <li
@@ -132,14 +143,22 @@ export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
                   onClick={() => setSelected(i)}
                   aria-pressed={selected === i}
                   aria-label={`Nivel ${i + 1}: ${level.title}. ${
-                    state === "done" ? "Completado" : state === "current" ? "Siguiente" : "Próximamente"
+                    state === "done"
+                      ? "Completado"
+                      : state === "current"
+                        ? "Siguiente"
+                        : state === "available"
+                          ? "Disponible"
+                          : "Próximamente"
                   }`}
                   className={`relative flex h-16 w-16 items-center justify-center rounded-full border-b-[6px] transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand ${
                     state === "done"
                       ? "border-[#05603a] bg-success text-white"
                       : state === "current"
                         ? "border-brand-strong bg-brand text-on-brand ring-8 ring-brand/15"
-                        : "border-[#d6cfc2] bg-[#ece7de] text-muted"
+                        : state === "available"
+                          ? "border-brand-strong bg-brand/80 text-on-brand"
+                          : "border-[#d6cfc2] bg-[#ece7de] text-muted"
                   } ${selected === i ? "scale-110" : "hover:scale-105"}`}
                 >
                   <Icon name={state === "done" ? "check" : state === "locked" ? "lock" : level.icon} className="h-7 w-7" />
@@ -151,7 +170,13 @@ export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
                 >
                   {level.title}
                   <span className="block text-[11px] font-medium text-muted">
-                    {state === "done" ? "¡Listo!" : state === "current" ? "Siguiente · Próximamente" : "Próximamente"}
+                    {state === "done"
+                      ? "¡Listo!"
+                      : level.href
+                        ? "Disponible"
+                        : state === "current"
+                          ? "Siguiente · Próximamente"
+                          : "Próximamente"}
                   </span>
                 </p>
               </li>
@@ -180,7 +205,14 @@ export function StudyMap({ levels = LEVELS }: { levels?: Level[] }) {
               Apruvi · Nivel {selected + 1}: {levels[selected].title}
             </p>
             <p className="mt-1 text-sm">{levels[selected].says}</p>
-            {levels[selected].preview ? (
+            {levels[selected].href ? (
+              <Link
+                href={levels[selected].href}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
+              >
+                {levels[selected].cta ?? "Ir"} →
+              </Link>
+            ) : levels[selected].preview ? (
               <Link
                 href={levels[selected].preview}
                 className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"

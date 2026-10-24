@@ -178,3 +178,12 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Al subir: fila sin id = pregunta nueva; con id y cambios = versión siguiente en borrador (la publicada sigue visible hasta publicar la nueva); con «sí» en `retirar` = se retiran todas sus versiones vigentes; sin cambios = nada. Todo o nada, con errores por fila (AC-044 actualizado).
 - Decisión de diseño: quitar una fila de la planilla no retira la pregunta, para que un descuido no saque contenido; para sacarla hay que marcar `retirar`. Retirar ahora procede desde cualquier estado (antes solo desde `published`) y queda en `content_event`.
 
+## X. Ruta de estudio tipo Duolingo y guía del temario (2026-10-24)
+
+- Pedido del usuario: con las preguntas y la guía de lo que entra en el examen, armar un recorrido tipo Duolingo.
+- `/temario` (pública): las 19 cédulas UC (2 obligatorias, 16 electivas, 1 suspendida) con sus partes y temas y enlace a cada PDF oficial. Es un índice; aclara que otras universidades tienen su propio cedulario.
+- `/ruta`: una unidad por materia y lecciones de 5 o más preguntas (subtemas consecutivos), en el orden en que se importó la planilla (las filas importadas reciben horas correlativas para conservarlo). Desbloqueo secuencial por unidad, estrellas (3/2/1 según el último intento) y XP (10 por respuesta correcta). Nuevos `GET /practice/path` y `GET /practice/lessons/{id}`; criterios en FR-006 y AC-045.
+- El nivel «Practica con alternativas» del mapa del panel pasó a «Tu ruta de estudio» y lleva a `/ruta`.
+- Acciones masivas en `/admin/preguntas` (`POST /admin/questions/bulk`): enviar a revisión, aprobar o publicar todas las del filtro; cada una con sus reglas (quien creó no aprueba ni publica) y se informan las que no avanzan.
+- Decisión de diseño: el orden y el desbloqueo son pedagógicos, no un permiso: el backend entrega cualquier lección a quien tenga acceso al estudio.
+

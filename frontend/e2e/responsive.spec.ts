@@ -11,6 +11,7 @@ const PAGES = [
   { path: "/restablecer-contrasena?token=x", heading: "Elige una nueva contraseña" },
   { path: "/privacidad", heading: "Política de privacidad" },
   { path: "/terminos", heading: "Términos y condiciones" },
+  { path: "/temario", heading: "Qué entra en el examen de grado" },
   { path: "/correos/baja?token=x", heading: "Recordatorios por correo" },
 ];
 

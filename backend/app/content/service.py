@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -109,6 +109,9 @@ class ContentService:
             return None, errors
 
         created = updated = retired = unchanged = 0
+        # Horas correlativas: las preguntas nuevas quedan en el orden de la planilla, que es
+        # el orden que sigue la ruta de estudio (app/content/path.py).
+        started = self.clock()
         for row in rows:
             if isinstance(row, ParsedRetirement):
                 if self._retire_question(row.question_id, actor):
@@ -118,7 +121,9 @@ class ContentService:
                 continue
             content = _content(row)
             if row.question_id is None:
-                question = QuestionRow(id=uuid.uuid4(), created_at=self.clock())
+                question = QuestionRow(
+                    id=uuid.uuid4(), created_at=started + timedelta(microseconds=created)
+                )
                 self.db.add(question)
                 self.db.flush()
                 self._new_version(question.id, 1, content, actor, ContentAction.IMPORTED)
@@ -252,6 +257,30 @@ class ContentService:
         version.status = VersionStatus.PUBLISHED
         self._event(version, ContentAction.PUBLISHED, actor)
         self.db.commit()
+
+    def bulk(
+        self, action: str, version_ids: list[uuid.UUID], actor: uuid.UUID
+    ) -> tuple[int, list[tuple[uuid.UUID, str]]]:
+        """Aplica la misma acción a varias versiones, cada una con sus reglas (AC-029).
+
+        No es todo o nada: las que no pueden avanzar se saltan con su motivo.
+        """
+        steps = {
+            "submit": lambda vid: self.submit(vid, actor),
+            "approve": lambda vid: self.review(vid, actor, ReviewDecision.APPROVED, None),
+            "publish": lambda vid: self.publish(vid, actor),
+        }
+        if action not in steps:
+            raise ContentError("invalid_action", "Acción desconocida")
+        done, skipped = 0, []
+        for vid in dict.fromkeys(version_ids):
+            try:
+                steps[action](vid)
+                done += 1
+            except ContentError as exc:
+                self.db.rollback()
+                skipped.append((vid, str(exc)))
+        return done, skipped
 
     def retire(self, version_id: uuid.UUID, actor: uuid.UUID) -> None:
         version = self._version(version_id, lock=True)

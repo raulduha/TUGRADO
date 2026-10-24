@@ -62,6 +62,14 @@ const STATUS: Record<Status, { label: string; className: string }> = {
   published: { label: "Publicada", className: "bg-success/10 text-success" },
   retired: { label: "Retirada", className: "bg-line text-muted" },
 };
+// Acción masiva disponible según el filtro: el backend aplica las mismas reglas que a una sola.
+const BULK: Partial<Record<Status, { action: string; label: string }>> = {
+  draft: { action: "submit", label: "Enviar todas a revisión" },
+  in_review: { action: "approve", label: "Aprobar todas" },
+  approved: { action: "publish", label: "Publicar todas" },
+};
+type BulkResult = { done: number; skipped: Array<{ id: string; message: string }> };
+
 const FILTERS: Array<Status | "all"> = ["all", "draft", "in_review", "approved", "published", "retired"];
 const LETTERS = "ABCDE";
 const DIFFICULTY = ["", "Fácil", "Media", "Difícil"];
@@ -78,9 +86,11 @@ export default function QuestionBankPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [open, setOpen] = useState<Detail | null>(null);
+  const [bulking, setBulking] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const query = filter === "all" ? "" : `?status=${filter}`;
+    const query = filter === "all" ? "?limit=500" : `?status=${filter}&limit=500`;
     const result = await api<Summary[]>(`/admin/questions${query}`);
     if (result.ok) setItems(result.data);
     else setError(result.error.message);
@@ -89,7 +99,7 @@ export default function QuestionBankPage() {
   useEffect(() => {
     if (!isAdmin) return;
     let cancelled = false;
-    const query = filter === "all" ? "" : `?status=${filter}`;
+    const query = filter === "all" ? "?limit=500" : `?status=${filter}&limit=500`;
     api<Summary[]>(`/admin/questions${query}`).then((result) => {
       if (cancelled) return;
       if (result.ok) setItems(result.data);
@@ -113,6 +123,29 @@ export default function QuestionBankPage() {
     setImportResult(result.data);
     const { created, updated, retired } = result.data;
     if (created + updated + retired > 0) await load();
+  }
+
+  async function bulk(action: string) {
+    if (!items || items.length === 0) return;
+    setError(null);
+    setBulkMessage(null);
+    setBulking(true);
+    const result = await api<BulkResult>("/admin/questions/bulk", {
+      body: { action, ids: items.map((i) => i.id) },
+    });
+    setBulking(false);
+    if (!result.ok) {
+      setError(result.error.message);
+      return;
+    }
+    const { done, skipped } = result.data;
+    const reasons = [...new Set(skipped.map((s) => s.message))];
+    setBulkMessage(
+      `${done} ${done === 1 ? "pregunta avanzó" : "preguntas avanzaron"}.` +
+        (skipped.length ? ` ${skipped.length} no se pudieron mover: ${reasons.join(" ")}` : ""),
+    );
+    setOpen(null);
+    await load();
   }
 
   async function show(id: string) {
@@ -223,6 +256,24 @@ export default function QuestionBankPage() {
                 </button>
               ))}
             </div>
+
+            {filter !== "all" && BULK[filter] && items && items.length > 0 ? (
+              <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-muted">
+                  {items.length} {items.length === 1 ? "pregunta" : "preguntas"} en este estado. Lo que tú creaste
+                  debe aprobarlo y publicarlo otro administrador.
+                </p>
+                <button
+                  type="button"
+                  disabled={bulking}
+                  onClick={() => void bulk(BULK[filter]!.action)}
+                  className={`whitespace-nowrap ${buttonStyles.primary}`}
+                >
+                  {bulking ? "Aplicando…" : `${BULK[filter]!.label} (${items.length})`}
+                </button>
+              </div>
+            ) : null}
+            {bulkMessage ? <Alert tone="success">{bulkMessage}</Alert> : null}
 
             <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
               <section aria-label="Versiones" className="space-y-2">

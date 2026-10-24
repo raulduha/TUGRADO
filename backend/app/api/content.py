@@ -4,7 +4,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import asdict
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, aliased
 
 from app.api.deps import AdminUser, SubscribedUser, get_clock
 from app.content.importer import parse_workbook
+from app.content.path import Lesson, build_path, find_lesson, total_xp
 from app.content.service import ContentError, ContentService, QuestionContent
 from app.content.workbook import ExportRow, build_workbook
 from app.db import get_db
@@ -94,6 +95,23 @@ def export_questions(_: AdminUser, svc: Service, clock: Clock) -> Response:
     """El banco actual (última versión de cada pregunta no retirada), para editar y resubir."""
     rows = [ExportRow(qid, content, status) for qid, content, status in svc.export_rows()]
     return _xlsx(build_workbook(rows), f"banco-preguntas-{clock():%Y-%m-%d}.xlsx")
+
+
+class BulkIn(BaseModel):
+    action: Literal["submit", "approve", "publish"]
+    ids: list[uuid.UUID] = Field(min_length=1, max_length=2000)
+
+
+class BulkOut(BaseModel):
+    done: int
+    skipped: list[dict]
+
+
+@admin_router.post("/bulk")
+def bulk_action(body: BulkIn, admin: AdminUser, svc: Service) -> BulkOut:
+    """Enviar a revisión, aprobar o publicar varias versiones; las que no pueden, se saltan."""
+    done, skipped = svc.bulk(body.action, body.ids, admin.id)
+    return BulkOut(done=done, skipped=[{"id": str(i), "message": m} for i, m in skipped])
 
 
 class VersionSummary(BaseModel):
@@ -267,24 +285,91 @@ def practice_questions(
         .order_by(func.random())
         .limit(limit)
     ).all()
-    out = []
-    for row, subject, subtopic, _author in rows:
-        options = db.scalars(
-            select(AnswerOptionRow.text)
-            .where(AnswerOptionRow.version_id == row.id)
-            .order_by(AnswerOptionRow.position)
-        ).all()
-        out.append(
-            PracticeQuestion(
-                id=str(row.id),
-                subject=subject,
-                subtopic=subtopic,
-                difficulty=row.difficulty,
-                prompt=row.prompt,
-                options=list(options),
-            )
+    return [_practice_question(db, row, subject, subtopic) for row, subject, subtopic, _ in rows]
+
+
+class LessonOut(BaseModel):
+    id: str
+    title: str
+    subtopics: list[str]
+    total: int
+    answered: int
+    correct: int
+    completed: bool
+    stars: int
+
+
+class UnitOut(BaseModel):
+    subject: str
+    lessons: list[LessonOut]
+
+
+class PathOut(BaseModel):
+    units: list[UnitOut]
+    xp: int
+
+
+def _lesson_out(lesson: Lesson) -> LessonOut:
+    return LessonOut(
+        id=lesson.id,
+        title=lesson.title,
+        subtopics=lesson.subtopics,
+        total=lesson.total,
+        answered=lesson.answered,
+        correct=lesson.correct,
+        completed=lesson.completed,
+        stars=lesson.stars,
+    )
+
+
+@practice_router.get("/path")
+def study_path(user: SubscribedUser, db: Db) -> PathOut:
+    """La ruta de estudio con el avance del estudiante (solo preguntas publicadas)."""
+    units = build_path(db, user.id)
+    return PathOut(
+        units=[
+            UnitOut(subject=u.subject, lessons=[_lesson_out(x) for x in u.lessons]) for u in units
+        ],
+        xp=total_xp(db, user.id),
+    )
+
+
+class LessonDetail(LessonOut):
+    subject: str
+    questions: list[PracticeQuestion]
+
+
+@practice_router.get("/lessons/{lesson_id}")
+def lesson_questions(lesson_id: str, user: SubscribedUser, db: Db) -> LessonDetail:
+    found = find_lesson(build_path(db, user.id), lesson_id)
+    if found is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail={"code": "lesson_not_found", "message": "Esa lección ya no está disponible"},
         )
-    return out
+    unit, lesson = found
+    rows = db.execute(_summary_query().where(QuestionVersionRow.id.in_(lesson.version_ids))).all()
+    by_id = {row.id: (row, subject, subtopic) for row, subject, subtopic, _ in rows}
+    questions = [_practice_question(db, *by_id[vid]) for vid in lesson.version_ids if vid in by_id]
+    return LessonDetail(
+        **_lesson_out(lesson).model_dump(), subject=unit.subject, questions=questions
+    )
+
+
+def _practice_question(db: Session, row, subject: str, subtopic: str | None) -> PracticeQuestion:
+    options = db.scalars(
+        select(AnswerOptionRow.text)
+        .where(AnswerOptionRow.version_id == row.id)
+        .order_by(AnswerOptionRow.position)
+    ).all()
+    return PracticeQuestion(
+        id=str(row.id),
+        subject=subject,
+        subtopic=subtopic,
+        difficulty=row.difficulty,
+        prompt=row.prompt,
+        options=list(options),
+    )
 
 
 class AnswerIn(BaseModel):
