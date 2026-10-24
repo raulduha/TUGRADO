@@ -1,6 +1,7 @@
 """Suscripción con el simulador del proveedor (FR-029 a FR-031, AC-038, AC-039, Gate 11b)."""
 
 import threading
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -166,6 +167,29 @@ def test_solicitudes_simultaneas_crean_una_sola_suscripcion(billing_api, outbox,
         t.join(timeout=30)
     assert len(set(results)) == 1
     assert len(subscriptions(engine)) == 1
+
+
+def test_el_primer_cobro_es_al_terminar_la_prueba_gratis(billing_api, outbox, clock):
+    student(billing_api, outbox)
+    billing_api.post("/billing/subscription")
+    clock.advance(600)  # el estudiante tarda en pagar en Mercado Pago
+    approved = billing_api.post("/billing/fake/approve").json()
+    created = clock() - timedelta(seconds=600)
+    assert datetime.fromisoformat(approved["next_payment_date"]) == created + timedelta(days=7)
+
+
+def test_un_pago_pendiente_antiguo_se_reemplaza_para_no_acortar_la_prueba(
+    billing_api, outbox, engine, clock
+):
+    student(billing_api, outbox)
+    first = billing_api.post("/billing/subscription").json()["checkout_url"]
+    clock.advance(2 * 24 * 3600)  # vuelve dos días después
+    second = billing_api.post("/billing/subscription").json()["checkout_url"]
+    assert second != first
+    rows = subscriptions(engine)
+    assert sorted(r.status for r in rows) == ["cancelled", "pending"]
+    approved = billing_api.post("/billing/fake/approve").json()
+    assert datetime.fromisoformat(approved["next_payment_date"]) == clock() + timedelta(days=7)
 
 
 def test_con_suscripcion_activa_no_se_puede_volver_a_suscribir(billing_api, outbox):

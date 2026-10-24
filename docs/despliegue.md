@@ -60,7 +60,7 @@ ocurre en la página de Mercado Pago):
 Pasos:
 
 1. **Prueba:** pegar el Access Token `TEST-…` y la clave del webhook en Render y cambiar `BILLING_PROVIDER=mercadopago` (con `APP_ENV=development`). Probar con una **cuenta de prueba compradora** de Mercado Pago (*Tus integraciones → Cuentas de prueba*): el estudiante debe registrarse en la app con el correo de esa cuenta, porque la suscripción se crea con su correo.
-2. Validar en ese entorno los puntos abiertos (README y `docs/correcciones.md` §K): que `free_trial` en días se acepta sin plan asociado, el correo del pagador y la llegada de los webhooks.
+2. Validar en ese entorno los puntos abiertos (README y `docs/correcciones.md` §K): que el primer cobro ocurre en `start_date` (fin de la prueba gratis) y no al autorizar (§V), el correo del pagador y la llegada de los webhooks.
 3. **Producción:** reemplazar por el Access Token `APP_USR-…`, poner `APP_ENV=production` y subir Render a Starter. El backend no arranca si en producción se usa un token `TEST-` o un prefijo desconocido.
 
 ## Antes de abrir a usuarios reales

@@ -10,7 +10,7 @@ import logging
 import threading
 import uuid
 from dataclasses import dataclass, replace
-from datetime import datetime, timedelta
+from datetime import UTC, datetime
 from typing import Protocol
 
 import httpx
@@ -39,7 +39,8 @@ class NewSubscription:
     payer_email: str
     reason: str
     amount_clp: int
-    trial_days: int
+    # Fin de la prueba gratis: el primer cobro no ocurre antes. None cobra al autorizar.
+    first_charge_at: datetime | None
     back_url: str
 
 
@@ -51,6 +52,11 @@ class SubscriptionGateway(Protocol):
 
 def _parse_datetime(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value) if value else None
+
+
+def _mp_datetime(value: datetime) -> str:
+    """Formato de fechas de Mercado Pago: UTC con milisegundos (2026-10-30T20:00:00.000Z)."""
+    return value.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def _from_payload(data: dict) -> ProviderSubscription:
@@ -112,11 +118,10 @@ class MercadoPagoGateway:
             "transaction_amount": request.amount_clp,
             "currency_id": "CLP",
         }
-        if request.trial_days > 0:
-            auto_recurring["free_trial"] = {
-                "frequency": request.trial_days,
-                "frequency_type": "days",
-            }
+        # La prueba gratis se expresa con `start_date`, no con `free_trial`: sin plan asociado,
+        # Mercado Pago cobró la primera cuota al autorizar pese a `free_trial` (en producción).
+        if request.first_charge_at is not None:
+            auto_recurring["start_date"] = _mp_datetime(request.first_charge_at)
         body = {
             "reason": request.reason,
             "external_reference": request.external_reference,
@@ -147,7 +152,7 @@ class FakeGateway:
     def __init__(self, frontend_base_url: str) -> None:
         self._frontend = frontend_base_url.rstrip("/")
         self._items: dict[str, ProviderSubscription] = {}
-        self._trial: dict[str, int] = {}
+        self._first_charge: dict[str, datetime | None] = {}
         # Correo del pagador de cada suscripción simulada (para las pruebas).
         self.payers: dict[str, str] = {}
         self._lock = threading.Lock()
@@ -163,7 +168,7 @@ class FakeGateway:
         )
         with self._lock:
             self._items[provider_id] = item
-            self._trial[provider_id] = request.trial_days
+            self._first_charge[provider_id] = request.first_charge_at
             self.payers[provider_id] = request.payer_email
         return item
 
@@ -178,9 +183,11 @@ class FakeGateway:
 
     def approve(self, provider_id: str, now: datetime) -> ProviderSubscription:
         """Simula que el estudiante autorizó el pago en Mercado Pago."""
-        trial = self._trial.get(provider_id, 0)
+        first_charge = self._first_charge.get(provider_id)
         return self._set(
-            provider_id, status="authorized", next_payment_date=now + timedelta(days=trial)
+            provider_id,
+            status="authorized",
+            next_payment_date=max(first_charge, now) if first_charge else now,
         )
 
     def _set(self, provider_id: str, **changes) -> ProviderSubscription:

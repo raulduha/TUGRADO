@@ -10,7 +10,7 @@ import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -32,6 +32,9 @@ from app.persistence.billing_models import (
 logger = logging.getLogger("tugrado.billing")
 
 SUBSCRIPTION_REASON = "Aprueba tu examen - Suscripción mensual"
+# El primer cobro se fija al crear el pago pendiente (creación + días de prueba). Pasado este
+# plazo no se reutiliza: se crea otro para que la prueba gratis se cuente desde que se paga.
+PENDING_REUSE = timedelta(hours=1)
 
 
 class BillingError(AppError):
@@ -118,14 +121,17 @@ class BillingService:
             select(UserAccountRow).where(UserAccountRow.id == user_id).with_for_update()
         ).one()
         payer = normalize_email(payer_email or user.email)
+        now = self.clock()
         existing = self.open_subscription(user_id)
         if existing is not None:
             if existing.status != SubscriptionStatus.PENDING or not existing.init_point:
                 raise BillingError("already_subscribed", "Ya tienes una suscripción activa")
-            if (existing.payer_email or user.email) == payer:
+            same_payer = (existing.payer_email or user.email) == payer
+            if same_payer and now - existing.created_at < PENDING_REUSE:
                 self.db.commit()
                 return existing.init_point
-            # Cambió el correo de Mercado Pago: se cancela el pago pendiente y se crea otro.
+            # Cambió el correo de Mercado Pago, o el pago pendiente es antiguo y su primer cobro
+            # acortaría la prueba gratis: se cancela y se crea otro.
             assert existing.provider_subscription_id is not None
             try:
                 remote = self.gateway.cancel(existing.provider_subscription_id)
@@ -135,7 +141,6 @@ class BillingService:
             self._apply(existing, remote.status, remote.next_payment_date, "cancel")
             self.db.flush()
 
-        now = self.clock()
         row = SubscriptionRow(
             id=uuid.uuid4(),
             user_id=user_id,
@@ -154,7 +159,11 @@ class BillingService:
                     payer_email=payer,
                     reason=SUBSCRIPTION_REASON,
                     amount_clp=self.plan.amount_clp,
-                    trial_days=self.plan.trial_days,
+                    first_charge_at=(
+                        now + timedelta(days=self.plan.trial_days)
+                        if self.plan.trial_days > 0
+                        else None
+                    ),
                     back_url=f"{self.frontend_base_url}/suscripcion/retorno",
                 )
             )
