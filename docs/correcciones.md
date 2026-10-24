@@ -164,3 +164,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Pedido del usuario: una herramienta tipo "cheat code" para que los administradores recorran el journey de un estudiante con cualquier porcentaje de avance.
 - Botón flotante solo para administradores en el panel. Ajusta el avance del mapa, los días de racha y tiene atajos (Nuevo, A mitad de camino, Listo para el examen).
 - Es solo visual: se guarda en el navegador del administrador, no toca la base de datos y ningún estudiante lo ve. Mientras está activa, el panel muestra "Modo simulación" y las estadísticas dicen "Dato simulado".
+
+## V. La prueba gratis cobraba al autorizar (2026-10-23)
+
+- Reporte del usuario: en producción, Mercado Pago cobró los $9.990 apenas se autorizó la suscripción, pese a anunciar 7 días gratis. La prueba de §P (`free_trial` en días, primer cobro desplazado) se hizo con la API de prueba y no se repite en producción en suscripciones sin plan asociado.
+- Corrección: ya no se envía `free_trial`. El primer cobro se fija con `auto_recurring.start_date` = creación del pago pendiente + `BILLING_TRIAL_DAYS`. Un pago pendiente de más de una hora no se reutiliza: se cancela y se crea otro, para que la prueba se cuente completa desde que el estudiante paga.
+- Por validar en producción: que el primer cobro ocurra en `start_date` y no al autorizar. A quienes ya se les cobró durante la prueba hay que revisarlos en el panel de Mercado Pago (reembolso a decidir por el equipo).
