@@ -219,3 +219,8 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - La interrogación oral con IA sigue esperando la decisión de proveedores de IA (pendiente del README).
 - `/temario` ya no pide revisar «el cedulario de tu universidad».
 - Confirmado por el usuario (2026-10-25): las electivas también son las mismas para todos. No hay selección de electiva; la ruta muestra todas las materias publicadas.
+
+## AC. Prueba gratis de 14 días y plan en Flow (2026-10-25)
+
+- Decisión del usuario: la prueba gratis pasa de 7 a 14 días (`BILLING_TRIAL_DAYS=14`). La pone la app al crear cada suscripción; el plan de Flow no tiene días de prueba propios, para no sumarlos.
+- Creado en la cuenta de producción de Flow el plan `APRUEBA-MENSUAL` ($9.990 CLP mensual, duración indefinida, 3 reintentos de cobro, URL de confirmación `/billing/webhooks/flow`). Falta cargar `FLOW_API_KEY`, `FLOW_SECRET_KEY` y `FLOW_PLAN_ID` en Render y activar `BILLING_PROVIDER=flow`.
