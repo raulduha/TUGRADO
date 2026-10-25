@@ -205,6 +205,28 @@ class BillingService:
         if row is not None:
             self._refresh(row, source)
 
+    def sync_open(self, source: str) -> tuple[int, int]:
+        """Consulta al proveedor todas las suscripciones abiertas (aviso de Flow o tarea diaria).
+        Devuelve (sincronizadas, fallidas); una falla no detiene a las demás."""
+        ids = self.db.scalars(
+            select(SubscriptionRow.id)
+            .where(SubscriptionRow.provider == self.provider_name)
+            .where(SubscriptionRow.status.in_(OPEN_STATUSES))
+        ).all()
+        synced = failed = 0
+        for subscription_id in ids:
+            row = self.db.scalars(
+                select(SubscriptionRow)
+                .where(SubscriptionRow.id == subscription_id)
+                .with_for_update()
+            ).one()
+            try:
+                self._refresh(row, source)
+                synced += 1
+            except BillingError:
+                failed += 1
+        return synced, failed
+
     def cancel(self, user_id: uuid.UUID) -> None:
         row = self.db.scalars(
             select(SubscriptionRow)
@@ -236,6 +258,10 @@ class BillingService:
         if remote.external_reference not in (None, str(row.id)):
             self.db.rollback()
             raise BillingError("reference_mismatch", "La suscripción no corresponde")
+        # Algunos proveedores cambian la referencia al avanzar (Flow: del cliente a la
+        # suscripción, una vez registrada la tarjeta).
+        if remote.id != row.provider_subscription_id:
+            row.provider_subscription_id = remote.id
         self._apply(row, remote.status, remote.next_payment_date, source)
         self.db.commit()
         self._send_pending_emails()

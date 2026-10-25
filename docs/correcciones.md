@@ -202,3 +202,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - `student.spec.ts` buscaba la vista previa de la práctica en el mapa, que desde §X lleva a la ruta real; se actualizó.
 - Playwright corre con 2 navegadores en paralelo: con uno por núcleo, todas las pruebas contra un solo servidor local superaban los 30 s por carga.
 
+## AA. Cobro con Flow (2026-10-25)
+
+- Pedido del usuario: cobrar con Webpay y dejarlo listo para cuando tenga las claves; luego precisó Flow, porque ofrece suscripciones.
+- Webpay Plus solo hace pagos únicos y la suscripción con Webpay requiere Oneclick con cobros programados por la app; Flow, en cambio, cobra la suscripción por su cuenta. Se integró Flow como proveedor (`BILLING_PROVIDER=flow`), detrás de la misma interfaz que Mercado Pago, que sigue disponible por configuración.
+- Flujo: `customer/create` → registro de tarjeta (`customer/register`) → al volver, si la tarjeta quedó registrada, `subscription/create` al plan con los días de prueba de la app. Acceso con suscripción activa o en prueba y sin cobros vencidos (`morose = 1` deja la suscripción `paused`). Cancelar es inmediato (pendiente 5). Sincronización al volver, con el aviso del plan (`/billing/webhooks/flow`, cuyo contenido no se usa como dato) y con una tarea diaria de Vercel Cron (`/billing/sync/run`).
+- La página de suscripción nombra al proveedor configurado y solo pide el correo del pagador con Mercado Pago.
+- Por validar en el sandbox (README, pendiente 6): `last4CardDigits` de `customer/get` tras registrar la tarjeta, que la prueba no cobra y el contenido del aviso. Los textos legales (términos y privacidad) aún nombran a Mercado Pago: hay que actualizarlos al activar Flow en producción.
+

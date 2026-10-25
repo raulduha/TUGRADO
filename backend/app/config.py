@@ -74,12 +74,23 @@ class Settings(BaseSettings):
         return bool(self.google_client_id)
 
     # Suscripción (FR-029 a FR-031). Precio en pesos chilenos, sin decimales.
-    billing_provider: Literal["mercadopago", "fake"]
+    billing_provider: Literal["mercadopago", "flow", "fake"]
     billing_monthly_price_clp: int = Field(gt=0)
     billing_trial_days: int = Field(ge=0)
     # Solo con billing_provider=mercadopago (pendiente 6 del README).
     mercadopago_access_token: SecretStr | None = None
     mercadopago_webhook_secret: SecretStr | None = None
+    # Solo con billing_provider=flow: credenciales de Flow (sandbox fuera de producción) y el plan
+    # mensual creado en el portal de Flow con el mismo precio (pendiente 6 del README).
+    flow_api_key: SecretStr | None = None
+    flow_secret_key: SecretStr | None = None
+    flow_plan_id: str | None = None
+
+    @property
+    def flow_api_url(self) -> str:
+        from app.billing.flow import PRODUCTION_API, SANDBOX_API
+
+        return PRODUCTION_API if self.app_env == "production" else SANDBOX_API
 
     @model_validator(mode="after")
     def _check_environment(self) -> Self:
@@ -89,6 +100,12 @@ class Settings(BaseSettings):
             raise ValueError(
                 "billing_provider=mercadopago requiere MERCADOPAGO_ACCESS_TOKEN y "
                 "MERCADOPAGO_WEBHOOK_SECRET"
+            )
+        if self.billing_provider == "flow" and not (
+            _filled(self.flow_api_key) and _filled(self.flow_secret_key) and self.flow_plan_id
+        ):
+            raise ValueError(
+                "billing_provider=flow requiere FLOW_API_KEY, FLOW_SECRET_KEY y FLOW_PLAN_ID"
             )
         if self.google_enabled and not (
             _filled(self.google_client_secret) and _filled(self.oauth_state_secret)

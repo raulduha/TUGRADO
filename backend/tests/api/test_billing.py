@@ -402,3 +402,102 @@ def test_referencia_externa_ajena_se_rechaza(billing_api, outbox, engine, gatewa
     gateway._items[provider_id] = replace(gateway._items[provider_id], external_reference="otra")
     assert billing_api.post("/billing/subscription/sync").status_code == 400
     assert subscriptions(engine)[0].status == "pending"
+
+
+# -------------------------------------------------------------------------- Flow
+
+
+class StubFlowGateway:
+    """Se comporta como FlowGateway: la referencia empieza siendo la del cliente y pasa a ser
+    la de la suscripción cuando el estudiante registra su tarjeta."""
+
+    def __init__(self) -> None:
+        self.card_registered = False
+        self.remote_status = "authorized"
+
+    def create(self, request):
+        from app.billing.gateway import ProviderSubscription
+
+        return ProviderSubscription(
+            "flow-customer:cus_1",
+            "pending",
+            "https://sandbox.flow.cl/registro?token=t",
+            None,
+            request.external_reference,
+        )
+
+    def get(self, provider_id):
+        from app.billing.gateway import ProviderSubscription
+
+        if not self.card_registered:
+            return ProviderSubscription(provider_id, "pending", None, None, None)
+        return ProviderSubscription("sus_1", self.remote_status, None, None, None)
+
+    def cancel(self, provider_id):
+        from app.billing.gateway import ProviderSubscription
+
+        return ProviderSubscription(provider_id, "cancelled", None, None, None)
+
+
+CRON = "secreto-del-cron"
+
+
+@pytest.fixture
+def flow_gateway() -> StubFlowGateway:
+    return StubFlowGateway()
+
+
+@pytest.fixture
+def flow_api(engine, clock, outbox, flow_gateway, monkeypatch):
+    monkeypatch.setenv("BILLING_PROVIDER", "flow")
+    monkeypatch.setenv("FLOW_API_KEY", "api-key")
+    monkeypatch.setenv("FLOW_SECRET_KEY", "secret")
+    monkeypatch.setenv("FLOW_PLAN_ID", "plan-mensual")
+    monkeypatch.setenv("CRON_SECRET", CRON)
+    get_settings.cache_clear()
+    return _app(engine, clock, outbox, flow_gateway)
+
+
+def test_con_flow_la_suscripcion_nace_al_registrar_la_tarjeta(
+    flow_api, outbox, engine, flow_gateway
+):
+    student(flow_api, outbox)
+    view = flow_api.get("/billing/subscription").json()
+    assert view["provider"] == "flow" and view["asks_payer_email"] is False
+
+    checkout = flow_api.post("/billing/subscription").json()["checkout_url"]
+    assert checkout.startswith("https://sandbox.flow.cl/registro")
+
+    # Vuelve sin haber registrado la tarjeta: sigue pendiente y sin acceso.
+    assert flow_api.post("/billing/subscription/sync").json()["has_access"] is False
+
+    flow_gateway.card_registered = True
+    assert flow_api.post("/billing/subscription/sync").json()["has_access"] is True
+    [row] = subscriptions(engine)
+    assert row.provider == "flow" and row.provider_subscription_id == "sus_1"
+
+
+def test_el_aviso_de_flow_y_la_tarea_diaria_actualizan_el_acceso(
+    flow_api, outbox, engine, flow_gateway
+):
+    student(flow_api, outbox)
+    flow_api.post("/billing/subscription")
+    flow_gateway.card_registered = True
+    flow_api.post("/billing/subscription/sync")
+
+    # Un cobro vence: Flow avisa y el acceso se suspende.
+    flow_gateway.remote_status = "paused"
+    assert flow_api.post("/billing/webhooks/flow").json() == {"synced": 1}
+    assert flow_api.get("/billing/subscription").json()["has_access"] is False
+
+    # Se paga: la tarea diaria lo detecta aunque se haya perdido el aviso.
+    flow_gateway.remote_status = "authorized"
+    assert flow_api.get("/billing/sync/run").status_code == 401  # sin la clave del cron
+    run = flow_api.get("/billing/sync/run", headers={"Authorization": f"Bearer {CRON}"})
+    assert run.json() == {"synced": 1, "failed": 0}
+    assert flow_api.get("/billing/subscription").json()["has_access"] is True
+    assert [e[2] for e in events(engine)] == ["pending", "authorized", "paused", "authorized"]
+
+
+def test_el_aviso_de_flow_no_existe_con_otro_proveedor(billing_api):
+    assert billing_api.post("/billing/webhooks/flow").status_code == 404

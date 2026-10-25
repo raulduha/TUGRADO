@@ -8,7 +8,7 @@ import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
 import { Field } from "@/components/field";
 import { Icon } from "@/components/illustrations";
-import { api, formatClp, formatDate, type Subscription } from "@/lib/api";
+import { api, formatClp, formatDate, providerName, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
 const BENEFITS = [
@@ -29,7 +29,7 @@ export default function SubscriptionPage() {
     let cancelled = false;
     (async () => {
       let result = await api<Subscription>("/billing/subscription");
-      // Con un pago pendiente se consulta a Mercado Pago: así se activa aunque el aviso
+      // Con un pago pendiente se consulta al proveedor: así se activa aunque el aviso
       // (webhook) no haya llegado o el estudiante no haya vuelto desde la página de pago.
       if (result.ok && result.data.status === "pending") {
         const synced = await api<Subscription>("/billing/subscription/sync", { method: "POST" });
@@ -44,14 +44,14 @@ export default function SubscriptionPage() {
     };
   }, [me]);
 
-  async function subscribe(payerEmail: string) {
+  async function subscribe(payerEmail: string | null) {
     setBusy(true);
     setError(null);
     const result = await api<{ checkout_url: string }>("/billing/subscription", {
-      body: { payer_email: payerEmail },
+      body: payerEmail ? { payer_email: payerEmail } : {},
     });
     if (result.ok) {
-      // El pago ocurre en la página de Mercado Pago (o en el simulador en desarrollo).
+      // El pago ocurre en la página del proveedor (o en el simulador en desarrollo).
       window.location.assign(result.data.checkout_url);
       return;
     }
@@ -120,8 +120,8 @@ export default function SubscriptionPage() {
                 onCancel={cancel}
               />
               <p className="text-xs text-muted">
-                El pago se procesa en Mercado Pago: no recibimos ni guardamos los datos de tu
-                tarjeta. Las evaluaciones son orientativas y no garantizan la aprobación del examen.
+                El pago se procesa en {providerName(sub.provider)}: no recibimos ni guardamos
+                los datos de tu tarjeta. Las evaluaciones son orientativas y no garantizan la aprobación del examen.
               </p>
             </div>
           </section>
@@ -145,11 +145,12 @@ function StatusPanel({
   defaultEmail: string;
   busy: boolean;
   confirmCancel: boolean;
-  onSubscribe: (payerEmail: string) => void;
+  onSubscribe: (payerEmail: string | null) => void;
   onAskCancel: () => void;
   onKeep: () => void;
   onCancel: () => void;
 }) {
+  const provider = providerName(sub.provider);
   if (sub.status === "authorized") {
     return (
       <div className="space-y-4">
@@ -192,8 +193,8 @@ function StatusPanel({
   if (sub.status === "pending") {
     return (
       <div className="space-y-3">
-        <Alert tone="info">Tu suscripción está esperando que completes el pago en Mercado Pago.</Alert>
-        <PayForm defaultEmail={defaultEmail} busy={busy} label="Ir a pagar en Mercado Pago" onSubmit={onSubscribe} />
+        <Alert tone="info">Tu suscripción está esperando que completes el pago en {provider}.</Alert>
+        <PayForm sub={sub} defaultEmail={defaultEmail} busy={busy} label={`Ir a pagar en ${provider}`} onSubmit={onSubscribe} />
         <a href="/suscripcion/retorno" className={`w-full ${buttonStyles.secondary}`}>
           Ya pagué: actualizar estado
         </a>
@@ -204,8 +205,8 @@ function StatusPanel({
   if (sub.status === "paused") {
     return (
       <Alert tone="info">
-        Tu suscripción está en pausa en Mercado Pago. Revisa tu medio de pago allí para
-        reactivarla.
+        Tu suscripción tiene un cobro pendiente en {provider}. Revisa tu medio de pago allí
+        para reactivarla.
       </Alert>
     );
   }
@@ -224,12 +225,13 @@ function StatusPanel({
         </>
       ) : (
         <p className="text-sm text-muted">
-          Para empezar a estudiar, activa tu prueba gratis. Mercado Pago te pedirá un medio de
-          pago; puedes cancelar desde aquí antes de que termine la prueba.
+          Para empezar a estudiar, activa tu prueba gratis. {provider} te pedirá un medio de pago;
+          puedes cancelar desde aquí antes de que termine la prueba.
         </p>
       )}
       {sub.has_access ? null : (
         <PayForm
+          sub={sub}
           defaultEmail={defaultEmail}
           busy={busy}
           label={sub.trial_days > 0 ? `Comenzar ${sub.trial_days} días gratis` : "Suscribirme"}
@@ -240,37 +242,43 @@ function StatusPanel({
   );
 }
 
-/** Mercado Pago exige que el correo coincida con la cuenta con la que se paga: puede ser
- * distinto del correo de la app. */
+/** Mercado Pago exige que el correo coincida con la cuenta con la que se paga (puede ser
+ * distinto del de la app); con Flow basta el botón. */
 function PayForm({
+  sub,
   defaultEmail,
   busy,
   label,
   onSubmit,
 }: {
+  sub: Subscription;
   defaultEmail: string;
   busy: boolean;
   label: string;
-  onSubmit: (payerEmail: string) => void;
+  onSubmit: (payerEmail: string | null) => void;
 }) {
+  const provider = providerName(sub.provider);
   return (
     <form
       className="space-y-3"
       onSubmit={(event) => {
         event.preventDefault();
-        onSubmit(String(new FormData(event.currentTarget).get("payer_email") ?? "").trim());
+        const email = String(new FormData(event.currentTarget).get("payer_email") ?? "").trim();
+        onSubmit(sub.asks_payer_email ? email : null);
       }}
     >
-      <Field
-        label="Correo de tu cuenta de Mercado Pago"
-        name="payer_email"
-        type="email"
-        autoComplete="email"
-        defaultValue={defaultEmail}
-        hint="Debe ser el correo con el que inicias sesión en Mercado Pago."
-      />
+      {sub.asks_payer_email ? (
+        <Field
+          label={`Correo de tu cuenta de ${provider}`}
+          name="payer_email"
+          type="email"
+          autoComplete="email"
+          defaultValue={defaultEmail}
+          hint={`Debe ser el correo con el que inicias sesión en ${provider}.`}
+        />
+      ) : null}
       <button type="submit" disabled={busy} className={`w-full ${buttonStyles.primary}`}>
-        {busy ? "Redirigiendo a Mercado Pago…" : label}
+        {busy ? `Redirigiendo a ${provider}…` : label}
       </button>
     </form>
   );

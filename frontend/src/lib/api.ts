@@ -76,7 +76,17 @@ export type Subscription = {
   next_payment_date: string | null;
   checkout_url: string | null;
   payer_email: string | null;
+  provider: PaymentProvider;
+  /** Mercado Pago exige el correo de la cuenta que paga; Flow y el simulador, no. */
+  asks_payer_email: boolean;
 };
+
+export type PaymentProvider = "mercadopago" | "flow" | "fake";
+
+/** Nombre del proveedor de pagos para los textos de la interfaz. */
+export function providerName(provider: PaymentProvider): string {
+  return provider === "flow" ? "Flow" : provider === "mercadopago" ? "Mercado Pago" : "el simulador de pagos";
+}
 
 export function formatClp(amount: number): string {
   return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(amount);

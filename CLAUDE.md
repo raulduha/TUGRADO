@@ -86,7 +86,7 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 
 ### Suscripción y hábito (`app/billing/`, `app/engagement/`)
 
-- `billing/gateway.py` define el proveedor de suscripciones como interfaz: Mercado Pago real o simulador local (`BILLING_PROVIDER=fake`). La app nunca recibe datos de tarjeta; crea la suscripción `pending` y el estudiante la autoriza en Mercado Pago. `grants.py` gestiona el acceso de cortesía (FR-032).
+- `billing/gateway.py` define el proveedor de suscripciones como interfaz: Flow (`billing/flow.py`, el elegido), Mercado Pago o el simulador local (`BILLING_PROVIDER=fake`). La app nunca recibe datos de tarjeta. Con Flow la referencia local pasa del cliente (`flow-customer:…`) a la suscripción cuando el estudiante registra la tarjeta, y el acceso se suspende con cobros vencidos (`morose`); el estado se sincroniza al volver, con el aviso `/billing/webhooks/flow` y con la tarea diaria `/billing/sync/run`. `grants.py` gestiona el acceso de cortesía (FR-032).
 - `engagement/streaks.py` (rachas, FR-033) calcula de forma pura y registra de forma idempotente. `engagement/reminders.py` (FR-034, AC-043) envía un solo correo de ánimo por ausencia y nunca a quien se dio de baja.
 
 ## Marketing (`marketing/`)

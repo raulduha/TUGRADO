@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.auth.email import ConsoleEmailSender, EmailSender, ResendEmailSender
 from app.auth.google import GoogleOAuth, GoogleProvider
 from app.auth.service import AuthenticatedUser, AuthService
+from app.billing.flow import FlowClient, FlowGateway
 from app.billing.gateway import FakeGateway, MercadoPagoGateway, SubscriptionGateway
 from app.billing.service import BillingPlan, BillingService
 from app.clock import utc_now
@@ -91,22 +92,39 @@ AdminUser = Annotated[AuthenticatedUser, Depends(require_role(Role.ADMINISTRATOR
 
 
 @lru_cache
-def _gateway_for(provider: str, access_token: str | None, frontend: str) -> SubscriptionGateway:
-    if provider == "mercadopago":
-        assert access_token is not None
-        return MercadoPagoGateway(access_token)
+def _mercadopago_gateway(access_token: str) -> SubscriptionGateway:
+    return MercadoPagoGateway(access_token)
+
+
+@lru_cache
+def _flow_gateway(
+    api_url: str, api_key: str, secret_key: str, plan_id: str, trial_days: int
+) -> SubscriptionGateway:
+    return FlowGateway(FlowClient(api_url, api_key, secret_key), plan_id, trial_days)
+
+
+@lru_cache
+def _fake_gateway(frontend: str) -> SubscriptionGateway:
     return FakeGateway(frontend)
 
 
 def get_subscription_gateway(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> SubscriptionGateway:
-    token = settings.mercadopago_access_token
-    return _gateway_for(
-        settings.billing_provider,
-        token.get_secret_value() if token else None,
-        settings.frontend_base_url,
-    )
+    """El proveedor configurado en BILLING_PROVIDER (la configuración valida sus credenciales)."""
+    if settings.billing_provider == "mercadopago":
+        assert settings.mercadopago_access_token is not None
+        return _mercadopago_gateway(settings.mercadopago_access_token.get_secret_value())
+    if settings.billing_provider == "flow":
+        assert settings.flow_api_key and settings.flow_secret_key and settings.flow_plan_id
+        return _flow_gateway(
+            settings.flow_api_url,
+            settings.flow_api_key.get_secret_value(),
+            settings.flow_secret_key.get_secret_value(),
+            settings.flow_plan_id,
+            settings.billing_trial_days,
+        )
+    return _fake_gateway(settings.frontend_base_url)
 
 
 def get_billing_service(
