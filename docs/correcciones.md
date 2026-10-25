@@ -195,3 +195,10 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Pruebas reorganizadas por tema (formato, flujo editorial, planilla contra el banco, práctica), con nombres que dicen la regla y sin pruebas que solo validan el framework. Se comprobó que fallan al romper a propósito tres reglas (quien crea aprueba, ids desconocidos, umbral de estrellas).
 - Celular: el encabezado con sesión mostraba el logo completo además del ícono y desplazaba la página; ahora en pantallas chicas muestra solo el ícono. El e2e del admin revisa 390 px en el panel, la ruta y una lección.
 
+## Z. Seguridad de Next.js y carreras en el panel (2026-10-24)
+
+- Next.js 16.4.0 tenía 3 vulnerabilidades conocidas (2 críticas, 1 alta; afectan a 16.0.0–16.4.0, corregidas en 16.4.1). Se actualizó a 16.4.3 junto con `eslint-config-next`; `pnpm audit --prod` queda sin vulnerabilidades y el aviso que cortaba `next build` y `next dev` desapareció.
+- La suite e2e completa encontró dos carreras reales en `/admin/preguntas`: una respuesta antigua del detalle (o de la lista) que llegaba tarde tapaba la más reciente (por ejemplo, «Aprobada» después de publicar, o la lista de «Todas» con el filtro «Borrador» marcado). Ahora solo se muestra la respuesta de la última petición, y los botones del detalle se deshabilitan mientras una acción está en curso.
+- `student.spec.ts` buscaba la vista previa de la práctica en el mapa, que desde §X lleva a la ruta real; se actualizó.
+- Playwright corre con 2 navegadores en paralelo: con uno por núcleo, todas las pruebas contra un solo servidor local superaban los 30 s por carga.
+
