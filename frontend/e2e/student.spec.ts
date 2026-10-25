@@ -168,14 +168,16 @@ test("las vistas previas de práctica, simulación oral y plan funcionan", async
   await expect(page).toHaveURL(/\/panel$/);
   await page.getByRole("dialog").getByRole("button", { name: "¡Vamos!" }).click();
 
-  // Desde el mapa: Apruvi ofrece la vista previa del nivel.
+  // Desde el mapa: el nivel 4 lleva a la ruta de estudio real.
   const map = page.getByRole("region", { name: "Tu mapa de estudio" });
   await map.getByRole("button", { name: /^Nivel 4:/ }).click();
-  await map.getByRole("link", { name: "Probar (vista previa) →" }).click();
+  await map.getByRole("link", { name: "Ir a mi ruta →" }).click();
+  await expect(page).toHaveURL(/\/ruta$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Tu ruta de estudio" })).toBeVisible();
 
-  // Práctica: elegir, comprobar y ver la explicación con su fuente. Puede haber preguntas
+  // Práctica libre: elegir, comprobar y ver la explicación con su fuente. Puede haber preguntas
   // publicadas (otra prueba las publica en paralelo) o las de ejemplo.
-  await expect(page).toHaveURL(/\/practica$/);
+  await page.goto("/practica");
   await page.getByRole("list", { name: "Alternativas" }).getByRole("button").first().click();
   await page.getByRole("button", { name: "Comprobar" }).click();
   await expect(page.getByText(/^¡Correcto!$|^Respuesta correcta: [A-E]$/)).toBeVisible();

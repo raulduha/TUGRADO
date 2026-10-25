@@ -10,11 +10,14 @@ import { type Detail, LETTERS, StatusBadge } from "./shared";
  * estado. Las reglas las aplica el backend (quien crea no aprueba ni publica, AC-029). */
 export function QuestionDetail({
   detail,
+  busy,
   onAct,
   onEdit,
   onOpen,
 }: {
   detail: Detail;
+  /** Hay una acción en curso: los botones se deshabilitan para evitar dobles envíos. */
+  busy: boolean;
   onAct: (id: string, action: string, body?: unknown) => Promise<void>;
   onEdit: () => void;
   onOpen: (id: string) => void;
@@ -66,7 +69,7 @@ export function QuestionDetail({
         </ul>
       ) : null}
 
-      <div className="space-y-2 border-t border-line pt-4">
+      <fieldset disabled={busy} className="space-y-2 border-t border-line pt-4">
         {detail.status === "draft" ? (
           <button type="button" onClick={() => void onAct(detail.id, "submit")} className={`w-full ${buttonStyles.primary}`}>
             Enviar a revisión
@@ -134,7 +137,7 @@ export function QuestionDetail({
             Descartar esta versión
           </button>
         ) : null}
-      </div>
+      </fieldset>
 
       <section aria-label="Historial de versiones" className="border-t border-line pt-4">
         <h3 className="text-sm font-semibold">Historial</h3>

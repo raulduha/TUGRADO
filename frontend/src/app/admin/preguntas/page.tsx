@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { buttonStyles } from "@/components/button";
-import { api } from "@/lib/api";
+import { api, type ApiResult } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
 import { QuestionDetail } from "./question-detail";
@@ -60,6 +60,12 @@ const PAGE = 50;
 type Filters = { status: Status | "all"; subject: string; q: string };
 type Panel = { kind: "detail"; detail: Detail } | { kind: "create" } | { kind: "edit"; base: Detail } | null;
 
+type ListResponse = [ApiResult<Summary[]>, ApiResult<SubjectOption[]>];
+
+function fetchList(filters: Filters): Promise<ListResponse> {
+  return Promise.all([api<Summary[]>(query(filters, PAGE, 0)), api<SubjectOption[]>("/admin/questions/subjects")]);
+}
+
 function query(filters: Filters, limit: number, offset: number) {
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   if (filters.status !== "all") params.set("status", filters.status);
@@ -85,6 +91,7 @@ export default function QuestionBankPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [bulking, setBulking] = useState(false);
+  const [acting, setActing] = useState(false); // una acción del detalle en curso
 
   // La búsqueda se aplica al dejar de escribir.
   useEffect(() => {
@@ -92,39 +99,37 @@ export default function QuestionBankPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const load = useCallback(async () => {
-    const [list, subjectList] = await Promise.all([
-      api<Summary[]>(query(filters, PAGE, 0)),
-      api<SubjectOption[]>("/admin/questions/subjects"),
-    ]);
+  // Solo cuenta la respuesta de la última carga de la lista: si una anterior llega tarde (por
+  // ejemplo, la recarga tras subir la planilla con el filtro previo), no debe tapar la actual.
+  const latestList = useRef(0);
+
+  const applyList = useCallback(([list, subjectList]: ListResponse) => {
     if (list.ok) {
       setItems(list.data);
       setHasMore(list.data.length === PAGE);
     } else setError(list.error.message);
     if (subjectList.ok) setSubjects(subjectList.data);
-  }, [filters]);
+  }, []);
+
+  const load = useCallback(async () => {
+    const request = ++latestList.current;
+    const response = await fetchList(filters);
+    if (request === latestList.current) applyList(response);
+  }, [filters, applyList]);
 
   useEffect(() => {
     if (!isAdmin) return;
-    let cancelled = false;
-    Promise.all([api<Summary[]>(query(filters, PAGE, 0)), api<SubjectOption[]>("/admin/questions/subjects")]).then(
-      ([list, subjectList]) => {
-        if (cancelled) return;
-        if (list.ok) {
-          setItems(list.data);
-          setHasMore(list.data.length === PAGE);
-        } else setError(list.error.message);
-        if (subjectList.ok) setSubjects(subjectList.data);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin, filters]);
+    const request = ++latestList.current;
+    fetchList(filters).then((response) => {
+      if (request === latestList.current) applyList(response);
+    });
+  }, [isAdmin, filters, applyList]);
 
   async function loadMore() {
     if (!items) return;
+    const request = latestList.current;
     const result = await api<Summary[]>(query(filters, PAGE, items.length));
+    if (request !== latestList.current) return; // cambiaron los filtros mientras tanto
     if (!result.ok) return setError(result.error.message);
     setItems([...items, ...result.data]);
     setHasMore(result.data.length === PAGE);
@@ -173,19 +178,28 @@ export default function QuestionBankPage() {
     await load();
   }
 
+  // Solo se muestra la respuesta de la última petición: si una anterior llega tarde (por ejemplo,
+  // la del «Aprobar» después de «Publicar»), no debe tapar el estado más reciente.
+  const latestShow = useRef(0);
+
   async function show(id: string) {
     setError(null);
+    const request = ++latestShow.current;
     const result = await api<Detail>(`/admin/questions/${id}`);
+    if (request !== latestShow.current) return;
     if (result.ok) setPanel({ kind: "detail", detail: result.data });
     else setError(result.error.message);
   }
 
   async function act(id: string, action: string, body?: unknown) {
+    if (acting) return;
     setError(null);
     setNotice(null);
+    setActing(true);
     const result = await api(`/admin/questions/${id}/${action}`, { method: "POST", body });
-    if (!result.ok) return setError(result.error.message);
-    await Promise.all([load(), show(id)]);
+    if (result.ok) await Promise.all([load(), show(id)]);
+    else setError(result.error.message);
+    setActing(false);
   }
 
   /** Guarda el formulario. Devuelve el mensaje de error para mostrarlo en el formulario. */
@@ -409,6 +423,7 @@ export default function QuestionBankPage() {
                   <QuestionDetail
                     key={panel.detail.id}
                     detail={panel.detail}
+                    busy={acting}
                     onAct={act}
                     onEdit={() => setPanel({ kind: "edit", base: panel.detail })}
                     onOpen={(id) => void show(id)}

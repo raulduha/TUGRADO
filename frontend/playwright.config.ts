@@ -5,7 +5,9 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   globalTeardown: "./e2e/global-teardown.ts",
-  // Varios Chrome en paralelo cargan la máquina de pruebas; la app responde en menos de 1 s.
+  // Todas las pruebas van contra un solo servidor local: con un Chrome por núcleo (lo que usa
+  // Playwright por omisión) las más largas superan los 30 s por pura carga. Con 2 son estables.
+  workers: 2,
   expect: { timeout: 15_000 },
   outputDir: "e2e/.results",
   use: {
