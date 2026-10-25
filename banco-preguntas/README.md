@@ -28,6 +28,7 @@ En `/admin/preguntas`, importa la planilla de `salida/`. Las preguntas entran co
 | Archivo | Programa | Fuente del temario |
 |---|---|---|
 | `uc-01*-civil-*.py` | Cédulas UC (licenciatura, desde 2021) | [Cédula de Derecho Civil](https://derecho.uc.cl/wp-content/uploads/2026/05/Cedula_Derecho_Civil_18.03.2021.pdf) |
+| `uc-02*-procesal-*.py` | Cédulas UC (licenciatura, desde 2021) | [Cédula de Derecho Procesal](https://derecho.uc.cl/wp-content/uploads/2026/05/Cedula_Derecho_Procesal_18.03.2021.pdf) |
 | `convertir_uandes.py` | Cedulario U. de los Andes 2026 | Banco «Acto jurídico y prueba» entregado por el equipo |
 
 Los temarios se usan solo como índice de materias: las preguntas son de redacción propia. El programa (UC o U. de los Andes) todavía no se modela en la app, así que cada programa va en planillas separadas.
