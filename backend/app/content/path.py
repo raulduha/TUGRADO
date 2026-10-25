@@ -62,6 +62,15 @@ class Unit:
     subject: str
     lessons: list[Lesson]
 
+    @property
+    def total(self) -> int:
+        return sum(lesson.total for lesson in self.lessons)
+
+    @property
+    def mastered(self) -> int:
+        """Preguntas cuyo último intento fue correcto: la preparación por cédula."""
+        return sum(lesson.correct for lesson in self.lessons)
+
 
 def build_path(db: Session, user_id: uuid.UUID | None = None) -> list[Unit]:
     rows = db.execute(
@@ -113,8 +122,9 @@ def build_path(db: Session, user_id: uuid.UUID | None = None) -> list[Unit]:
     return units
 
 
-def _apply_progress(db: Session, user_id: uuid.UUID, units: list[Unit]) -> None:
-    """Último intento por pregunta (de cualquiera de sus versiones)."""
+def latest_outcomes(db: Session, user_id: uuid.UUID) -> dict[uuid.UUID, bool]:
+    """Si acertó el último intento de cada pregunta que respondió (de cualquiera de sus
+    versiones). Es la regla de «domina» que usan las estrellas y la preparación por cédula."""
     latest = (
         select(
             QuestionVersionRow.question_id,
@@ -130,9 +140,13 @@ def _apply_progress(db: Session, user_id: uuid.UUID, units: list[Unit]) -> None:
         .where(PracticeAttemptRow.user_id == user_id)
         .subquery()
     )
-    outcome = dict(
+    return dict(
         db.execute(select(latest.c.question_id, latest.c.correct).where(latest.c.rank == 1)).all()
     )
+
+
+def _apply_progress(db: Session, user_id: uuid.UUID, units: list[Unit]) -> None:
+    outcome = latest_outcomes(db, user_id)
     for unit in units:
         for lesson in unit.lessons:
             results = [outcome[q] for q in lesson.question_ids if q in outcome]

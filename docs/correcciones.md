@@ -210,3 +210,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - La página de suscripción nombra al proveedor configurado y solo pide el correo del pagador con Mercado Pago.
 - Por validar en el sandbox (README, pendiente 6): `last4CardDigits` de `customer/get` tras registrar la tarjeta, que la prueba no cobra y el contenido del aviso. Los textos legales (términos y privacidad) aún nombran a Mercado Pago: hay que actualizarlos al activar Flow en producción.
 
+
+## AB. Plan diario tipo Duolingo (2026-10-25)
+
+- Pedido del usuario: tomar el plan de Duolingo y adaptarlo al examen de grado, simple, entretenido y valioso; luego precisó que fuera razonable y sin lo innecesario. La universidad no se elige: todas estudian lo mismo.
+- Se implementó lo esencial (FR-035, AC-047): fecha del examen con cuenta regresiva, meta diaria (10, 20, 30 o calculada), repaso espaciado de errores (1, 3, 7 y 14 días) como primera tarea del día y preparación por cédula. Nueva tabla `study_profile`; endpoints `GET /study/today`, `PUT /study/profile` y `GET /practice/review`; la ruta agrega `total` y `mastered` por unidad. El repaso se deriva de `practice_attempt`: no guarda estado propio.
+- Descartado por ahora, por no aportar lo suficiente frente a su complejidad: protector de racha, desafíos diarios, prueba para saltar unidades y ligas.
+- La interrogación oral con IA sigue esperando la decisión de proveedores de IA (pendiente del README).
+- `/temario` ya no pide revisar «el cedulario de tu universidad».

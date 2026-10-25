@@ -81,6 +81,25 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await expect(unit).toBeVisible();
   await expectNoHorizontalScroll(page);
   await page.screenshot({ path: testInfo.outputPath("ruta.png"), fullPage: true });
+
+  // Plan diario (FR-035): con la fecha del examen y la meta, la ruta muestra la cuenta regresiva.
+  const examDate = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Santiago" }).format(
+    Date.now() + 30 * 24 * 3600 * 1000,
+  );
+  const planForm = page.getByRole("form", { name: "Tu plan de estudio" });
+  await planForm.getByLabel("¿Cuándo das el examen?").fill(examDate);
+  await planForm.getByRole("button", { name: "20", exact: true }).click();
+  await planForm.getByRole("button", { name: "Guardar mi plan" }).click();
+  const today = page.getByRole("region", { name: "Tu plan de hoy" });
+  await expect(today).toContainText("Faltan 30 días para tu examen");
+  await expect(today.getByRole("img", { name: /de 20 preguntas hoy$/ })).toBeVisible();
+  await expect(unit).toContainText(/Preparación \d+ %/);
+  await expectNoHorizontalScroll(page);
+
+  // Sin errores pendientes, el repaso lo dice en vez de mostrar una práctica vacía.
+  await page.goto("/practica?repaso=1");
+  await expect(page.getByRole("heading", { name: "Estás al día con tus repasos" })).toBeVisible();
+  await page.goto("/ruta");
   await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
   await expect(page).toHaveURL(/\/practica\?leccion=/);
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();

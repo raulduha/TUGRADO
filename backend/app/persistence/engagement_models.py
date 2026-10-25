@@ -1,9 +1,10 @@
-"""Días con actividad (rachas, FR-033) y estado de los recordatorios por correo (FR-034)."""
+"""Hábito de estudio: días con actividad (rachas, FR-033), recordatorios por correo (FR-034) y
+plan diario: fecha del examen y meta de preguntas (FR-035)."""
 
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, String
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.persistence.base import Base
@@ -34,3 +35,23 @@ class ReminderStateRow(Base):
     unsubscribe_token: Mapped[str] = mapped_column(String(64), unique=True)
     last_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     opted_out_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class StudyProfileRow(Base):
+    """Plan diario del estudiante: la fecha de su examen y cuántas preguntas quiere responder al
+    día. Ambos son opcionales hasta que el estudiante los configura."""
+
+    __tablename__ = "study_profile"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
+    )
+    exam_date: Mapped[date | None] = mapped_column(Date)
+    daily_goal: Mapped[int | None] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(
+            "daily_goal IS NULL OR daily_goal BETWEEN 1 AND 200", name="daily_goal_range"
+        ),
+    )
