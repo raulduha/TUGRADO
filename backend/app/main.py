@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api import auth, billing, engagement, feedback, health, practice, questions
+from app.api import auth, billing, engagement, feedback, health, practice, questions, study
 from app.api.errors import register_error_handlers
 from app.api.origin import origin_guard
 from app.config import get_settings
@@ -19,6 +19,7 @@ def create_app() -> FastAPI:
     app.include_router(engagement.router)
     app.include_router(questions.router)
     app.include_router(practice.router)
+    app.include_router(study.router)
     if settings.billing_provider == "fake":
         # Simulador de pagos: solo existe en desarrollo (Settings lo prohíbe en producción).
         app.include_router(billing.fake_router)

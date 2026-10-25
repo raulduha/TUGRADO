@@ -153,3 +153,14 @@ def published_by_ids(db: Session, version_ids: list[uuid.UUID]) -> list[VersionV
     )
     by_id = {view.version.id: view for view in _views(db, query)}
     return [by_id[i] for i in version_ids if i in by_id]
+
+
+def published_for_questions(db: Session, question_ids: list[uuid.UUID]) -> list[VersionView]:
+    """La versión publicada de cada pregunta pedida, en el mismo orden. Las que ya no tienen
+    versión publicada se omiten."""
+    query = _versions().where(
+        QuestionVersionRow.question_id.in_(question_ids),
+        QuestionVersionRow.status == VersionStatus.PUBLISHED,
+    )
+    by_question = {view.version.question_id: view for view in _views(db, query)}
+    return [by_question[q] for q in question_ids if q in by_question]

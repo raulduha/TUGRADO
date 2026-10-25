@@ -43,7 +43,8 @@ function starsFor(score: number, total: number) {
 }
 
 /** Práctica de alternativas (FR-006): preguntas publicadas del banco; la respuesta correcta
- * la entrega el backend recién al responder. Con `?leccion=` juega una lección de la ruta. */
+ * la entrega el backend recién al responder. Con `?leccion=` juega una lección de la ruta y con
+ * `?repaso=1`, los errores que toca repasar hoy (FR-035). */
 export default function PracticePage() {
   return (
     <Suspense fallback={<ApruviLoader label="Preparando tu práctica…" />}>
@@ -53,16 +54,23 @@ export default function PracticePage() {
 }
 
 function PracticeRoute() {
-  const lessonId = useSearchParams().get("leccion");
-  // La clave reinicia la sesión al cambiar de lección: la página conserva su estado entre visitas.
-  return <PracticeSession key={lessonId ?? "libre"} lessonId={lessonId} />;
+  const params = useSearchParams();
+  const lessonId = params.get("leccion");
+  const review = !lessonId && params.get("repaso") === "1";
+  // La clave reinicia la sesión al cambiar de modo: la página conserva su estado entre visitas.
+  return <PracticeSession key={lessonId ?? (review ? "repaso" : "libre")} lessonId={lessonId} review={review} />;
 }
 
-function PracticeSession({ lessonId }: { lessonId: string | null }) {
-  const returnTo = lessonId ? `/practica?leccion=${encodeURIComponent(lessonId)}` : "/practica";
+function PracticeSession({ lessonId, review }: { lessonId: string | null; review: boolean }) {
+  const returnTo = lessonId
+    ? `/practica?leccion=${encodeURIComponent(lessonId)}`
+    : review
+      ? "/practica?repaso=1"
+      : "/practica";
   const { me, setMe, hasAccess } = useStudyAccess(returnTo);
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
-  const exit = lessonId ? "/ruta" : "/panel";
+  const exit = lessonId || review ? "/ruta" : "/panel";
+  const [nothingToReview, setNothingToReview] = useState(false);
   const [questions, setQuestions] = useState<PracticeQuestion[] | null>(null);
   const [demo, setDemo] = useState(false);
   const [index, setIndex] = useState(0);
@@ -86,6 +94,13 @@ function PracticeSession({ lessonId }: { lessonId: string | null }) {
           setError(response.ok ? "Esta lección no tiene preguntas." : response.error.message);
         }
       });
+    } else if (review) {
+      api<PracticeQuestion[]>("/practice/review?limit=10").then((response) => {
+        if (cancelled) return;
+        if (!response.ok) setError(response.error.message);
+        else if (response.data.length === 0) setNothingToReview(true);
+        else setQuestions(response.data);
+      });
     } else {
       api<PracticeQuestion[]>("/practice/questions?limit=10").then((response) => {
         if (cancelled) return;
@@ -101,7 +116,7 @@ function PracticeSession({ lessonId }: { lessonId: string | null }) {
     return () => {
       cancelled = true;
     };
-  }, [hasAccess, lessonId]);
+  }, [hasAccess, lessonId, review]);
 
   const question = questions?.[index];
   const total = questions?.length ?? 0;
@@ -154,7 +169,18 @@ function PracticeSession({ lessonId }: { lessonId: string | null }) {
     <div className="flex flex-1 flex-col">
       <AppHeader me={me} onLoggedOut={() => setMe(null)} />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-40 pt-6">
-        {!ready && error ? (
+        {nothingToReview ? (
+          <section className="pop-in mt-6 rounded-3xl border border-line bg-surface p-8 text-center">
+            <Apruvi className="mx-auto h-28 w-28" />
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight">Estás al día con tus repasos</h1>
+            <p className="mt-1 text-sm text-muted">
+              Cuando falles una pregunta, volverá aquí al día siguiente para que la repases.
+            </p>
+            <ButtonLink href="/ruta" className="mx-auto mt-6 w-fit">
+              Volver a mi ruta
+            </ButtonLink>
+          </section>
+        ) : !ready && error ? (
           <div className="mt-6 space-y-4">
             <Alert tone="error">{error}</Alert>
             <ButtonLink href={exit} variant="secondary">
@@ -190,6 +216,20 @@ function PracticeSession({ lessonId }: { lessonId: string | null }) {
                 Repetir la lección
               </button>
             </div>
+          </section>
+        ) : done && review ? (
+          <section className="pop-in mt-6 rounded-3xl border border-line bg-surface p-8 text-center">
+            <Apruvi className="mx-auto h-28 w-28" />
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight">¡Repaso terminado!</h1>
+            <p className="mt-2 text-lg">
+              Acertaste <span className="font-semibold text-success">{score}</span> de {total}.
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Las que acertaste volverán más adelante para afirmarlas; las que fallaste, mañana.
+            </p>
+            <ButtonLink href="/ruta" className="mx-auto mt-6 w-fit">
+              Volver a mi ruta
+            </ButtonLink>
           </section>
         ) : done ? (
           <section className="pop-in mt-6 rounded-3xl border border-line bg-surface p-8 text-center">

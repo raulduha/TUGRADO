@@ -38,9 +38,8 @@ export default function TemarioPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-brand">Guía del examen</p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Qué entra en el examen de grado</h1>
           <p className="max-w-2xl text-muted">
-            Este es el temario oficial de la Facultad de Derecho UC, vigente desde abril de 2021. Si
-            estudias en otra universidad, revisa también tu propio cedulario: los temas se parecen,
-            pero no son idénticos.
+            Las cédulas del examen de grado, tema por tema, vigentes desde abril de 2021. Es la misma
+            base que siguen tu ruta de estudio y el banco de preguntas.
           </p>
           <ul className="grid gap-3 sm:grid-cols-3">
             {FACTS.map((fact) => (

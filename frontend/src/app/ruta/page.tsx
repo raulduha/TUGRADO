@@ -9,8 +9,10 @@ import { Apruvi } from "@/components/apruvi";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
 import { Icon } from "@/components/illustrations";
-import { api, type LessonSummary, type StudyPath } from "@/lib/api";
+import { api, type LessonSummary, type StudyPath, type StudyToday } from "@/lib/api";
 import { useStudyAccess } from "@/lib/use-access";
+
+import { TodayCard } from "./today-card";
 
 // Zigzag del camino: posición horizontal (en % del ancho) de cada lección y alto de cada fila.
 const X = [50, 68, 76, 64, 42, 26, 22, 34];
@@ -41,17 +43,21 @@ export default function StudyPathPage() {
   const { me, setMe, hasAccess } = useStudyAccess("/ruta");
   const isAdmin = me?.roles.includes("administrator") ?? false;
   const [path, setPath] = useState<StudyPath | null>(null);
+  const [today, setToday] = useState<StudyToday | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Se vuelve a pedir cada vez que la página se muestra (también al volver de una lección).
   useEffect(() => {
     if (!hasAccess) return;
     let cancelled = false;
-    api<StudyPath>("/practice/path").then((result) => {
-      if (cancelled) return;
-      if (result.ok) setPath(result.data);
-      else setError(result.error.message);
-    });
+    Promise.all([api<StudyPath>("/practice/path"), api<StudyToday>("/study/today")]).then(
+      ([pathResult, todayResult]) => {
+        if (cancelled) return;
+        if (pathResult.ok) setPath(pathResult.data);
+        else setError(pathResult.error.message);
+        if (todayResult.ok) setToday(todayResult.data);
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -61,6 +67,8 @@ export default function StudyPathPage() {
   const completed = lessons.filter((l) => l.completed).length;
   // Apruvi acompaña a la primera unidad que tiene lecciones pendientes.
   const activeUnit = path?.units.findIndex((u) => u.lessons.some((l) => !l.completed)) ?? -1;
+  // La siguiente lección es la primera sin completar de esa unidad (siempre está abierta).
+  const nextLesson = path?.units[activeUnit]?.lessons.find((l) => !l.completed) ?? null;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -80,6 +88,14 @@ export default function StudyPathPage() {
                 Qué entra en el examen →
               </Link>
             </div>
+
+            {today && path.units.length > 0 ? (
+              <TodayCard
+                today={today}
+                nextLessonHref={nextLesson ? `/practica?leccion=${encodeURIComponent(nextLesson.id)}` : null}
+                onSaved={setToday}
+              />
+            ) : null}
 
             <dl className="grid grid-cols-2 gap-3" aria-label="Tu avance">
               <div className="rounded-2xl border border-line bg-surface p-4">
@@ -116,6 +132,8 @@ export default function StudyPathPage() {
                   number={i + 1}
                   subject={unit.subject}
                   lessons={unit.lessons}
+                  mastered={unit.mastered}
+                  total={unit.total}
                   withApruvi={i === activeUnit}
                   isAdmin={isAdmin}
                 />
@@ -132,12 +150,16 @@ function UnitPath({
   number,
   subject,
   lessons,
+  mastered,
+  total,
   withApruvi,
   isAdmin,
 }: {
   number: number;
   subject: string;
   lessons: LessonSummary[];
+  mastered: number;
+  total: number;
   withApruvi: boolean;
   isAdmin: boolean;
 }) {
@@ -156,7 +178,12 @@ function UnitPath({
     <section aria-label={`Unidad ${number}: ${subject}`} className="overflow-hidden rounded-3xl border border-line bg-surface">
       <header className="bg-brand px-5 py-4 text-on-brand">
         <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Unidad {number}</p>
-        <h2 className="text-xl font-semibold">{subject}</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+          <h2 className="text-xl font-semibold">{subject}</h2>
+          <p className="text-sm font-semibold" title="Preguntas de esta cédula que acertaste en tu último intento">
+            Preparación {total ? Math.round((mastered / total) * 100) : 0} %
+          </p>
+        </div>
         <div className="mt-2 flex items-center gap-3">
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/25">
             <div

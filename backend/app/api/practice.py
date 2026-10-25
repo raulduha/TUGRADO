@@ -1,4 +1,4 @@
-"""Práctica de alternativas y ruta de estudio del estudiante (FR-006, AC-044, AC-045).
+"""Práctica de alternativas, ruta de estudio y repaso (FR-006, FR-035, AC-044, AC-045, AC-047).
 
 Solo se usan versiones publicadas, y la respuesta correcta se entrega recién al responder.
 """
@@ -18,6 +18,7 @@ from app.content.path import Lesson, build_path, find_lesson, total_xp
 from app.content.question import ContentError
 from app.db import get_db
 from app.persistence.content_models import PracticeAttemptRow, QuestionVersionRow, VersionStatus
+from app.study.review import due_today
 
 router = APIRouter(prefix="/practice", tags=["practice"])
 
@@ -53,6 +54,8 @@ class LessonDetail(LessonOut):
 class UnitOut(BaseModel):
     subject: str
     lessons: list[LessonOut]
+    total: int
+    mastered: int  # último intento correcto: la preparación por cédula
 
 
 class PathOut(BaseModel):
@@ -114,11 +117,25 @@ def study_path(user: SubscribedUser, db: Db) -> PathOut:
     """La ruta de estudio con el avance del estudiante."""
     return PathOut(
         units=[
-            UnitOut(subject=unit.subject, lessons=[_lesson(lesson) for lesson in unit.lessons])
+            UnitOut(
+                subject=unit.subject,
+                lessons=[_lesson(lesson) for lesson in unit.lessons],
+                total=unit.total,
+                mastered=unit.mastered,
+            )
             for unit in build_path(db, user.id)
         ],
         xp=total_xp(db, user.id),
     )
+
+
+@router.get("/review")
+def review_questions(
+    user: SubscribedUser, db: Db, clock: Clock, limit: Annotated[int, Query(ge=1, le=30)] = 10
+) -> list[PracticeQuestion]:
+    """Los errores que toca repasar hoy (FR-035), los más atrasados primero."""
+    due = due_today(db, user.id, clock())
+    return [_question(db, view) for view in queries.published_for_questions(db, due)[:limit]]
 
 
 @router.get("/lessons/{lesson_id}")

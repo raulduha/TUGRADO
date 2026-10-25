@@ -25,7 +25,7 @@ function toError(status: number, body: unknown): ApiError {
 
 export async function api<T = unknown>(
   path: string,
-  options: { method?: "GET" | "POST"; body?: unknown } = {},
+  options: { method?: "GET" | "POST" | "PUT"; body?: unknown } = {},
 ): Promise<ApiResult<T>> {
   let response: Response;
   // Un archivo (Blob/File) se envía tal cual, en binario; el resto como JSON.
@@ -118,9 +118,20 @@ export type LessonSummary = {
   stars: number;
 };
 
-export type StudyPath = {
-  units: Array<{ subject: string; lessons: LessonSummary[] }>;
-  xp: number;
+/** `mastered`: preguntas cuyo último intento fue correcto (la preparación por cédula). */
+export type UnitSummary = { subject: string; lessons: LessonSummary[]; total: number; mastered: number };
+
+export type StudyPath = { units: UnitSummary[]; xp: number };
+
+/** Plan del día (FR-035). `days_left` y `suggested_goal` son null sin fecha de examen. */
+export type StudyToday = {
+  exam_date: string | null;
+  days_left: number | null;
+  daily_goal: number | null;
+  suggested_goal: number | null;
+  answered_today: number;
+  review_due: number;
+  remaining: number;
 };
 
 export type LessonDetail = LessonSummary & { subject: string; questions: PracticeQuestion[] };
