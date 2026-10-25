@@ -48,7 +48,7 @@ export default function TermsPage() {
           con 7 días de prueba gratis.
         </li>
         <li>
-          El pago se procesa mediante Mercado Pago y se renueva automáticamente cada mes hasta que
+          El pago se procesa mediante Flow (flow.cl) y se renueva automáticamente cada mes hasta que
           la canceles. Puedes cancelarla en cualquier momento desde la aplicación.
         </li>
         <li>
