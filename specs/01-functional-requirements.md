@@ -147,7 +147,7 @@ El estudiante puede suscribirse desde la aplicación a un plan mensual de $9.990
 El backend es la fuente de verdad del acceso. El estado local de la suscripción se actualiza solo consultando la API de Mercado Pago: tras una notificación webhook con firma válida o cuando el estudiante vuelve de la página de pago. Nunca se confía en el contenido de una notificación ni en parámetros de la URL de retorno. El estudiante tiene acceso al estudio mientras la suscripción está `authorized` (incluida la prueba gratis). Los administradores no requieren suscripción. Sin acceso, el estudiante no entra al panel: tras iniciar sesión se le lleva a la suscripción. Cada cambio de estado queda registrado.
 
 ### FR-031 — Cancelación
-El estudiante puede cancelar su suscripción desde la aplicación; el backend la cancela en Mercado Pago. El acceso tras la cancelación queda pendiente de decisión (README, punto 5).
+El estudiante puede cancelar su suscripción desde la aplicación; el backend la cancela en el proveedor de pagos. El acceso tras la cancelación queda pendiente de decisión (README, punto 5).
 
 ### FR-032 — Acceso de cortesía
 El equipo puede dar acceso sin suscripción a una cuenta específica (por ejemplo, cuentas de prueba) desde el CLI del backend, indicando el motivo y quién lo otorga. A lo más hay un acceso vigente por cuenta. Revocarlo registra la fecha y conserva el historial.

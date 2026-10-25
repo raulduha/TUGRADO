@@ -6,10 +6,10 @@ import { Alert } from "@/components/alert";
 import { AppHeader } from "@/components/app-header";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
-import { api, formatDate, type Subscription } from "@/lib/api";
+import { api, formatDate, providerName, type Subscription } from "@/lib/api";
 import { useRequireUser } from "@/lib/use-user";
 
-/** Vuelta desde Mercado Pago. Los parámetros de la URL no se usan: el backend consulta el
+/** Vuelta desde la página del proveedor de pagos. Los parámetros de la URL no se usan: el backend consulta el
  * estado real de la suscripción. */
 export default function SubscriptionReturnPage() {
   const { me, setMe, error: userError } = useRequireUser("/suscripcion/retorno");
@@ -38,7 +38,7 @@ export default function SubscriptionReturnPage() {
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estado de tu pago</h1>
         {failure ? <Alert tone="error">{failure}</Alert> : null}
         {!sub && !failure ? (
-          <ApruviLoader label="Consultando a Mercado Pago…" />
+          <ApruviLoader label="Consultando tu pago…" />
         ) : null}
         {sub ? <Result sub={sub} /> : null}
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -66,8 +66,8 @@ function Result({ sub }: { sub: Subscription }) {
   if (sub.status === "pending") {
     return (
       <Alert tone="info">
-        Mercado Pago aún no confirma tu pago. Puede tardar unos minutos: vuelve a revisar desde
-        tu suscripción.
+        {providerName(sub.provider)} aún no confirma tu pago. Puede tardar unos minutos: vuelve a
+        revisar desde tu suscripción.
       </Alert>
     );
   }

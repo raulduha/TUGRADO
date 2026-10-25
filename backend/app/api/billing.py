@@ -1,6 +1,8 @@
-"""Suscripción y webhooks de Mercado Pago (FR-029 a FR-031, AC-038, AC-039)."""
+"""Suscripción y avisos de los proveedores de pago: Mercado Pago o Flow (FR-029 a FR-031,
+AC-038, AC-039)."""
 
 import logging
+import secrets
 from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated
@@ -36,6 +38,9 @@ class SubscriptionOut(BaseModel):
     next_payment_date: datetime | None
     checkout_url: str | None
     payer_email: str | None
+    provider: str  # mercadopago | flow | fake: el frontend ajusta sus textos
+    # Mercado Pago exige el correo de la cuenta que paga; Flow y el simulador, no.
+    asks_payer_email: bool
 
 
 class StartIn(BaseModel):
@@ -49,7 +54,11 @@ class CheckoutOut(BaseModel):
 
 def _view(billing: BillingService, user: CurrentUser) -> SubscriptionOut:
     view = billing.view(user.id, user.roles)
-    return SubscriptionOut(**view.__dict__)
+    return SubscriptionOut(
+        **view.__dict__,
+        provider=billing.provider_name,
+        asks_payer_email=billing.provider_name == "mercadopago",
+    )
 
 
 @router.get("/subscription")
@@ -67,8 +76,8 @@ def start_subscription(
 
 @router.post("/subscription/sync")
 def sync_subscription(user: CurrentUser, billing: Billing) -> SubscriptionOut:
-    """Al volver de Mercado Pago: se consulta el estado real; los parámetros de la URL de
-    retorno no se usan."""
+    """Al volver de la página de pago: se consulta el estado real al proveedor; los parámetros
+    de la URL de retorno no se usan."""
     billing.sync_user(user.id, source="return")
     return _view(billing, user)
 
@@ -120,6 +129,37 @@ async def mercadopago_webhook(
         # 5xx: Mercado Pago reintenta la notificación más tarde.
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE) from exc
     return {"status": "ok"}
+
+
+@router.post("/webhooks/flow")
+def flow_webhook(billing: Billing, settings: AppSettings) -> dict[str, int]:
+    """Aviso de Flow (urlCallback del plan) tras un cobro de la suscripción. El contenido no se
+    usa como dato: se consulta a Flow el estado de las suscripciones abiertas."""
+    if settings.billing_provider != "flow":
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    synced, failed = billing.sync_open(source="webhook")
+    if failed:
+        # 5xx: que Flow reintente el aviso.
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE)
+    return {"synced": synced}
+
+
+@router.get("/sync/run")
+def run_sync(
+    billing: Billing,
+    settings: AppSettings,
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict[str, int]:
+    """Tarea diaria (Vercel Cron, `Authorization: Bearer <CRON_SECRET>`): consulta al proveedor
+    todas las suscripciones abiertas, por si se perdió algún aviso (por ejemplo, un cobro
+    rechazado que deja la suscripción con pagos vencidos)."""
+    secret = settings.cron_secret.get_secret_value() if settings.cron_secret else ""
+    if not secret or settings.billing_provider == "fake":
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if not secrets.compare_digest(authorization or "", f"Bearer {secret}"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    synced, failed = billing.sync_open(source="sync")
+    return {"synced": synced, "failed": failed}
 
 
 # ------------------------------------------------- simulador (solo BILLING_PROVIDER=fake)
