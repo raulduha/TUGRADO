@@ -218,3 +218,4 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Descartado por ahora, por no aportar lo suficiente frente a su complejidad: protector de racha, desafíos diarios, prueba para saltar unidades y ligas.
 - La interrogación oral con IA sigue esperando la decisión de proveedores de IA (pendiente del README).
 - `/temario` ya no pide revisar «el cedulario de tu universidad».
+- Confirmado por el usuario (2026-10-25): las electivas también son las mismas para todos. No hay selección de electiva; la ruta muestra todas las materias publicadas.
