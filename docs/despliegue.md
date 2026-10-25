@@ -17,7 +17,7 @@ El navegador solo habla con el frontend: Vercel reenvía `/api/*` a `BACKEND_URL
 
 - **Backend:** cada merge a `main` despliega en Render. `backend/start.sh` aplica `alembic upgrade head` y arranca la API, porque el plan gratuito no tiene comando previo al despliegue.
 - **Frontend:** cada merge a `main` despliega en Vercel (producción); cada PR genera una vista previa. `BACKEND_URL` debe existir en Production y Preview, o la compilación falla a propósito.
-- **CI** (`.github/workflows/ci.yml`): en cada PR corre ruff, migraciones, `alembic check` y pytest contra PostgreSQL 18, y lint, tipos y compilación del frontend.
+- **Controles antes de cada merge, en local:** la cuenta de GitHub es gratuita y no se usan Actions. `.github/workflows/ci.yml` solo corre a mano (`workflow_dispatch`); los mismos controles (ruff, migraciones, `alembic check`, pytest, lint, tipos, compilación y e2e) se corren en local antes de mergear.
 
 Para volver atrás: en Render y en Vercel se puede volver a publicar un despliegue anterior desde su panel. Las migraciones no se revierten solas; si una migración falla, el contenedor no arranca y queda activo el despliegue anterior.
 
