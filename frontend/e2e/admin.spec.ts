@@ -4,10 +4,22 @@ import { expect, type Page, test } from "@playwright/test";
 
 import { createAdmin, E2E_PASSWORD, uniqueEmail } from "./support";
 
-// Banco de preguntas (FR-013, FR-014, AC-029, AC-044): importar y descargar la planilla, revisar y publicar con
-// dos administradores. Solo en escritorio: los proyectos corren en paralelo sobre la misma base.
+// Banco de preguntas (FR-013, FR-014, AC-029, AC-044, AC-046): planilla, revisión con dos
+// administradores, CRUD desde el panel y ruta de estudio, también en el ancho de un celular.
+// Solo en el proyecto de escritorio: los proyectos corren en paralelo sobre la misma base.
 
 const TEMPLATE = path.resolve(__dirname, "..", "..", "docs", "plantillas", "preguntas-alternativas.xlsx");
+
+const PHONE = { width: 390, height: 844 };
+const DESKTOP = { width: 1280, height: 900 };
+
+/** Gate 10: la pantalla no se desplaza hacia el lado. */
+async function expectNoHorizontalScroll(page: Page) {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow, "no debe haber desplazamiento horizontal").toBeLessThanOrEqual(0);
+}
 
 async function loginAs(page: Page, email: string) {
   await page.goto("/iniciar-sesion");
@@ -52,7 +64,7 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: /existencia legal/ }).first().click();
   await page.getByRole("button", { name: "Aprobar", exact: true }).click();
   await page.getByRole("button", { name: "Publicar", exact: true }).click();
-  await expect(page.getByRole("region", { name: "Detalle" }).getByText(/^Publicada · v1$/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "Detalle" }).getByText(/^Publicada · v1$/).first()).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("banco.png"), fullPage: true });
 
   // La pregunta publicada aparece en la práctica (sin aviso de ejemplo).
@@ -60,15 +72,20 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
   await expect(page.getByText("Vista previa con datos de ejemplo.")).toBeHidden();
 
-  // La pregunta publicada forma parte de la ruta de estudio, en la unidad de su materia.
+  // La pregunta publicada forma parte de la ruta de estudio, en la unidad de su materia
+  // (revisado en el ancho de un celular).
+  await page.setViewportSize(PHONE);
   await page.goto("/ruta");
   await expect(page.getByRole("heading", { level: 1, name: "Tu ruta de estudio" })).toBeVisible();
   const unit = page.getByRole("region", { name: /: Derecho Civil$/ });
   await expect(unit).toBeVisible();
+  await expectNoHorizontalScroll(page);
   await page.screenshot({ path: testInfo.outputPath("ruta.png"), fullPage: true });
   await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
   await expect(page).toHaveURL(/\/practica\?leccion=/);
   await expect(page.getByRole("list", { name: "Alternativas" })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await page.setViewportSize(DESKTOP);
 
   // Herramientas de admin: simular un estudiante que completó todo el mapa.
   await page.goto("/panel");
@@ -80,4 +97,59 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await page.screenshot({ path: testInfo.outputPath("devtools.png"), fullPage: true });
   await page.getByRole("checkbox", { name: "Activa" }).uncheck();
   await expect(page.getByText("Modo simulación (solo tú lo ves):")).toBeHidden();
+});
+
+test("una administradora crea, edita y descarta una pregunta desde el panel", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "escritorio", "Solo en escritorio (datos compartidos)");
+  const admin = uniqueEmail("admin-crud");
+  createAdmin(admin);
+  const prompt = `¿Qué es la jurisdicción? (${Date.now()})`;
+
+  await loginAs(page, admin);
+  await page.goto("/admin/preguntas");
+  await page.getByRole("button", { name: "Nueva pregunta" }).click();
+  const form = page.getByRole("form", { name: "Nueva pregunta" });
+  await form.getByLabel("Materia").fill("Derecho Procesal");
+  await form.getByLabel(/Subtema/).fill("La jurisdicción");
+  await form.getByLabel("Enunciado").fill(prompt);
+  for (const [letter, text] of [
+    ["A", "Un poder-deber del Estado"],
+    ["B", "Un contrato"],
+    ["C", "Una costumbre"],
+    ["D", "Un acto administrativo"],
+  ]) {
+    await form.getByLabel(`Alternativa ${letter}`, { exact: true }).fill(text);
+  }
+  await form.getByLabel("Explicación").fill("Es el poder-deber de resolver conflictos.");
+  await form.getByLabel("Fuente").fill("Código Orgánico de Tribunales, art. 1");
+  await form.getByRole("button", { name: "Crear borrador" }).click();
+
+  const panel = page.getByRole("region", { name: "Detalle" });
+  await expect(page.getByText("Se creó la pregunta como borrador.")).toBeVisible();
+  await expect(panel.getByText(/^Borrador · v1$/).first()).toBeVisible();
+
+  // Editar guarda la versión 2 en borrador; la 1 queda en el historial.
+  await panel.getByRole("button", { name: "Editar (crea una versión nueva)" }).click();
+  await page.getByRole("form", { name: "Editar pregunta" }).getByLabel("Enunciado").fill(`${prompt} v2`);
+  await page.getByRole("button", { name: "Guardar como versión 2" }).click();
+  await expect(panel.getByText(/^Borrador · v2$/).first()).toBeVisible();
+  await expect(panel.getByRole("region", { name: "Historial de versiones" }).getByRole("listitem")).toHaveCount(2);
+
+  // Descartar pide confirmación y no borra: la versión queda retirada.
+  page.once("dialog", (dialog) => void dialog.accept());
+  await panel.getByRole("button", { name: "Descartar esta versión" }).click();
+  await expect(panel.getByText(/^Retirada · v2$/).first()).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("crud.png"), fullPage: true });
+
+  // En un celular el detalle se abre a pantalla completa y se vuelve a la lista.
+  await page.setViewportSize(PHONE);
+  await page.goto("/admin/preguntas");
+  await expectNoHorizontalScroll(page);
+  await page.getByRole("searchbox", { name: "Buscar preguntas" }).fill(prompt);
+  await page.getByRole("region", { name: "Versiones" }).getByRole("button", { name: new RegExp(`${prompt.slice(-14, -1)}`) }).first().click();
+  await expect(page.getByRole("button", { name: "← Volver a la lista" })).toBeVisible();
+  await expectNoHorizontalScroll(page);
+  await page.screenshot({ path: testInfo.outputPath("crud-movil.png") });
+  await page.getByRole("button", { name: "← Volver a la lista" }).click();
+  await expect(page.getByRole("searchbox", { name: "Buscar preguntas" })).toBeVisible();
 });
