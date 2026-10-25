@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` y `/plan` son vistas previas con datos de ejemplo. El banco de preguntas (`app/content/`, `app/api/content.py`) funciona con una planilla Excel de ida y vuelta (`app/content/importer.py` lee y `workbook.py` genera; plantilla en `docs/plantillas/preguntas-alternativas.xlsx`): fila sin `id` crea, con `id` y cambios crea la versión siguiente, con `retirar` retira, y quitar una fila no hace nada. Sigue el flujo borrador → revisión → aprobada → publicada y alimenta `/practica` y la ruta de estudio `/ruta` (`app/content/path.py`: unidad por materia, lecciones por subtemas en el orden de importación); el panel admin está en `/admin/preguntas`. `/temario` es la guía pública de las cédulas (`frontend/src/lib/temario.ts`).
+Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` y `/plan` son vistas previas con datos de ejemplo. El banco de preguntas se describe en la sección «Banco de preguntas» más abajo; alimenta `/practica` y la ruta de estudio `/ruta`, y el panel admin está en `/admin/preguntas`. `/temario` es la guía pública de las cédulas (`frontend/src/lib/temario.ts`).
 
 ## Entorno local (Docker)
 
@@ -75,6 +75,14 @@ Lógica pura sin base de datos ni HTTP; `session.py` documenta las convenciones 
 - Las respuestas de registro, inicio de sesión y recuperación no revelan si un correo existe (AC-036): mantén ese contrato al agregar endpoints.
 - En pruebas, el reloj (`get_clock`), el correo (`get_email_sender`) y la base (`get_engine`) se reemplazan con los fixtures `api`, `clock` y `outbox` de `tests/conftest.py`.
 - `app/auth/data/common_passwords.txt` se generó a partir de SecLists; su origen está en el README de esa carpeta.
+
+### Banco de preguntas (`app/content/`, `app/api/questions.py`, `app/api/practice.py`)
+
+- `service.py` es el flujo editorial: versiones inmutables (editar crea la siguiente en borrador), quien crea no aprueba ni publica (AC-029), publicar retira la publicada anterior y retirar no borra nada (una versión o la pregunta completa). Sus métodos **no confirman** la transacción: lo hace quien los llama (la API o `sync.py`), salvo `bulk`, que confirma versión por versión.
+- `question.py` tiene `QuestionContent` y `make_content`, la única validación del contenido: la usan el formulario del panel y la planilla, así ambos aceptan lo mismo.
+- `spreadsheet.py` es el formato del Excel (leer y generar; columnas opcionales `id`, `estado`, `retirar`); `sync.py` lo aplica al banco en una sola transacción (todo o nada) y arma la descarga. Fila sin `id` crea, con `id` y cambios crea la versión siguiente, con `retirar` retira, y quitar una fila no hace nada. Las preguntas nuevas reciben horas correlativas para conservar el orden de la planilla, que es el orden de la ruta.
+- `queries.py` son las lecturas para el panel y la práctica; `path.py`, la ruta de estudio (unidad por materia, lecciones de 5 o más preguntas por subtemas consecutivos, estrellas por el último intento).
+- Pruebas: `tests/test_question_spreadsheet.py` (formato, sin base), `tests/api/test_question_bank.py` (flujo editorial), `tests/api/test_question_spreadsheet_sync.py` (planilla contra el banco) y `tests/api/test_practice.py`. Ayudas en `tests/api/bank.py` y `tests/spreadsheet.py`; el fixture `admins` (autora y revisor) está en `tests/api/conftest.py`. Si una prueba depende del orden de los intentos, avanza el reloj (`clock.advance`): con el reloj detenido, todos tienen la misma hora.
 
 ### Suscripción y hábito (`app/billing/`, `app/engagement/`)
 

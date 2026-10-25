@@ -187,3 +187,11 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - Acciones masivas en `/admin/preguntas` (`POST /admin/questions/bulk`): enviar a revisión, aprobar o publicar todas las del filtro; cada una con sus reglas (quien creó no aprueba ni publica) y se informan las que no avanzan.
 - Decisión de diseño: el orden y el desbloqueo son pedagógicos, no un permiso: el backend entrega cualquier lección a quien tenga acceso al estudio.
 
+## Y. CRUD de preguntas en el panel, refactor del banco y panel en celular (2026-10-24)
+
+- Pedido del usuario: que el administrador pueda crear, editar y sacar preguntas una a una, de forma ordenada y sin rehacer todo; que funcione en celular; y un refactor legible con pruebas que verifiquen lo necesario.
+- Panel `/admin/preguntas`: «Nueva pregunta» (formulario), «Editar» (guarda la versión siguiente en borrador), «Descartar esta versión», «Retirar la pregunta completa» (ambos con confirmación), historial de versiones, búsqueda por enunciado o subtema, filtro por materia y estado, y «Cargar más». En celular el detalle se abre a pantalla completa. Nuevos `POST /admin/questions`, `POST /admin/questions/{id}/retire-question` y `GET /admin/questions/subjects`; el detalle incluye `history`; la lista acepta `q`, `subject` y `offset`. Retirar una versión procede desde cualquier estado vigente (AC-046).
+- Refactor: `app/api/content.py` se dividió en `questions.py` (administración) y `practice.py` (estudiante); `importer.py` y `workbook.py` se unieron en `spreadsheet.py` (formato) y la aplicación al banco pasó a `sync.py`; las lecturas a `queries.py`; la validación del contenido quedó en un solo lugar (`question.py`), común al formulario y a la planilla. Los métodos del servicio ya no confirman la transacción: lo hace quien los llama, así la planilla se aplica completa o no se aplica.
+- Pruebas reorganizadas por tema (formato, flujo editorial, planilla contra el banco, práctica), con nombres que dicen la regla y sin pruebas que solo validan el framework. Se comprobó que fallan al romper a propósito tres reglas (quien crea aprueba, ids desconocidos, umbral de estrellas).
+- Celular: el encabezado con sesión mostraba el logo completo además del ícono y desplazaba la página; ahora en pantallas chicas muestra solo el ícono. El e2e del admin revisa 390 px en el panel, la ruta y una lección.
+

@@ -22,7 +22,7 @@ from openpyxl.styles import Alignment, Font
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "backend"))
 
-from app.content.importer import COLUMNS, SHEET, parse_workbook  # noqa: E402
+from app.content.spreadsheet import COLUMNS, SHEET, parse_workbook  # noqa: E402
 
 DATOS = ROOT / "datos"
 SALIDA = ROOT / "salida"

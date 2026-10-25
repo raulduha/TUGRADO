@@ -11,7 +11,7 @@ uv run python ../banco-preguntas/build.py                       # datos/*.py →
 uv run python ../banco-preguntas/convertir_uandes.py <original>  # banco de la U. de los Andes
 ```
 
-`build.py` valida cada planilla con el importador real de la app (`app/content/importer.py`) y con reglas propias: 4 alternativas, sin enunciados repetidos, y una explicación que empieza por «Es la X» y descarta cada alternativa incorrecta («La Y no, …»). También reparte la alternativa correcta en ciclo A, B, C, D, para que no se pueda adivinar por la posición.
+`build.py` valida cada planilla con el importador real de la app (`app/content/spreadsheet.py`) y con reglas propias: 4 alternativas, sin enunciados repetidos, y una explicación que empieza por «Es la X» y descarta cada alternativa incorrecta («La Y no, …»). También reparte la alternativa correcta en ciclo A, B, C, D, para que no se pueda adivinar por la posición.
 
 ## Subir a la app
 
