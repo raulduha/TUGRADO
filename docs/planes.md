@@ -21,10 +21,12 @@ Solo se cobra por lo que existe. Hoy la aplicación ofrece práctica de alternat
 
 ## Márgenes estimados por estudiante al mes
 
+Comisión verificada en el simulador de precios de la cuenta de Flow (2026-10-25): Webpay sin cuotas, 2,89 % + IVA (3,44 % total, sin costo fijo) con abono al tercer día hábil; con abono al día hábil siguiente sube a 3,19 % + IVA (3,80 %). Se usa el abono al tercer día.
+
 | | Procurador | Litigante | Toga |
 |---|---|---|---|
 | Precio sin IVA | $5.882 | $8.395 | $12.597 |
-| Comisión de Flow (~4 %, por confirmar) | ~$240 | ~$340 | ~$510 |
+| Comisión de Flow (2,89 % + IVA) | $240 | $344 | $516 |
 | IA si usa todo su cupo | $0 | ~$4.100 | ~$8.200 |
 | Margen si usa todo | ~$5.640 | ~$3.950 | ~$3.900 |
 
