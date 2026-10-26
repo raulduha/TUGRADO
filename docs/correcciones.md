@@ -219,3 +219,17 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - La interrogación oral con IA sigue esperando la decisión de proveedores de IA (pendiente del README).
 - `/temario` ya no pide revisar «el cedulario de tu universidad».
 - Confirmado por el usuario (2026-10-25): las electivas también son las mismas para todos. No hay selección de electiva; la ruta muestra todas las materias publicadas.
+
+## AC. Prueba gratis de 14 días y plan en Flow (2026-10-25)
+
+- Decisión del usuario: la prueba gratis pasa de 7 a 14 días (`BILLING_TRIAL_DAYS=14`). La pone la app al crear cada suscripción; el plan de Flow no tiene días de prueba propios, para no sumarlos.
+- Creado en la cuenta de producción de Flow el plan `APRUEBA-MENSUAL` ($9.990 CLP mensual, duración indefinida, 3 reintentos de cobro, URL de confirmación `/billing/webhooks/flow`). Falta cargar `FLOW_API_KEY`, `FLOW_SECRET_KEY` y `FLOW_PLAN_ID` en Render y activar `BILLING_PROVIDER=flow`.
+
+## AD. Planes, precios y proveedores de IA (2026-10-25)
+
+- El usuario delegó la decisión y fijó dos condiciones: no se venden horas de abogados (el abogado del equipo cuida la calidad del contenido y de las rúbricas) y cada plan debe dejar al menos $5.000 por suscriptor al mes. Resultado en `docs/planes.md`: Procurador $7.990 (se lanza ya), Litigante $14.990 con 7 h de interrogación oral con IA y Toga $24.990 con 15 h (con la interrogación oral). Los topes de horas garantizan el margen mínimo aunque se use todo el cupo.
+- Proveedores: Claude Sonnet 5.5 para evaluar y OpenAI para transcripción y embeddings; sin voz sintetizada en el MVP. Umbral para lanzar: nota a 0,5 puntos o menos de la del abogado en el 80 % de 30 respuestas reales.
+- Pendiente para aplicar el precio de lanzamiento: crear el plan `PROCURADOR-MENSUAL` ($7.990) en Flow y fijar `BILLING_MONTHLY_PRICE_CLP=7990` y `FLOW_PLAN_ID` en Render. Las especificaciones de cuotas y FR-029 se actualizan cuando se implementen los planes.
+
+- Pedido del usuario: un contador de créditos para que nadie supere su cupo. Especificado como FR-036 y AC-048 (registro de minutos de solo adición, reserva antes de iniciar, cobro de lo usado, sin acumulación). Se implementa con la interrogación oral, que aún no existe.
+- Creado en Flow el plan `PROCURADOR-MENSUAL` ($7.990 CLP mensual). `APRUEBA-MENSUAL` ($9.990) queda activo sin uso: Flow solo permite eliminarlo, no desactivarlo.

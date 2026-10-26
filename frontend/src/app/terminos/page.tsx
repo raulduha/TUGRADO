@@ -45,7 +45,7 @@ export default function TermsPage() {
       <ul>
         <li>
           El acceso a las funciones de estudio requiere una suscripción mensual de $9.990 (CLP),
-          con 7 días de prueba gratis.
+          con 14 días de prueba gratis.
         </li>
         <li>
           El pago se procesa mediante Mercado Pago y se renueva automáticamente cada mes hasta que
