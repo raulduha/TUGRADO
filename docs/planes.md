@@ -30,7 +30,7 @@ Una preparación con personas cuesta entre $200.000 y $600.000 en total y da una
 - Todos con 14 días de prueba gratis (`BILLING_TRIAL_DAYS`).
 - Pase «Hasta tu examen» solo para Procurador: 6 meses por $37.990. En los planes con interrogación, un descuento bajaría el margen de los $5.000.
 - Invita a tu dupla: ambos reciben 7 días gratis más (sin horas extra, que tienen costo de IA).
-- Las horas de interrogación reemplazan la cuota única de 5 simulaciones al día y 100 al mes.
+- Las horas de interrogación reemplazan la cuota única de 5 simulaciones al día y 100 al mes. Se controlan con un contador de créditos en minutos (FR-036, AC-048): el backend reserva el tiempo antes de cada interrogación, cobra lo usado y rechaza la sesión si no hay saldo. Se construye junto con la interrogación oral.
 - Planes en Flow: `APRUEBA-MENSUAL` ($9.990) ya existe y no calza con estos precios; hay que crear `PROCURADOR-MENSUAL` ($7.990) y desactivar el anterior.
 
 ## Margen por suscriptor al mes
