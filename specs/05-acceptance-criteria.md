@@ -146,3 +146,9 @@ Sin fecha de examen ni meta, la ruta pide configurarlas y no muestra cuenta regr
 
 ## AC-049 — Prueba cronometrada y flashcards
 `GET /practice/exam` entrega solo preguntas publicadas, sin la respuesta correcta ni la explicación, y respeta el filtro por materia. Al entregar una prueba con una respuesta correcta, una incorrecta, una sin responder y una con alternativa inexistente, el resultado es 1 de 4, se registran exactamente dos intentos y la incorrecta aparece en el repaso al día siguiente. Las flashcards ordenan primero lo que toca repasar, luego lo pendiente y al final lo dominado, y pedirlas no registra intentos. Sin acceso al estudio, ambos endpoints responden 402.
+
+## AC-050 — Glosario y rosco legal
+Quien carga los términos no puede aprobarlos ni publicarlos; un término aprobado sin publicar no aparece en el rosco. Un término vigente no puede cargarse dos veces en la misma materia. El rosco entrega una letra por término publicado, sin la respuesta, y un término que empieza con una letra nunca queda usado en otra letra que solo lo contiene. «La tradicion» se acepta como respuesta de «Tradición». Un término retirado sale del rosco y su corrección responde 404. Sin acceso al estudio el rosco responde 402, y el glosario solo lo administran administradores.
+
+## AC-051 — Ranking mensual voluntario
+Sin inscribirse, el estudiante no aparece en el ranking. Inscrito con un apodo, aparece con la experiencia de las respuestas correctas del mes en curso (las de meses anteriores no cuentan) y nunca con su correo. Un apodo con «@» se rechaza y dos personas no pueden usar el mismo apodo sin distinguir mayúsculas. Al salir, desaparece del ranking.

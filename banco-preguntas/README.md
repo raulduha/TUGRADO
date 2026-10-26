@@ -13,6 +13,10 @@ uv run python ../banco-preguntas/convertir_uandes.py <original>  # banco de la U
 
 `build.py` valida cada planilla con el importador real de la app (`app/content/spreadsheet.py`) y con reglas propias: 4 alternativas, sin enunciados repetidos, y una explicación que empieza por «Es la X» y descarta cada alternativa incorrecta («La Y no, …»). También reparte la alternativa correcta en ciclo A, B, C, D, para que no se pueda adivinar por la posición.
 
+## Glosario del rosco legal
+
+`glosario.py` genera `salida/glosario-civil-procesal.xlsx` (52 términos de Civil y Procesal) y lo valida con el lector de la app. Se sube en `/admin/glosario`: entra en borrador y otro administrador lo aprueba y publica, después de que el abogado revise cada definición.
+
 ## Relleno para probar (solo local)
 
 `relleno.py` genera preguntas evidentemente falsas («[Relleno] …») para las 10 electivas que aún no tienen banco, sobre los subtemas reales del temario, y con `--cargar` las importa y publica en el backend local con las cuentas demo. Sirve para ver la ruta y el plan diario con todas las materias. **No es contenido jurídico ni debe subirse a producción**: el script se niega a cargar en un backend que no sea local, y la planilla que genera no se versiona.

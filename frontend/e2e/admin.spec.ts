@@ -119,6 +119,38 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await expect(page.getByRole("region", { name: "Flashcards" }).getByText(/^Fuente: /)).toBeVisible();
   await page.getByRole("button", { name: "La sabía", exact: true }).click();
   await expectNoHorizontalScroll(page);
+
+  // Rosco legal (FR-038): con el glosario publicado, responder una letra y terminar.
+  await page.goto("/rosco");
+  await page.getByRole("button", { name: "Empezar" }).click();
+  const roscoMissing = page.getByText("Todavía no hay términos publicados para el rosco.");
+  const roscoForm = page.getByRole("region", { name: "Rosco en curso" });
+  await expect(roscoMissing.or(roscoForm)).toBeVisible();
+  if (await roscoForm.isVisible()) {
+    await page.getByLabel("Tu respuesta").fill("no sé");
+    await page.getByRole("button", { name: "Responder" }).click();
+    await page.getByRole("button", { name: "Pasapalabra" }).click();
+    await expectNoHorizontalScroll(page);
+  }
+
+  // Glosario del rosco: el panel de administración abre en «Borrador».
+  await page.goto("/admin/glosario");
+  await expect(page.getByRole("heading", { level: 1, name: "Glosario del rosco" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Borrador" })).toHaveAttribute("aria-selected", "true");
+  await expectNoHorizontalScroll(page);
+
+  // Ranking voluntario (FR-039): inscribirse con un apodo y verse en la lista.
+  await page.goto("/ruta");
+  const rankingCard = page.getByRole("region", { name: "Ranking del mes" });
+  const alias = `Admin ${Date.now() % 100000}`;
+  if (await rankingCard.getByRole("button", { name: "Salir" }).isVisible()) {
+    await rankingCard.getByRole("button", { name: "Salir" }).click();
+  }
+  await rankingCard.getByLabel("Tu apodo para el ranking").fill(alias);
+  await rankingCard.getByRole("button", { name: "Unirme" }).click();
+  await expect(rankingCard.getByText(alias)).toBeVisible();
+  await rankingCard.getByRole("button", { name: "Salir" }).click();
+  await expect(rankingCard.getByLabel("Tu apodo para el ranking")).toBeVisible();
   await page.goto("/ruta");
   await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
   await expect(page).toHaveURL(/\/practica\?leccion=/);

@@ -12,6 +12,7 @@ import { Icon } from "@/components/illustrations";
 import { api, type LessonSummary, type StudyPath, type StudyToday } from "@/lib/api";
 import { useStudyAccess } from "@/lib/use-access";
 
+import { RankingCard } from "./ranking-card";
 import { TodayCard } from "./today-card";
 
 // Zigzag del camino: posición horizontal (en % del ancho) de cada lección y alto de cada fila.
@@ -26,6 +27,7 @@ const PRACTICE = [
   { href: "/practica", label: "Pregunta aleatoria", icon: "target" },
   { href: "/prueba", label: "Prueba cronometrada", icon: "clock" },
   { href: "/flashcards", label: "Flashcards", icon: "repeat" },
+  { href: "/rosco", label: "Rosco legal", icon: "cap" },
 ] as const;
 
 /** Dentro de una unidad, cada lección se abre al completar la anterior (como en Duolingo). */
@@ -120,7 +122,7 @@ export default function StudyPathPage() {
             </dl>
 
             {path.units.length > 0 ? (
-              <nav aria-label="Practicar" className="grid grid-cols-3 gap-3">
+              <nav aria-label="Practicar" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {PRACTICE.map((item) => (
                   <Link
                     key={item.href}
@@ -133,6 +135,8 @@ export default function StudyPathPage() {
                 ))}
               </nav>
             ) : null}
+
+            {path.units.length > 0 ? <RankingCard /> : null}
 
             {path.units.length === 0 ? (
               <section className="rounded-3xl border border-dashed border-line p-8 text-center">
