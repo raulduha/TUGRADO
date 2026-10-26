@@ -69,7 +69,7 @@ Lista única de decisiones abiertas. No se deben inventar valores para ellas.
 
 1. ~~Hosting de producción del backend~~ Resuelto: Render.
 2. ~~Proveedor de correo de producción~~ Resuelto: Resend.
-3. Candidatos y proveedores concretos de IA (modelo de lenguaje, transcripción, embeddings y síntesis de voz) y el umbral de calidad aceptable que usará la prueba de concepto.
+3. Proveedores de IA: decididos en `docs/planes.md` (Claude Sonnet 5.5 para evaluar; OpenAI para transcripción y embeddings; sin voz sintetizada en el MVP) junto con el umbral de calidad. Falta correr la prueba de concepto con 30 respuestas reales corregidas por un abogado.
 4. Estado de un `QuestionAttempt` cuando falla la transcripción o la evaluación, y si el estudiante puede reintentar. El modelo no define un estado para ese caso. Lo único confirmado es que el reloj total se reanuda al fallar el procesamiento y que una falla técnica no se convierte en nota.
 5. Acceso tras cancelar la suscripción: si se mantiene hasta el fin del periodo pagado o termina de inmediato. Mientras no se decida, el acceso existe solo mientras Mercado Pago informa la suscripción como `authorized`.
 6. Credenciales de Flow, el proveedor elegido para la suscripción (claves del sandbox y de producción y el plan mensual con su URL de callback), y validar en el sandbox que la prueba gratis no cobra y cómo llega el aviso de cada cobro. Mercado Pago queda disponible por configuración.

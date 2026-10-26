@@ -224,3 +224,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 
 - Decisión del usuario: la prueba gratis pasa de 7 a 14 días (`BILLING_TRIAL_DAYS=14`). La pone la app al crear cada suscripción; el plan de Flow no tiene días de prueba propios, para no sumarlos.
 - Creado en la cuenta de producción de Flow el plan `APRUEBA-MENSUAL` ($9.990 CLP mensual, duración indefinida, 3 reintentos de cobro, URL de confirmación `/billing/webhooks/flow`). Falta cargar `FLOW_API_KEY`, `FLOW_SECRET_KEY` y `FLOW_PLAN_ID` en Render y activar `BILLING_PROVIDER=flow`.
+
+## AD. Planes, precios y proveedores de IA (2026-10-25)
+
+- El usuario delegó la decisión. Resultado en `docs/planes.md`: se lanza solo el plan Procurador ($7.000, lo que existe hoy) y Litigante ($9.990) y Toga ($14.990) se habilitan con la interrogación oral, con cupos mensuales de interrogaciones en lugar de la cuota única de 5 al día y 100 al mes.
+- Proveedores: Claude Sonnet 5.5 para evaluar y OpenAI para transcripción y embeddings; sin voz sintetizada en el MVP. Umbral para lanzar: nota a 0,5 puntos o menos de la del abogado en el 80 % de 30 respuestas reales.
+- Pendiente para aplicar el precio de lanzamiento: crear el plan `PROCURADOR-MENSUAL` en Flow y fijar `BILLING_MONTHLY_PRICE_CLP=7000` y `FLOW_PLAN_ID` en Render. Las especificaciones de cuotas y FR-029 se actualizan cuando se implementen los planes.
