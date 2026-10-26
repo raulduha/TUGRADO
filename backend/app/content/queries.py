@@ -139,10 +139,21 @@ def options(db: Session, version_id: uuid.UUID) -> list[str]:
     )
 
 
-def random_published(db: Session, limit: int) -> list[VersionView]:
-    """Preguntas publicadas al azar (solo `published`: regla de integridad 1)."""
+def random_published(db: Session, limit: int, subject: str | None = None) -> list[VersionView]:
+    """Preguntas publicadas al azar (solo `published`: regla de integridad 1), de una materia
+    si se indica."""
     query = _versions().where(QuestionVersionRow.status == VersionStatus.PUBLISHED)
+    if subject:
+        query = query.where(SubjectRow.name == subject)
     return _views(db, query.order_by(func.random()).limit(limit))
+
+
+def published_views(db: Session, subject: str | None = None) -> list[VersionView]:
+    """Todas las versiones publicadas, de una materia si se indica."""
+    query = _versions().where(QuestionVersionRow.status == VersionStatus.PUBLISHED)
+    if subject:
+        query = query.where(SubjectRow.name == subject)
+    return _views(db, query)
 
 
 def published_by_ids(db: Session, version_ids: list[uuid.UUID]) -> list[VersionView]:

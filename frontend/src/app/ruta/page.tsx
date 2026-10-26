@@ -22,6 +22,12 @@ const BUBBLE_SPACE = 200;
 
 type State = "done" | "current" | "open" | "locked";
 
+const PRACTICE = [
+  { href: "/practica", label: "Pregunta aleatoria", icon: "target" },
+  { href: "/prueba", label: "Prueba cronometrada", icon: "clock" },
+  { href: "/flashcards", label: "Flashcards", icon: "repeat" },
+] as const;
+
 /** Dentro de una unidad, cada lección se abre al completar la anterior (como en Duolingo). */
 function states(lessons: LessonSummary[]): State[] {
   let currentSet = false;
@@ -112,6 +118,21 @@ export default function StudyPathPage() {
                 </dd>
               </div>
             </dl>
+
+            {path.units.length > 0 ? (
+              <nav aria-label="Practicar" className="grid grid-cols-3 gap-3">
+                {PRACTICE.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex flex-col items-center gap-1.5 rounded-2xl border border-line bg-surface p-3 text-center transition hover:border-brand"
+                  >
+                    <Icon name={item.icon} className="h-6 w-6 text-brand" />
+                    <span className="text-sm font-semibold leading-tight">{item.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
 
             {path.units.length === 0 ? (
               <section className="rounded-3xl border border-dashed border-line p-8 text-center">

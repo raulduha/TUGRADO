@@ -99,6 +99,26 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   // Sin errores pendientes, el repaso lo dice en vez de mostrar una práctica vacía.
   await page.goto("/practica?repaso=1");
   await expect(page.getByRole("heading", { name: "Estás al día con tus repasos" })).toBeVisible();
+
+  // Prueba cronometrada (FR-037): responder, entregar y ver la corrección con su explicación.
+  await page.goto("/prueba");
+  await page.getByRole("button", { name: /^10 · / }).click();
+  await page.getByRole("button", { name: "Comenzar prueba" }).click();
+  await expect(page.getByRole("timer", { name: "Tiempo restante" })).toBeVisible();
+  await page.getByRole("list", { name: "Alternativas" }).getByRole("button").first().click();
+  await page.getByRole("button", { name: "Entregar prueba" }).click();
+  const examResult = page.getByRole("region", { name: "Resultado de la prueba" });
+  await expect(examResult.getByRole("heading", { level: 1, name: /^\d+ de \d+$/ })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Revisión" }).getByText(/^Fuente: /).first()).toBeVisible();
+  await expectNoHorizontalScroll(page);
+
+  // Flashcards: dar vuelta la tarjeta y marcarla.
+  await page.goto("/flashcards");
+  await page.getByRole("button", { name: "Empezar" }).click();
+  await page.getByRole("button", { name: "Ver respuesta" }).click();
+  await expect(page.getByRole("region", { name: "Flashcards" }).getByText(/^Fuente: /)).toBeVisible();
+  await page.getByRole("button", { name: "La sabía", exact: true }).click();
+  await expectNoHorizontalScroll(page);
   await page.goto("/ruta");
   await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
   await expect(page).toHaveURL(/\/practica\?leccion=/);
