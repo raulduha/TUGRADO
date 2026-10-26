@@ -19,6 +19,9 @@ STATUS_BY_CODE = {
     "invalid_transition": status.HTTP_409_CONFLICT,
     "author_cannot_review": status.HTTP_403_FORBIDDEN,
     "file_too_large": status.HTTP_413_CONTENT_TOO_LARGE,
+    "duplicate_term": status.HTTP_409_CONFLICT,
+    "term_not_found": status.HTTP_404_NOT_FOUND,
+    "alias_taken": status.HTTP_409_CONFLICT,
 }
 
 

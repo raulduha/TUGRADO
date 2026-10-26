@@ -225,3 +225,10 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 - A partir de la plataforma de ejemplo que mostró el usuario (ApruebaLaw), se agregaron dos formas de practicar sin costo de IA: prueba cronometrada (`/prueba`) y flashcards (`/flashcards`), con accesos desde la ruta (FR-037, AC-049). Nuevos `GET /practice/exam`, `POST /practice/exam/grade` y `GET /practice/flashcards` (`app/api/drills.py`).
 - El tiempo de la prueba lo lleva la pantalla: es orientativo y la prueba no tiene consecuencias fuera de la práctica. El reloj del backend sigue siendo obligatorio para la simulación oral.
 - Quedan para después el rosco legal (necesita un glosario revisado por el abogado), el ranking voluntario con apodo y los casos. Se descartó una moneda propia («Legalcoins»): el XP basta.
+
+## AF. Rosco legal, glosario y ranking voluntario (2026-10-25)
+
+- Rosco legal (`/rosco`) sobre un glosario nuevo (`glossary_term`) con el mismo principio editorial del banco: carga en borrador, aprobación y publicación por otra persona, retiro sin borrado (FR-038, AC-050). Panel en `/admin/glosario`; planilla de hoja «Glosario» con columnas materia, termino, definicion y fuente.
+- Glosario inicial de Civil y Procesal (52 términos) en `banco-preguntas/glosario.py` → `salida/glosario-civil-procesal.xlsx`, redactado por el asistente: el abogado del equipo debe revisarlo antes de publicarlo en producción.
+- Ranking mensual voluntario con apodo (`ranking_profile`, FR-039, AC-051), en la ruta. Sin moneda propia: ordena por XP del mes.
+- Casos queda pendiente: requiere casos redactados y revisados por el abogado.

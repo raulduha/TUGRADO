@@ -25,7 +25,7 @@ function toError(status: number, body: unknown): ApiError {
 
 export async function api<T = unknown>(
   path: string,
-  options: { method?: "GET" | "POST" | "PUT"; body?: unknown } = {},
+  options: { method?: "GET" | "POST" | "PUT" | "DELETE"; body?: unknown } = {},
 ): Promise<ApiResult<T>> {
   let response: Response;
   // Un archivo (Blob/File) se envía tal cual, en binario; el resto como JSON.
@@ -169,3 +169,26 @@ export type Flashcard = {
   source: string;
   status: "review" | "pending" | "mastered";
 };
+
+/** Una letra del rosco legal: `mode` "starts" = empieza con la letra, "contains" = la contiene. */
+export type RoscoItem = {
+  id: string;
+  letter: string;
+  mode: "starts" | "contains";
+  definition: string;
+  subject: string;
+};
+
+export type GlossaryTerm = {
+  id: string;
+  subject: string;
+  term: string;
+  definition: string;
+  source: string;
+  status: "draft" | "approved" | "published" | "retired";
+  author: string;
+  mine: boolean;
+};
+
+export type RankingEntry = { position: number; alias: string; xp: number; me: boolean };
+export type Ranking = { entries: RankingEntry[]; me: RankingEntry | null; alias: string | null };

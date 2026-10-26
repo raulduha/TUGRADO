@@ -4,7 +4,7 @@ plan diario: fecha del examen y meta de preguntas (FR-035)."""
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.persistence.base import Base
@@ -55,3 +55,18 @@ class StudyProfileRow(Base):
             "daily_goal IS NULL OR daily_goal BETWEEN 1 AND 200", name="daily_goal_range"
         ),
     )
+
+
+class RankingProfileRow(Base):
+    """Participación voluntaria en el ranking mensual (FR-039): quien no tiene fila no aparece.
+    En el ranking se muestra solo el apodo, nunca el correo ni el nombre."""
+
+    __tablename__ = "ranking_profile"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
+    )
+    alias: Mapped[str] = mapped_column(String(24))
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (Index("uq_ranking_profile_alias", text("lower(alias)"), unique=True),)
