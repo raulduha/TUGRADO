@@ -227,6 +227,6 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 
 ## AD. Planes, precios y proveedores de IA (2026-10-25)
 
-- El usuario delegó la decisión. Resultado en `docs/planes.md`: se lanza solo el plan Procurador ($7.000, lo que existe hoy) y Litigante ($9.990) y Toga ($14.990) se habilitan con la interrogación oral, con cupos mensuales de interrogaciones en lugar de la cuota única de 5 al día y 100 al mes.
+- El usuario delegó la decisión y fijó dos condiciones: no se venden horas de abogados (el abogado del equipo cuida la calidad del contenido y de las rúbricas) y cada plan debe dejar al menos $5.000 por suscriptor al mes. Resultado en `docs/planes.md`: Procurador $7.990 (se lanza ya), Litigante $14.990 con 7 h de interrogación oral con IA y Toga $24.990 con 15 h (con la interrogación oral). Los topes de horas garantizan el margen mínimo aunque se use todo el cupo.
 - Proveedores: Claude Sonnet 5.5 para evaluar y OpenAI para transcripción y embeddings; sin voz sintetizada en el MVP. Umbral para lanzar: nota a 0,5 puntos o menos de la del abogado en el 80 % de 30 respuestas reales.
-- Pendiente para aplicar el precio de lanzamiento: crear el plan `PROCURADOR-MENSUAL` en Flow y fijar `BILLING_MONTHLY_PRICE_CLP=7000` y `FLOW_PLAN_ID` en Render. Las especificaciones de cuotas y FR-029 se actualizan cuando se implementen los planes.
+- Pendiente para aplicar el precio de lanzamiento: crear el plan `PROCURADOR-MENSUAL` ($7.990) en Flow y fijar `BILLING_MONTHLY_PRICE_CLP=7990` y `FLOW_PLAN_ID` en Render. Las especificaciones de cuotas y FR-029 se actualizan cuando se implementen los planes.
