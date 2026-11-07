@@ -9,8 +9,10 @@ import { Apruvi } from "@/components/apruvi";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink } from "@/components/button";
 import { Icon } from "@/components/illustrations";
+import { Stars } from "@/components/stars";
 import { api, type LessonSummary, type StudyPath, type StudyToday } from "@/lib/api";
 import { useStudyAccess } from "@/lib/use-access";
+import { isAdministrator } from "@/lib/use-user";
 
 import { RankingCard } from "./ranking-card";
 import { TodayCard } from "./today-card";
@@ -49,7 +51,7 @@ function states(lessons: LessonSummary[]): State[] {
  * preguntas publicadas. El avance lo calcula el backend con las respuestas del estudiante. */
 export default function StudyPathPage() {
   const { me, setMe, hasAccess } = useStudyAccess("/ruta");
-  const isAdmin = me?.roles.includes("administrator") ?? false;
+  const isAdmin = isAdministrator(me);
   const [path, setPath] = useState<StudyPath | null>(null);
   const [today, setToday] = useState<StudyToday | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -250,7 +252,7 @@ function UnitPath({
                 >
                   <Icon name={state === "done" ? "check" : state === "locked" ? "lock" : "book"} className="h-7 w-7" />
                 </button>
-                {state === "done" ? <Stars count={lesson.stars} className="absolute left-1/2 top-full mt-1 -translate-x-1/2" /> : null}
+                {state === "done" ? <Stars count={lesson.stars} className="absolute left-1/2 top-full mt-1 -translate-x-1/2 gap-0.5" /> : null}
               </li>
             );
           })}
@@ -349,20 +351,5 @@ function LessonCard({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function Stars({ count, className = "" }: { count: number; className?: string }) {
-  return (
-    <span className={`flex gap-0.5 ${className}`} aria-label={`${count} de 3 estrellas`} role="img">
-      {[0, 1, 2].map((i) => (
-        <svg key={i} viewBox="0 0 24 24" className={`h-4 w-4 ${i < count ? "text-accent" : "text-line"}`} aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"
-          />
-        </svg>
-      ))}
-    </span>
   );
 }

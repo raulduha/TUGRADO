@@ -10,11 +10,11 @@ import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
 import { DemoBanner } from "@/components/demo-banner";
 import { Icon } from "@/components/illustrations";
+import { Stars } from "@/components/stars";
 import { api, type LessonDetail, type PracticeQuestion, type PracticeResult } from "@/lib/api";
 import { SAMPLE_QUESTIONS } from "@/lib/practice-sample";
+import { LETTERS, topicLabel } from "@/lib/question";
 import { useStudyAccess } from "@/lib/use-access";
-
-const LETTERS = ["A", "B", "C", "D", "E", "F"];
 
 // Sin preguntas publicadas todavía, la práctica muestra las de ejemplo (vista previa).
 const SAMPLE: PracticeQuestion[] = SAMPLE_QUESTIONS.map((q) => ({
@@ -194,13 +194,7 @@ function PracticeSession({ lessonId, review }: { lessonId: string | null; review
             <Apruvi className="mx-auto h-28 w-28" />
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">¡Lección completada!</h1>
             <p className="mt-1 text-sm text-muted">{lesson.subtopics.join(" · ")}</p>
-            <div className="mt-4 flex justify-center gap-1" role="img" aria-label={`${starsFor(score, total)} de 3 estrellas`}>
-              {[0, 1, 2].map((i) => (
-                <svg key={i} viewBox="0 0 24 24" className={`h-10 w-10 ${i < starsFor(score, total) ? "text-accent" : "text-line"}`} aria-hidden="true">
-                  <path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.2l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" />
-                </svg>
-              ))}
-            </div>
+            <Stars count={starsFor(score, total)} className="mt-4 justify-center gap-1" starClassName="h-10 w-10" />
             <p className="mt-3 text-lg">
               Acertaste <span className="font-semibold text-success">{score}</span> de {total} ·{" "}
               <span className="font-semibold text-accent">+{score * 10} XP</span>
@@ -284,8 +278,7 @@ function PracticeSession({ lessonId, review }: { lessonId: string | null; review
               <Apruvi className="h-20 w-20 flex-none" />
               <div className="relative flex-1 rounded-2xl border border-line bg-surface px-4 py-3">
                 <p className="text-xs font-semibold text-brand">
-                  {question.subject}
-                  {question.subtopic ? ` · ${question.subtopic}` : ""}
+                  {topicLabel(question)}
                 </p>
                 <h1 className="mt-1 text-xl font-semibold leading-snug">{question.prompt}</h1>
               </div>

@@ -8,7 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { buttonStyles } from "@/components/button";
 import { api, type GlossaryTerm } from "@/lib/api";
-import { useRequireUser } from "@/lib/use-user";
+import { isAdministrator, useRequireUser } from "@/lib/use-user";
 
 type Status = GlossaryTerm["status"];
 
@@ -28,7 +28,7 @@ const NEXT: Partial<Record<Status, { action: "approve" | "publish"; label: strin
 /** Glosario del rosco legal (FR-038): cargar la planilla, aprobar y publicar en bloque. */
 export default function GlossaryAdminPage() {
   const { me, setMe } = useRequireUser("/admin/glosario");
-  const isAdmin = me?.roles.includes("administrator") ?? false;
+  const isAdmin = isAdministrator(me);
   const [tab, setTab] = useState<Status>("draft");
   const [terms, setTerms] = useState<GlossaryTerm[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());

@@ -13,7 +13,6 @@ const SHOWN = 5;
 export function RankingCard() {
   const [ranking, setRanking] = useState<Ranking | null>(null);
   const [alias, setAlias] = useState("");
-  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [reload, setReload] = useState(0);
@@ -35,7 +34,6 @@ export function RankingCard() {
     const result = await api("/engagement/ranking/profile", { method: "PUT", body: { alias } });
     setBusy(false);
     if (!result.ok) return setError(result.error.message);
-    setEditing(false);
     setReload((n) => n + 1);
   }
 
@@ -58,7 +56,7 @@ export function RankingCard() {
           <h2 className="font-semibold">Ranking del mes</h2>
           <p className="text-sm text-muted">Por experiencia ganada este mes. Participar es voluntario.</p>
         </div>
-        {joined && !editing ? (
+        {joined ? (
           <button type="button" onClick={leave} disabled={busy} className="text-sm font-semibold text-muted hover:underline">
             Salir
           </button>
@@ -91,7 +89,7 @@ export function RankingCard() {
         <p className="mt-3 text-sm text-muted">Todavía nadie se ha inscrito este mes.</p>
       )}
 
-      {!joined || editing ? (
+      {!joined ? (
         <form onSubmit={join} className="mt-4 space-y-2">
           {error ? <Alert tone="error">{error}</Alert> : null}
           <div className="flex gap-2">

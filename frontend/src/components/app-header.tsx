@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Logo, LogoMark } from "@/components/illustrations";
 import { api, type Me } from "@/lib/api";
+import { isAdministrator } from "@/lib/use-user";
 
 /** Encabezado de las páginas con sesión. `onLoggedOut` limpia el estado de la página: con Cache
  * Components las páginas se conservan (Activity) y no deben mostrar al usuario anterior. */
@@ -37,7 +38,7 @@ export function AppHeader({ me, onLoggedOut }: { me: Me | null; onLoggedOut?: ()
             <Link href="/ruta" className="hidden whitespace-nowrap text-sm font-medium text-brand hover:underline sm:inline">
               Mi ruta
             </Link>
-            {me.roles.includes("administrator") ? (
+            {isAdministrator(me) ? (
               <Link href="/admin/preguntas" className="whitespace-nowrap text-sm font-medium text-brand hover:underline">
                 Preguntas
               </Link>

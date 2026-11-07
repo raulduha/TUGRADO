@@ -7,13 +7,15 @@ import { AppHeader } from "@/components/app-header";
 import { Apruvi } from "@/components/apruvi";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
+import { ChoiceChip } from "@/components/choice-chip";
+import { SubjectSelect } from "@/components/subject-select";
 import { api, type ExamResult, type PracticeQuestion } from "@/lib/api";
+import { LETTERS, topicLabel } from "@/lib/question";
 import { useStudyAccess } from "@/lib/use-access";
 import { useSubjects } from "@/lib/use-subjects";
 
 const SIZES = [10, 20, 40];
 const SECONDS_PER_QUESTION = 90;
-const LETTERS = ["A", "B", "C", "D", "E"];
 
 type Exam = { questions: PracticeQuestion[]; deadline: number; startedAt: number };
 
@@ -103,36 +105,14 @@ export default function ExamPage() {
                 explicación de cada pregunta y en qué subtemas te conviene reforzar.
               </p>
             </div>
-            <label className="block">
-              <span className="text-sm font-semibold">Materia</span>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2"
-              >
-                <option value="">Todas las materias</option>
-                {subjects.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SubjectSelect subjects={subjects} value={subject} onChange={setSubject} />
             <fieldset>
               <legend className="text-sm font-semibold">Preguntas</legend>
               <div className="mt-1 flex flex-wrap gap-2">
                 {SIZES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={size === value}
-                    onClick={() => setSize(value)}
-                    className={`rounded-xl border-2 px-4 py-2 text-sm font-semibold transition ${
-                      size === value ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface hover:border-brand/50"
-                    }`}
-                  >
+                  <ChoiceChip key={value} selected={size === value} onClick={() => setSize(value)}>
                     {`${value} · ${clock(value * SECONDS_PER_QUESTION)} min`}
-                  </button>
+                  </ChoiceChip>
                 ))}
               </div>
             </fieldset>
@@ -203,8 +183,7 @@ function Running({
 
       <div className="rounded-2xl border border-line bg-surface px-4 py-4">
         <p className="text-xs font-semibold text-brand">
-          {question.subject}
-          {question.subtopic ? ` · ${question.subtopic}` : ""}
+          {topicLabel(question)}
         </p>
         <h1 className="mt-1 text-xl font-semibold leading-snug">{question.prompt}</h1>
       </div>

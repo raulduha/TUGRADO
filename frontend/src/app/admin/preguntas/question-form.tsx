@@ -4,11 +4,11 @@ import { type FormEvent, useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { buttonStyles } from "@/components/button";
+import { LETTERS } from "@/lib/question";
 
 import {
   DIFFICULTY,
   type Detail,
-  LETTERS,
   MAX_OPTIONS,
   MIN_OPTIONS,
   type QuestionInput,

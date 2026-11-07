@@ -7,11 +7,12 @@ import { AppHeader } from "@/components/app-header";
 import { Apruvi } from "@/components/apruvi";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
+import { SubjectSelect } from "@/components/subject-select";
 import { api, type Flashcard } from "@/lib/api";
+import { LETTERS, topicLabel } from "@/lib/question";
 import { useStudyAccess } from "@/lib/use-access";
 import { useSubjects } from "@/lib/use-subjects";
 
-const LETTERS = ["A", "B", "C", "D", "E"];
 
 const STATUS: Record<Flashcard["status"], string> = {
   review: "Toca repasar",
@@ -107,8 +108,7 @@ export default function FlashcardsPage() {
               className="pop-in block min-h-64 w-full rounded-3xl border-2 border-b-[6px] border-line bg-surface p-6 text-left transition hover:border-brand/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               <p className="text-xs font-semibold text-brand">
-                {card.subject}
-                {card.subtopic ? ` · ${card.subtopic}` : ""}
+                {topicLabel(card)}
               </p>
               {flipped ? (
                 <>
@@ -157,21 +157,7 @@ export default function FlashcardsPage() {
                 Primero salen las que te toca repasar.
               </p>
             </div>
-            <label className="block">
-              <span className="text-sm font-semibold">Materia</span>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2"
-              >
-                <option value="">Todas las materias</option>
-                {subjects.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SubjectSelect subjects={subjects} value={subject} onChange={setSubject} />
             <button type="button" onClick={start} disabled={busy} className={`w-full ${buttonStyles.primary}`}>
               {busy ? "Barajando…" : "Empezar"}
             </button>

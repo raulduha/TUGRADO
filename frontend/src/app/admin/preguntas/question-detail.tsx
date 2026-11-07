@@ -3,8 +3,9 @@
 import { useState } from "react";
 
 import { buttonStyles } from "@/components/button";
+import { LETTERS, topicLabel } from "@/lib/question";
 
-import { type Detail, LETTERS, StatusBadge } from "./shared";
+import { type Detail, StatusBadge } from "./shared";
 
 /** Detalle de una versión: contenido, revisiones, historial y las acciones que permite su
  * estado. Las reglas las aplica el backend (quien crea no aprueba ni publica, AC-029). */
@@ -37,8 +38,7 @@ export function QuestionDetail({
         <span className="text-xs text-muted">Autor: {detail.is_author ? "tú" : detail.author}</span>
       </div>
       <p className="text-xs font-semibold text-brand">
-        {detail.subject}
-        {detail.subtopic ? ` · ${detail.subtopic}` : ""}
+        {topicLabel(detail)}
       </p>
       <h2 className="text-lg font-semibold leading-snug">{detail.prompt}</h2>
       <ol className="space-y-1.5">

@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 
 import { api, type Me } from "@/lib/api";
 
+/** Si la cuenta tiene el rol de administrador. La autorización real la decide el backend. */
+export function isAdministrator(me: Me | null): boolean {
+  return me?.roles.includes("administrator") ?? false;
+}
+
 /** Usuario con sesión. Sin sesión válida (401) redirige a iniciar sesión y vuelve a `next`. */
 export function useRequireUser(next: string) {
   const router = useRouter();
