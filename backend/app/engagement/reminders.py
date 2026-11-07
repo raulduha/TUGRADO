@@ -10,11 +10,11 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import Date, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.auth.tokens import new_token
-from app.clock import chile_date
+from app.clock import CHILE, chile_date
 from app.email.layout import Action, compose
 from app.email.sender import EmailDeliveryError, EmailMessage, EmailSender
 from app.engagement.streaks import compute
@@ -51,22 +51,25 @@ def send_due_reminders(
         .group_by(ActivityDayRow.user_id)
         .subquery()
     )
+    # Día (en Chile) del último recordatorio. Si es posterior a su último día activo, ya se le
+    # escribió en esta ausencia. Se filtra en la consulta, antes del límite, para que quienes ya
+    # lo recibieron no ocupen el cupo de la ejecución.
+    last_sent_day = cast(func.timezone(CHILE.key, ReminderStateRow.last_sent_at), Date)
     rows = db.execute(
-        select(UserAccountRow, last_day.c.last_day, ReminderStateRow)
+        select(UserAccountRow, ReminderStateRow)
         .join(last_day, last_day.c.user_id == UserAccountRow.id)
         .outerjoin(ReminderStateRow, ReminderStateRow.user_id == UserAccountRow.id)
         .where(UserAccountRow.email_verified_at.is_not(None))
         .where(last_day.c.last_day <= today - timedelta(days=INACTIVE_DAYS))
         .where(ReminderStateRow.opted_out_at.is_(None))
+        .where(or_(ReminderStateRow.last_sent_at.is_(None), last_sent_day <= last_day.c.last_day))
         .where(_has_access())
+        .order_by(last_day.c.last_day, UserAccountRow.id)  # las ausencias más largas primero
         .limit(BATCH_LIMIT)
     ).all()
 
     sent = 0
-    for user, last_active, state in rows:
-        # Ya se le escribió en esta ausencia: espera a que vuelva a entrar.
-        if state and state.last_sent_at and chile_date(state.last_sent_at) > last_active:
-            continue
+    for user, state in rows:
         if state is None:
             state = ReminderStateRow(user_id=user.id, unsubscribe_token=new_token())
             db.add(state)
