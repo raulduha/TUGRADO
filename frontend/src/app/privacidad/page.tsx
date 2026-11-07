@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Suscripción:</strong> el estado y las fechas de tu suscripción. El pago lo
-          procesa Mercado Pago: nosotros no recibimos ni guardamos los datos de tu tarjeta.
+          procesa Flow (flow.cl): nosotros no recibimos ni guardamos los datos de tu tarjeta.
         </li>
         <li>
           <strong>Datos técnicos mínimos</strong> para la seguridad del servicio, como la cookie
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
       <p>
         Para operar el servicio usamos proveedores que tratan datos solo para prestárnoslo: Vercel
         (sitio web), Render (servidor), Neon (base de datos), Resend (envío de correos), Google
-        (ingreso con Google) y Mercado Pago (pagos). Cuando incorporemos proveedores de
+        (ingreso con Google) y Flow (pagos). Cuando incorporemos proveedores de
         inteligencia artificial para transcribir y evaluar respuestas orales, actualizaremos esta
         política indicando cuáles son. Algunos de estos proveedores almacenan datos fuera de Chile,
         por ejemplo en Estados Unidos y Brasil.
