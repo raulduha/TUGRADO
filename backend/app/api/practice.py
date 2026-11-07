@@ -75,7 +75,7 @@ class AnswerOut(BaseModel):
     source: str
 
 
-def _question(db: Session, view: queries.VersionView) -> PracticeQuestion:
+def question_out(db: Session, view: queries.VersionView) -> PracticeQuestion:
     v = view.version
     return PracticeQuestion(
         id=str(v.id),
@@ -109,7 +109,7 @@ def random_questions(
     _: SubscribedUser, db: Db, limit: Annotated[int, Query(ge=1, le=30)] = 10
 ) -> list[PracticeQuestion]:
     """Práctica libre: preguntas publicadas al azar."""
-    return [_question(db, view) for view in queries.random_published(db, limit)]
+    return [question_out(db, view) for view in queries.random_published(db, limit)]
 
 
 @router.get("/path")
@@ -135,7 +135,7 @@ def review_questions(
 ) -> list[PracticeQuestion]:
     """Los errores que toca repasar hoy (FR-035), los más atrasados primero."""
     due = due_today(db, user.id, clock())
-    return [_question(db, view) for view in queries.published_for_questions(db, due)[:limit]]
+    return [question_out(db, view) for view in queries.published_for_questions(db, due)[:limit]]
 
 
 @router.get("/lessons/{lesson_id}")
@@ -148,7 +148,7 @@ def lesson_questions(lesson_id: str, user: SubscribedUser, db: Db) -> LessonDeta
     return LessonDetail(
         **_lesson(lesson).model_dump(),
         subject=unit.subject,
-        questions=[_question(db, view) for view in views],
+        questions=[question_out(db, view) for view in views],
     )
 
 

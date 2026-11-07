@@ -233,3 +233,9 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 
 - Pedido del usuario: un contador de créditos para que nadie supere su cupo. Especificado como FR-036 y AC-048 (registro de minutos de solo adición, reserva antes de iniciar, cobro de lo usado, sin acumulación). Se implementa con la interrogación oral, que aún no existe.
 - Creado en Flow el plan `PROCURADOR-MENSUAL` ($7.990 CLP mensual). `APRUEBA-MENSUAL` ($9.990) queda activo sin uso: Flow solo permite eliminarlo, no desactivarlo.
+
+## AE. Prueba cronometrada y flashcards (2026-10-25)
+
+- A partir de la plataforma de ejemplo que mostró el usuario (ApruebaLaw), se agregaron dos formas de practicar sin costo de IA: prueba cronometrada (`/prueba`) y flashcards (`/flashcards`), con accesos desde la ruta (FR-037, AC-049). Nuevos `GET /practice/exam`, `POST /practice/exam/grade` y `GET /practice/flashcards` (`app/api/drills.py`).
+- El tiempo de la prueba lo lleva la pantalla: es orientativo y la prueba no tiene consecuencias fuera de la práctica. El reloj del backend sigue siendo obligatorio para la simulación oral.
+- Quedan para después el rosco legal (necesita un glosario revisado por el abogado), el ranking voluntario con apodo y los casos. Se descartó una moneda propia («Legalcoins»): el XP basta.

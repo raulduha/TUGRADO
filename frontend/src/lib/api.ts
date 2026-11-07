@@ -142,3 +142,30 @@ export type PracticeResult = {
   explanation: string;
   source: string;
 };
+
+export type ExamResult = {
+  correct: number;
+  total: number;
+  items: Array<{
+    id: string;
+    chosen: number | null;
+    correct: boolean;
+    correct_position: number;
+    explanation: string;
+    source: string;
+  }>;
+  by_subtopic: Array<{ subject: string; subtopic: string | null; correct: number; total: number }>;
+};
+
+/** `status`: "review" toca repasar hoy, "pending" aún no la domina, "mastered" ya la domina. */
+export type Flashcard = {
+  id: string;
+  subject: string;
+  subtopic: string | null;
+  prompt: string;
+  options: string[];
+  correct_position: number;
+  explanation: string;
+  source: string;
+  status: "review" | "pending" | "mastered";
+};
