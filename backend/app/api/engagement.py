@@ -1,4 +1,5 @@
-"""Rachas (FR-033, AC-042) y recordatorios por correo (FR-034, AC-043)."""
+"""Rachas (FR-033, AC-042), recordatorios por correo (FR-034, AC-043) y ranking voluntario
+(FR-039, AC-051)."""
 
 import secrets
 from collections.abc import Callable
@@ -9,11 +10,12 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, get_clock, get_email_sender
+from app.api.deps import CurrentUser, SubscribedUser, get_clock, get_email_sender
 from app.auth.email import EmailSender
 from app.clock import chile_date
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.engagement import ranking
 from app.engagement.reminders import send_due_reminders, unsubscribe
 from app.engagement.streaks import check_in
 
@@ -70,3 +72,41 @@ def unsubscribe_reminders(body: UnsubscribeIn, db: Db, clock: Clock) -> None:
             status.HTTP_404_NOT_FOUND,
             detail={"code": "invalid_token", "message": "El enlace no es válido"},
         )
+
+
+class RankingEntryOut(BaseModel):
+    position: int
+    alias: str
+    xp: int
+    me: bool
+
+
+class RankingOut(BaseModel):
+    entries: list[RankingEntryOut]
+    me: RankingEntryOut | None
+    alias: str | None
+
+
+class AliasIn(BaseModel):
+    alias: str = Field(min_length=1, max_length=40)
+
+
+@router.get("/ranking")
+def get_ranking(user: SubscribedUser, db: Db, clock: Clock) -> RankingOut:
+    """Ranking del mes en curso, solo con quienes se inscribieron (FR-039)."""
+    result = ranking.monthly(db, user.id, clock())
+    return RankingOut(
+        entries=[RankingEntryOut(**e.__dict__) for e in result.entries],
+        me=RankingEntryOut(**result.me.__dict__) if result.me else None,
+        alias=result.alias,
+    )
+
+
+@router.put("/ranking/profile", status_code=status.HTTP_204_NO_CONTENT)
+def join_ranking(body: AliasIn, user: SubscribedUser, db: Db, clock: Clock) -> None:
+    ranking.join(db, user.id, body.alias, clock())
+
+
+@router.delete("/ranking/profile", status_code=status.HTTP_204_NO_CONTENT)
+def leave_ranking(user: SubscribedUser, db: Db) -> None:
+    ranking.leave(db, user.id)

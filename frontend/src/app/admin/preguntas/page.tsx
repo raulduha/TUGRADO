@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert } from "@/components/alert";
@@ -232,6 +233,9 @@ export default function QuestionBankPage() {
                   Crea, edita o retira preguntas una a una, o en bloque con la planilla. Cada cambio
                   es una versión nueva y otra persona debe aprobarla y publicarla.
                 </p>
+                <Link href="/admin/glosario" className="mt-1 inline-block text-sm font-semibold text-brand hover:underline">
+                  Glosario del rosco legal →
+                </Link>
               </div>
               <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
                 <button

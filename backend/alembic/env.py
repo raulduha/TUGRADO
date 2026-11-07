@@ -9,6 +9,7 @@ from app.persistence import (  # noqa: F401  (registra las tablas)
     content_models,
     engagement_models,
     feedback_models,
+    glossary_models,
     simulation_models,
 )
 from app.persistence.base import Base
