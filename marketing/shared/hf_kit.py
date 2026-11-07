@@ -1,8 +1,6 @@
 """Kit compartido de los videos de Apruvi (HyperFrames): Apruvi, llama, logo, fuente,
 movimiento vivo y la plantilla de cada escena. Lo importan los build_frames.py de cada proyecto.
 
-Origen: el generador del Reel de Apruvi (marketing/reel-apruvi).
-
 Cada escena es una subcomposición con su propio timeline de GSAP en pausa. Apruvi, la fuente
 y los colores salen de frame.md / motion.md. Ejecutar desde la raíz del proyecto:
     python scripts/build_frames.py
@@ -142,8 +140,6 @@ ICONS = {
     "mic": "M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3ZM19 11a7 7 0 0 1-14 0M12 18v3",
     "book": "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5ZM8 7h7",
 }
-
-WARM_BG = "linear-gradient(180deg, #e8eefc 0%, #fbf8f3 55%, #fdf1dc 100%)"
 
 
 def write(name: str, html: str) -> None:
