@@ -10,26 +10,21 @@ Las flashcards muestran la respuesta a propósito (son para repasar), y no regis
 
 import random
 import uuid
-from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from app.api.deps import SubscribedUser, get_clock
+from app.api.deps import Clock, Db, SubscribedUser
 from app.api.practice import PracticeQuestion, question_out
 from app.content import queries
 from app.content.path import latest_outcomes
-from app.db import get_db
 from app.persistence.content_models import PracticeAttemptRow
 from app.study.review import due_today
 
 router = APIRouter(prefix="/practice", tags=["practice"])
 
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 Subject = Annotated[str | None, Query(max_length=200)]
 
 EXAM_SIZES = (10, 20, 40)

@@ -1,6 +1,10 @@
 """Dependencias compartidas por los endpoints. Las pruebas las reemplazan con
-`app.dependency_overrides` (reloj, envío de correo, base de datos)."""
+`app.dependency_overrides` (reloj, envío de correo, base de datos).
 
+Los routers usan los alias de abajo (`Db`, `Clock`, `AppSettings`, `Mailer`, `CurrentUser`,
+`AdminUser`, `SubscribedUser`) en vez de escribir `Annotated[..., Depends(...)]` cada vez."""
+
+import secrets
 from collections.abc import Callable
 from datetime import datetime
 from functools import lru_cache
@@ -18,6 +22,7 @@ from app.billing.service import BillingPlan, BillingService
 from app.clock import utc_now
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.errors import AppError
 from app.persistence.auth_models import Role
 
 SESSION_COOKIE = "tugrado_session"
@@ -25,6 +30,11 @@ SESSION_COOKIE = "tugrado_session"
 
 def get_clock() -> Callable[[], datetime]:
     return utc_now
+
+
+Db = Annotated[Session, Depends(get_db)]
+Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
+AppSettings = Annotated[Settings, Depends(get_settings)]
 
 
 @lru_cache
@@ -35,18 +45,18 @@ def _email_sender_for(provider: str, api_key: str | None, from_address: str) -> 
     return ConsoleEmailSender()
 
 
-def get_email_sender(settings: Annotated[Settings, Depends(get_settings)]) -> EmailSender:
+def get_email_sender(settings: AppSettings) -> EmailSender:
     key = settings.resend_api_key
     return _email_sender_for(
         settings.email_provider, key.get_secret_value() if key else None, settings.email_from
     )
 
 
+Mailer = Annotated[EmailSender, Depends(get_email_sender)]
+
+
 def get_auth_service(
-    db: Annotated[Session, Depends(get_db)],
-    settings: Annotated[Settings, Depends(get_settings)],
-    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
-    email_sender: Annotated[EmailSender, Depends(get_email_sender)],
+    db: Db, settings: AppSettings, clock: Clock, email_sender: Mailer
 ) -> AuthService:
     return AuthService(
         db=db,
@@ -63,10 +73,7 @@ def current_user(
 ) -> AuthenticatedUser:
     user = service.authenticate(token) if token else None
     if user is None:
-        raise HTTPException(
-            status.HTTP_401_UNAUTHORIZED,
-            detail={"code": "not_authenticated", "message": "Debes iniciar sesión"},
-        )
+        raise AppError("not_authenticated", "Debes iniciar sesión")
     return user
 
 
@@ -75,10 +82,7 @@ def require_role(role: Role) -> Callable[[AuthenticatedUser], AuthenticatedUser]
         user: Annotated[AuthenticatedUser, Depends(current_user)],
     ) -> AuthenticatedUser:
         if role not in user.roles:
-            raise HTTPException(
-                status.HTTP_403_FORBIDDEN,
-                detail={"code": "forbidden", "message": "No tienes permiso para esta operación"},
-            )
+            raise AppError("forbidden", "No tienes permiso para esta operación")
         return user
 
     return dependency
@@ -108,9 +112,7 @@ def _fake_gateway(frontend: str) -> SubscriptionGateway:
     return FakeGateway(frontend)
 
 
-def get_subscription_gateway(
-    settings: Annotated[Settings, Depends(get_settings)],
-) -> SubscriptionGateway:
+def get_subscription_gateway(settings: AppSettings) -> SubscriptionGateway:
     """El proveedor configurado en BILLING_PROVIDER (la configuración valida sus credenciales)."""
     if settings.billing_provider == "mercadopago":
         assert settings.mercadopago_access_token is not None
@@ -128,11 +130,11 @@ def get_subscription_gateway(
 
 
 def get_billing_service(
-    db: Annotated[Session, Depends(get_db)],
-    settings: Annotated[Settings, Depends(get_settings)],
-    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+    db: Db,
+    settings: AppSettings,
+    clock: Clock,
     gateway: Annotated[SubscriptionGateway, Depends(get_subscription_gateway)],
-    email_sender: Annotated[EmailSender, Depends(get_email_sender)],
+    email_sender: Mailer,
 ) -> BillingService:
     return BillingService(
         db=db,
@@ -153,17 +155,27 @@ def subscribed_user(
 ) -> AuthenticatedUser:
     """Usuario con acceso al estudio: suscripción activa, o administrador (FR-030)."""
     if not billing.has_access(user.id, user.roles):
-        raise HTTPException(
-            status.HTTP_402_PAYMENT_REQUIRED,
-            detail={
-                "code": "subscription_required",
-                "message": "Necesitas una suscripción activa para usar esta función",
-            },
+        raise AppError(
+            "subscription_required", "Necesitas una suscripción activa para usar esta función"
         )
     return user
 
 
 SubscribedUser = Annotated[AuthenticatedUser, Depends(subscribed_user)]
+
+
+# ------------------------------------------------------------- tareas programadas
+
+
+def check_cron_secret(settings: Settings, authorization: str | None) -> None:
+    """Llamadas de Vercel Cron (`Authorization: Bearer <CRON_SECRET>`). Sin CRON_SECRET la tarea
+    no existe (404); con una clave equivocada, 401. Se llama en el cuerpo del endpoint para que
+    cada tarea pueda revisar antes sus propias condiciones (p. ej. el proveedor de pagos)."""
+    secret = settings.cron_secret.get_secret_value() if settings.cron_secret else ""
+    if not secret:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if not secrets.compare_digest(authorization or "", f"Bearer {secret}"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
 
 # --------------------------------------------------------------- ingreso con Google
@@ -174,9 +186,7 @@ def _google_for(client_id: str, client_secret: str) -> GoogleProvider:
     return GoogleOAuth(client_id, client_secret)
 
 
-def get_google_provider(
-    settings: Annotated[Settings, Depends(get_settings)],
-) -> GoogleProvider | None:
+def get_google_provider(settings: AppSettings) -> GoogleProvider | None:
     if not settings.google_enabled or settings.google_client_secret is None:
         return None
     assert settings.google_client_id is not None

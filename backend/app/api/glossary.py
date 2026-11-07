@@ -1,18 +1,14 @@
 """Glosario y rosco legal (FR-038, AC-050): administración del glosario y el juego."""
 
 import uuid
-from collections.abc import Callable
-from datetime import datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Query, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from app.api.deps import AdminUser, SubscribedUser, get_clock
+from app.api.deps import AdminUser, Clock, Db, SubscribedUser
 from app.content.question import ContentError
-from app.db import get_db
 from app.glossary import terms
 from app.persistence.auth_models import UserAccountRow
 from app.persistence.content_models import SubjectRow
@@ -21,8 +17,6 @@ from app.persistence.glossary_models import GlossaryTermRow, TermStatus
 admin_router = APIRouter(prefix="/admin/glossary", tags=["glossary"])
 router = APIRouter(prefix="/practice/rosco", tags=["practice"])
 
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 

@@ -1,16 +1,13 @@
 """Comentarios de usuarios (FR-028, AC-037)."""
 
-from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from app.api.deps import AdminUser, CurrentUser, get_clock
-from app.db import get_db
+from app.api.deps import AdminUser, Clock, CurrentUser, Db
 from app.persistence.auth_models import UserAccountRow
 from app.persistence.feedback_models import (
     FEEDBACK_MAX_LENGTH,
@@ -19,9 +16,6 @@ from app.persistence.feedback_models import (
 )
 
 router = APIRouter(prefix="/feedback", tags=["feedback"])
-
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 
 class FeedbackIn(BaseModel):
