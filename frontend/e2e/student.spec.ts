@@ -134,7 +134,7 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await page.screenshot({ path: testInfo.outputPath("suscripcion.png"), fullPage: true });
   // El simulador, como Flow, no pide el correo del pagador (solo Mercado Pago lo exige).
   await expect(page.getByLabel(/Correo de tu cuenta de/)).toHaveCount(0);
-  await page.getByRole("button", { name: "Comenzar 7 días gratis" }).click();
+  await page.getByRole("button", { name: "Comenzar 14 días gratis" }).click();
 
   // BILLING_PROVIDER=fake: el simulador reemplaza la página de pago del proveedor.
   await expect(page).toHaveURL(/\/suscripcion\/simulador/);
@@ -150,7 +150,7 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await expect(page.getByText("Tu suscripción está activa.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Cancelar suscripción" }).click();
   await page.getByRole("button", { name: "Sí, cancelar" }).click();
-  await expect(page.getByRole("button", { name: "Comenzar 7 días gratis" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Comenzar 14 días gratis" })).toBeVisible();
 
   // Sin acceso, el panel vuelve a llevar a la suscripción.
   await page.goto("/panel");

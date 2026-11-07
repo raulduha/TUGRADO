@@ -101,7 +101,7 @@ def test_sin_suscripcion_no_hay_acceso_al_estudio(billing_api, outbox):
     assert view["status"] is None
     assert view["has_access"] is False
     assert view["amount_clp"] == 9990
-    assert view["trial_days"] == 7
+    assert view["trial_days"] == 14
     response = billing_api.get("/estudio-de-prueba")
     assert response.status_code == 402
     assert code(response) == "subscription_required"
@@ -137,7 +137,7 @@ def test_al_activarse_llega_un_correo_de_confirmacion_una_sola_vez(billing_api, 
     [message] = [m for m in outbox.to(EMAIL) if "prueba gratis" in m.subject]
     # Se envía al correo de la cuenta, no al de Mercado Pago.
     assert not outbox.to("pagos.mp@ejemplo.cl")
-    assert "7 días" in message.body
+    assert "14 días" in message.body
     assert "$9.990" in message.body
     assert "no garantizan la aprobación" in message.body
     assert "http://localhost:3000/suscripcion" in message.body
@@ -175,7 +175,7 @@ def test_el_primer_cobro_es_al_terminar_la_prueba_gratis(billing_api, outbox, cl
     clock.advance(600)  # el estudiante tarda en pagar en Mercado Pago
     approved = billing_api.post("/billing/fake/approve").json()
     created = clock() - timedelta(seconds=600)
-    assert datetime.fromisoformat(approved["next_payment_date"]) == created + timedelta(days=7)
+    assert datetime.fromisoformat(approved["next_payment_date"]) == created + timedelta(days=14)
 
 
 def test_un_pago_pendiente_antiguo_se_reemplaza_para_no_acortar_la_prueba(
@@ -189,7 +189,7 @@ def test_un_pago_pendiente_antiguo_se_reemplaza_para_no_acortar_la_prueba(
     rows = subscriptions(engine)
     assert sorted(r.status for r in rows) == ["cancelled", "pending"]
     approved = billing_api.post("/billing/fake/approve").json()
-    assert datetime.fromisoformat(approved["next_payment_date"]) == clock() + timedelta(days=7)
+    assert datetime.fromisoformat(approved["next_payment_date"]) == clock() + timedelta(days=14)
 
 
 def test_con_suscripcion_activa_no_se_puede_volver_a_suscribir(billing_api, outbox):
