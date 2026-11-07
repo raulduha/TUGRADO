@@ -4,26 +4,21 @@ Solo se usan versiones publicadas, y la respuesta correcta se entrega recién al
 """
 
 import uuid
-from collections.abc import Callable
-from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.api.deps import SubscribedUser, get_clock
+from app.api.deps import Clock, Db, SubscribedUser
 from app.content import queries
 from app.content.path import Lesson, build_path, find_lesson, total_xp
 from app.content.question import ContentError
-from app.db import get_db
+from app.errors import AppError
 from app.persistence.content_models import PracticeAttemptRow, QuestionVersionRow, VersionStatus
 from app.study.review import due_today
 
 router = APIRouter(prefix="/practice", tags=["practice"])
-
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 
 class PracticeQuestion(BaseModel):
@@ -100,10 +95,6 @@ def _lesson(lesson: Lesson) -> LessonOut:
     )
 
 
-def _not_found(code: str, message: str) -> HTTPException:
-    return HTTPException(status.HTTP_404_NOT_FOUND, detail={"code": code, "message": message})
-
-
 @router.get("/questions")
 def random_questions(
     _: SubscribedUser, db: Db, limit: Annotated[int, Query(ge=1, le=30)] = 10
@@ -142,7 +133,7 @@ def review_questions(
 def lesson_questions(lesson_id: str, user: SubscribedUser, db: Db) -> LessonDetail:
     found = find_lesson(build_path(db, user.id), lesson_id)
     if found is None:
-        raise _not_found("lesson_not_found", "Esa lección ya no está disponible")
+        raise AppError("lesson_not_found", "Esa lección ya no está disponible")
     unit, lesson = found
     views = queries.published_by_ids(db, lesson.version_ids)
     return LessonDetail(
@@ -157,7 +148,7 @@ def answer(body: AnswerIn, user: SubscribedUser, db: Db, clock: Clock) -> Answer
     """Registra la respuesta y recién entonces revela la correcta, la explicación y la fuente."""
     version = db.get(QuestionVersionRow, body.version_id)
     if version is None or version.status != VersionStatus.PUBLISHED:
-        raise _not_found("question_not_found", "La pregunta ya no está disponible")
+        raise AppError("question_not_found", "La pregunta ya no está disponible")
     if body.position >= len(queries.options(db, version.id)):
         raise ContentError("invalid_options", "Esa alternativa no existe")
     correct = body.position == version.correct_position

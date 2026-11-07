@@ -1,21 +1,14 @@
 """Plan diario del estudiante (FR-035, AC-047): fecha del examen, meta diaria y repaso."""
 
-from collections.abc import Callable
-from datetime import date, datetime
-from typing import Annotated
+from datetime import date
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from app.api.deps import SubscribedUser, get_clock
-from app.db import get_db
+from app.api.deps import Clock, Db, SubscribedUser
 from app.study import plan
 
 router = APIRouter(prefix="/study", tags=["study"])
-
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 
 class TodayOut(BaseModel):
