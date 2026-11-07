@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import datetime
 
-from app.auth.email import EmailMessage
-from app.email_layout import Action, compose
+from app.clock import CHILE
+from app.email.layout import Action, compose
+from app.email.sender import EmailMessage
 
 _MONTHS = [
     "enero",
@@ -25,11 +25,7 @@ _MONTHS = [
 
 
 def _chile_date(moment: datetime) -> str:
-    try:
-        zone: timezone | ZoneInfo = ZoneInfo("America/Santiago")
-    except ZoneInfoNotFoundError:
-        zone = timezone(timedelta(hours=-4))
-    local = moment.astimezone(zone)
+    local = moment.astimezone(CHILE)
     return f"{local.day} de {_MONTHS[local.month - 1]} de {local.year}"
 
 

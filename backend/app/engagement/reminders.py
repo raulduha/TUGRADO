@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.tokens import new_token
 from app.clock import chile_date
-from app.email_layout import Action, compose
+from app.email.layout import Action, compose
+from app.email.sender import EmailDeliveryError, EmailMessage, EmailSender
 from app.engagement.streaks import compute
 from app.persistence.auth_models import Role, UserAccountRow, UserRoleRow
 from app.persistence.billing_models import AccessGrantRow, SubscriptionRow, SubscriptionStatus

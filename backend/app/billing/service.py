@@ -15,10 +15,10 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.service import normalize_email
 from app.billing.emails import subscription_started
 from app.billing.gateway import NewSubscription, ProviderError, SubscriptionGateway
+from app.email.sender import EmailDeliveryError, EmailMessage, EmailSender
 from app.errors import AppError
 from app.persistence.auth_models import Role, UserAccountRow
 from app.persistence.billing_models import (

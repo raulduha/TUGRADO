@@ -13,7 +13,6 @@ from typing import Annotated
 from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.auth.email import ConsoleEmailSender, EmailSender, ResendEmailSender
 from app.auth.google import GoogleOAuth, GoogleProvider
 from app.auth.service import AuthenticatedUser, AuthService
 from app.billing.flow import FlowClient, FlowGateway
@@ -22,6 +21,7 @@ from app.billing.service import BillingPlan, BillingService
 from app.clock import utc_now
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.email.sender import ConsoleEmailSender, EmailSender, ResendEmailSender
 from app.errors import AppError
 from app.persistence.auth_models import Role
 

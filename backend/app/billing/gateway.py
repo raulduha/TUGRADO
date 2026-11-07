@@ -1,7 +1,8 @@
-"""Proveedor de suscripciones detrás de una interfaz (Mercado Pago real o simulador local).
+"""Proveedor de suscripciones detrás de una interfaz: la definición (`SubscriptionGateway`),
+Mercado Pago y el simulador local. Flow, el proveedor elegido, está en `flow.py`.
 
 La app nunca recibe datos de tarjeta: crea la suscripción con estado `pending` y el
-estudiante la autoriza en la página de Mercado Pago (`init_point`).
+estudiante la autoriza en la página del proveedor (`init_point`).
 """
 
 from __future__ import annotations
@@ -143,7 +144,7 @@ class MercadoPagoGateway:
 
 
 class FakeGateway:
-    """Simulador local para desarrollo y pruebas: no cobra ni contacta a Mercado Pago.
+    """Simulador local para desarrollo y pruebas: no cobra ni contacta a ningún proveedor.
 
     El enlace de pago apunta a una página del frontend que permite aprobar el pago. Está
     prohibido en producción (validado en `Settings`).
@@ -182,7 +183,7 @@ class FakeGateway:
         return self._set(provider_id, status="cancelled", next_payment_date=None)
 
     def approve(self, provider_id: str, now: datetime) -> ProviderSubscription:
-        """Simula que el estudiante autorizó el pago en Mercado Pago."""
+        """Simula que el estudiante autorizó el pago en el proveedor."""
         first_charge = self._first_charge.get(provider_id)
         return self._set(
             provider_id,

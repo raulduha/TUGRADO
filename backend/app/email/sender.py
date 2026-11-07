@@ -1,4 +1,5 @@
-"""Envío de correos detrás de una interfaz. El proveedor de producción está pendiente (README)."""
+"""Envío de correos detrás de una interfaz: Resend en producción y la consola en desarrollo
+(los mensajes aparecen en `docker compose logs backend`)."""
 
 import logging
 from dataclasses import dataclass

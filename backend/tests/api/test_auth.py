@@ -327,7 +327,7 @@ def test_sin_sesion_no_hay_acceso(protected_api):
 
 
 def test_si_el_correo_falla_el_registro_igual_responde_y_se_puede_reenviar(api, outbox, engine):
-    from app.auth.email import EmailDeliveryError
+    from app.email.sender import EmailDeliveryError
 
     original = outbox.send
     outbox.send = lambda message: (_ for _ in ()).throw(EmailDeliveryError("caído"))
