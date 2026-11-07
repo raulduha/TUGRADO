@@ -16,12 +16,12 @@ from datetime import datetime, timedelta
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from app.auth.email import EmailDeliveryError, EmailMessage, EmailSender
 from app.auth.google import GoogleIdentity
 from app.auth.passwords import hash_password, needs_rehash, validate_password, verify_password
 from app.auth.policy import AuthPolicy
 from app.auth.tokens import hash_token, new_token
-from app.email_layout import Action, compose
+from app.email.layout import Action, compose
+from app.email.sender import EmailDeliveryError, EmailMessage, EmailSender
 from app.errors import AppError
 from app.persistence.auth_models import (
     AuthSessionRow,

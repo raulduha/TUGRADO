@@ -17,13 +17,13 @@ import sys
 from sqlalchemy import Engine, select
 from sqlalchemy.orm import Session
 
-from app.auth.email import ConsoleEmailSender
 from app.auth.passwords import PasswordPolicyError
 from app.auth.service import AuthError, AuthService, normalize_email
 from app.billing.grants import GrantError, grant_access, revoke_access
 from app.clock import utc_now
 from app.config import get_settings
 from app.db import get_engine
+from app.email.sender import ConsoleEmailSender
 from app.persistence.auth_models import UserAccountRow
 
 

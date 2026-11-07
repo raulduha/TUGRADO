@@ -1,6 +1,6 @@
 """Plantilla de correos: HTML seguro y texto plano equivalente."""
 
-from app.email_layout import Action, compose
+from app.email.layout import Action, compose
 
 
 def _message():

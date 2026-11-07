@@ -4,7 +4,7 @@ import re
 import threading
 from datetime import datetime, timedelta
 
-from app.auth.email import EmailMessage
+from app.email.sender import EmailMessage
 from tests.domain.conftest import T0
 
 

@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from app.auth.email import EmailDeliveryError, EmailMessage, ResendEmailSender
+from app.email.sender import EmailDeliveryError, EmailMessage, ResendEmailSender
 
 MESSAGE = EmailMessage(to="estudiante@ejemplo.cl", subject="Verifica tu correo", body="Hola")
 

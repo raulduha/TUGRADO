@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from html import escape
 
-from app.auth.email import EmailMessage
+from app.email.sender import EmailMessage
 
 BRAND = "#2f5bd3"
 INK = "#1f2430"
