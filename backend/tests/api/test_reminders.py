@@ -95,3 +95,28 @@ def test_sin_acceso_no_recibe_recordatorios(api, outbox, clock, cron):
     api.post("/engagement/checkin")
     clock.advance(3 * DAY)
     assert api.get("/engagement/reminders/run", headers=AUTH).json() == {"sent": 0}
+
+
+def test_el_limite_por_ejecucion_no_deja_fuera_a_nadie(
+    api, outbox, engine, clock, cron, monkeypatch
+):
+    """Con más candidatos que el límite, quienes ya recibieron su correo no ocupan cupo: en la
+    ejecución siguiente le llega al resto (antes se descartaban después de aplicar el límite)."""
+    from app.engagement import reminders as module
+
+    monkeypatch.setattr(module, "BATCH_LIMIT", 1)
+    other = "otra.estudiante@ejemplo.cl"
+    active_student(api, outbox, engine, clock)
+    verified_account(api, outbox, email=other)
+    with Session(engine) as db:
+        grant_access(db, other, "Pruebas", "equipo@proda.cl", clock())
+    login(api, email=other)
+    api.post("/engagement/checkin")
+
+    clock.advance(2 * DAY)
+    assert api.get("/engagement/reminders/run", headers=AUTH).json() == {"sent": 1}
+    assert api.get("/engagement/reminders/run", headers=AUTH).json() == {"sent": 1}
+    assert api.get("/engagement/reminders/run", headers=AUTH).json() == {"sent": 0}
+    subject = "Apruvi te está esperando"
+    assert len([m for m in outbox.to(EMAIL) if m.subject == subject]) == 1
+    assert len([m for m in outbox.to(other) if m.subject == subject]) == 1
