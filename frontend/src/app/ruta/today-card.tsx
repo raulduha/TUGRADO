@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Alert } from "@/components/alert";
 import { ButtonLink, buttonStyles } from "@/components/button";
+import { ChoiceChip } from "@/components/choice-chip";
 import { Icon } from "@/components/illustrations";
 import { api, formatDate, type StudyToday } from "@/lib/api";
 
@@ -171,14 +172,14 @@ function PlanForm({
         <legend className="text-sm font-semibold">Preguntas por día</legend>
         <div className="mt-1 flex flex-wrap gap-2">
           {examDate ? (
-            <GoalChip selected={goal === null} onClick={() => setGoal(null)}>
+            <ChoiceChip selected={goal === null} onClick={() => setGoal(null)}>
               Calcúlala por mí
-            </GoalChip>
+            </ChoiceChip>
           ) : null}
           {GOALS.map((value) => (
-            <GoalChip key={value} selected={goal === value} onClick={() => setGoal(value)}>
+            <ChoiceChip key={value} selected={goal === value} onClick={() => setGoal(value)}>
               {String(value)}
-            </GoalChip>
+            </ChoiceChip>
           ))}
         </div>
       </fieldset>
@@ -194,29 +195,6 @@ function PlanForm({
         ) : null}
       </div>
     </form>
-  );
-}
-
-function GoalChip({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`rounded-xl border-2 px-4 py-2 text-sm font-semibold transition ${
-        selected ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface hover:border-brand/50"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
 

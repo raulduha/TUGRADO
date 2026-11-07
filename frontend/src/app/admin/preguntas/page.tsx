@@ -8,7 +8,8 @@ import { AppHeader } from "@/components/app-header";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { buttonStyles } from "@/components/button";
 import { api, type ApiResult } from "@/lib/api";
-import { useRequireUser } from "@/lib/use-user";
+import { topicLabel } from "@/lib/question";
+import { isAdministrator, useRequireUser } from "@/lib/use-user";
 
 import { QuestionDetail } from "./question-detail";
 import { QuestionForm } from "./question-form";
@@ -80,7 +81,7 @@ function query(filters: Filters, limit: number, offset: number) {
  * el backend impide que quien creó una versión la apruebe o publique. */
 export default function QuestionBankPage() {
   const { me, setMe } = useRequireUser("/admin/preguntas");
-  const isAdmin = me?.roles.includes("administrator") ?? false;
+  const isAdmin = isAdministrator(me);
   const [filters, setFilters] = useState<Filters>({ status: "all", subject: "", q: "" });
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Summary[] | null>(null);
@@ -389,8 +390,7 @@ export default function QuestionBankPage() {
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-xs text-muted">
-                            {item.subject}
-                            {item.subtopic ? ` · ${item.subtopic}` : ""} · {DIFFICULTY[item.difficulty]} · v{item.number}
+                            {topicLabel(item)} · {DIFFICULTY[item.difficulty]} · v{item.number}
                           </span>
                           <span className="block break-words font-medium">{item.prompt}</span>
                         </span>

@@ -13,7 +13,7 @@ import { LEVELS, StudyMap } from "@/components/study-map";
 import { Icon, type IconName } from "@/components/illustrations";
 import { api, formatDate, type Me, type Streak, type Subscription } from "@/lib/api";
 import { useDevSim } from "@/lib/devsim";
-import { useRequireUser } from "@/lib/use-user";
+import { isAdministrator, useRequireUser } from "@/lib/use-user";
 
 const ROLE_LABELS: Record<Me["roles"][number], string> = {
   student: "Estudiante",
@@ -63,7 +63,7 @@ export default function PanelPage() {
   }, [me, router]);
 
   // Herramientas de admin: con la simulación activa, el panel muestra un estudiante ficticio.
-  const isAdmin = me?.roles.includes("administrator") ?? false;
+  const isAdmin = isAdministrator(me);
   const sim = useDevSim(isAdmin);
   const simDone = Math.round((sim.percent / 100) * LEVELS.length);
   const levels = sim.enabled ? LEVELS.map((l, i) => ({ ...l, done: i < simDone })) : LEVELS;

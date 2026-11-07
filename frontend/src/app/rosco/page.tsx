@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app-header";
 import { Apruvi } from "@/components/apruvi";
 import { ApruviLoader } from "@/components/apruvi-loader";
 import { ButtonLink, buttonStyles } from "@/components/button";
+import { SubjectSelect } from "@/components/subject-select";
 import { api, type RoscoItem } from "@/lib/api";
 import { useStudyAccess } from "@/lib/use-access";
 import { useSubjects } from "@/lib/use-subjects";
@@ -208,21 +209,7 @@ export default function RoscoPage() {
                 y vuelve a ella en la siguiente vuelta.
               </p>
             </div>
-            <label className="block">
-              <span className="text-sm font-semibold">Materia</span>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2"
-              >
-                <option value="">Todas las materias</option>
-                {subjects.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SubjectSelect subjects={subjects} value={subject} onChange={setSubject} />
             <button type="button" onClick={start} disabled={busy} className={`w-full ${buttonStyles.primary}`}>
               {busy ? "Armando…" : "Empezar"}
             </button>

@@ -46,7 +46,6 @@ export const STATUS: Record<Status, { label: string; className: string }> = {
   retired: { label: "Retirada", className: "bg-line text-muted" },
 };
 
-export const LETTERS = "ABCDE";
 export const DIFFICULTY = ["", "Fácil", "Media", "Difícil"];
 export const MIN_OPTIONS = 2;
 export const MAX_OPTIONS = 5;

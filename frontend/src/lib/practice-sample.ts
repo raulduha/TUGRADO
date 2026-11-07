@@ -1,6 +1,5 @@
-// Preguntas de EJEMPLO para el mockup de la práctica (FR-006). No es contenido revisado ni
-// publicado: se reemplaza por el banco real (importador + revisión + publicación, FR-013/014)
-// cuando estén las preguntas y las decisiones de dificultad, materias y número de alternativas.
+// Preguntas de EJEMPLO (FR-006): la práctica las muestra, marcadas como vista previa, solo
+// mientras el banco no tenga preguntas publicadas. No son contenido revisado ni publicado.
 
 export type SampleQuestion = {
   id: string;
