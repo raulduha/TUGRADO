@@ -70,16 +70,21 @@ class AnswerOut(BaseModel):
     source: str
 
 
-def question_out(db: Session, view: queries.VersionView) -> PracticeQuestion:
-    v = view.version
-    return PracticeQuestion(
-        id=str(v.id),
-        subject=view.subject,
-        subtopic=view.subtopic,
-        difficulty=v.difficulty,
-        prompt=v.prompt,
-        options=queries.options(db, v.id),
-    )
+def questions_out(db: Session, views: list[queries.VersionView]) -> list[PracticeQuestion]:
+    """Las preguntas para el estudiante, sin la respuesta correcta. Las alternativas de todas
+    se traen en una sola consulta."""
+    options = queries.options_for(db, [view.version.id for view in views])
+    return [
+        PracticeQuestion(
+            id=str(view.version.id),
+            subject=view.subject,
+            subtopic=view.subtopic,
+            difficulty=view.version.difficulty,
+            prompt=view.version.prompt,
+            options=options[view.version.id],
+        )
+        for view in views
+    ]
 
 
 def _lesson(lesson: Lesson) -> LessonOut:
@@ -100,7 +105,7 @@ def random_questions(
     _: SubscribedUser, db: Db, limit: Annotated[int, Query(ge=1, le=30)] = 10
 ) -> list[PracticeQuestion]:
     """Práctica libre: preguntas publicadas al azar."""
-    return [question_out(db, view) for view in queries.random_published(db, limit)]
+    return questions_out(db, queries.random_published(db, limit))
 
 
 @router.get("/path")
@@ -126,7 +131,7 @@ def review_questions(
 ) -> list[PracticeQuestion]:
     """Los errores que toca repasar hoy (FR-035), los más atrasados primero."""
     due = due_today(db, user.id, clock())
-    return [question_out(db, view) for view in queries.published_for_questions(db, due)[:limit]]
+    return questions_out(db, queries.published_for_questions(db, due)[:limit])
 
 
 @router.get("/lessons/{lesson_id}")
@@ -139,7 +144,7 @@ def lesson_questions(lesson_id: str, user: SubscribedUser, db: Db) -> LessonDeta
     return LessonDetail(
         **_lesson(lesson).model_dump(),
         subject=unit.subject,
-        questions=[question_out(db, view) for view in views],
+        questions=questions_out(db, views),
     )
 
 

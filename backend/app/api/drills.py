@@ -17,7 +17,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
 from app.api.deps import Clock, Db, SubscribedUser
-from app.api.practice import PracticeQuestion, question_out
+from app.api.practice import PracticeQuestion, questions_out
 from app.content import queries
 from app.content.path import latest_outcomes
 from app.persistence.content_models import PracticeAttemptRow
@@ -73,7 +73,7 @@ def exam_questions(
     size: Annotated[int, Query(ge=1, le=max(EXAM_SIZES))] = 20,
 ) -> list[PracticeQuestion]:
     """Preguntas publicadas al azar para una prueba, de una materia o de todas."""
-    return [question_out(db, view) for view in queries.random_published(db, size, subject)]
+    return questions_out(db, queries.random_published(db, size, subject))
 
 
 @router.post("/exam/grade")
@@ -83,13 +83,17 @@ def grade_exam(body: ExamIn, user: SubscribedUser, db: Db, clock: Clock) -> Exam
     pero no se registran como intento."""
     answers = {a.version_id: a.position for a in body.answers}  # sin duplicados
     views = queries.published_by_ids(db, list(answers))
+    option_count = {
+        version_id: len(options)
+        for version_id, options in queries.options_for(db, [v.version.id for v in views]).items()
+    }
     now = clock()
     items: list[ExamItem] = []
     scores: dict[tuple[str, str | None], SubtopicScore] = {}
     for i, view in enumerate(views):
         version = view.version
         chosen = answers[version.id]
-        if chosen is not None and chosen >= len(queries.options(db, version.id)):
+        if chosen is not None and chosen >= option_count[version.id]:
             chosen = None  # una alternativa que no existe vale como no respondida
         correct = chosen == version.correct_position
         if chosen is not None:
@@ -153,7 +157,6 @@ def flashcards(
 ) -> list[Flashcard]:
     """Tarjetas para repasar: primero los errores que toca repasar hoy, luego las preguntas que
     aún no domina y al final las que ya domina; al azar dentro de cada grupo."""
-    views = queries.published_views(db, subject)
     due = set(due_today(db, user.id, clock()))
     outcome = latest_outcomes(db, user.id)
 
@@ -162,23 +165,24 @@ def flashcards(
             return "review"
         return "mastered" if outcome.get(question_id) else "pending"
 
-    random.shuffle(views)
+    # Se ordena con los identificadores y solo se carga el contenido de las tarjetas elegidas.
+    candidates = queries.published_question_ids(db, subject)
+    random.shuffle(candidates)
     order = {"review": 0, "pending": 1, "mastered": 2}
-    views.sort(key=lambda view: order[status(view.version.question_id)])
-    cards = []
-    for view in views[:limit]:
-        version = view.version
-        cards.append(
-            Flashcard(
-                id=str(version.id),
-                subject=view.subject,
-                subtopic=view.subtopic,
-                prompt=version.prompt,
-                options=queries.options(db, version.id),
-                correct_position=version.correct_position,
-                explanation=version.explanation,
-                source=version.source,
-                status=status(version.question_id),
-            )
+    candidates.sort(key=lambda ids: order[status(ids[1])])
+    views = queries.published_by_ids(db, [version_id for version_id, _ in candidates[:limit]])
+    options = queries.options_for(db, [view.version.id for view in views])
+    return [
+        Flashcard(
+            id=str(view.version.id),
+            subject=view.subject,
+            subtopic=view.subtopic,
+            prompt=view.version.prompt,
+            options=options[view.version.id],
+            correct_position=view.version.correct_position,
+            explanation=view.version.explanation,
+            source=view.version.source,
+            status=status(view.version.question_id),
         )
-    return cards
+        for view in views
+    ]

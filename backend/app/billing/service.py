@@ -85,7 +85,7 @@ class BillingService:
         row = self.open_subscription(user_id)
         return SubscriptionView(
             status=row.status if row else None,
-            has_access=self.has_access(user_id, roles),
+            has_access=self._exempt(user_id, roles) or _grants_access(row),
             amount_clp=row.amount_clp if row else self.plan.amount_clp,
             trial_days=row.trial_days if row else self.plan.trial_days,
             next_payment_date=row.next_payment_date if row else None,
@@ -96,11 +96,12 @@ class BillingService:
         )
 
     def has_access(self, user_id: uuid.UUID, roles: frozenset[Role]) -> bool:
-        if Role.ADMINISTRATOR in roles or self.active_grant(user_id) is not None:
-            return True
-        row = self.open_subscription(user_id)
-        # Pendiente 5 del README: tras cancelar no se conserva acceso hasta decidirlo.
-        return row is not None and row.status == SubscriptionStatus.AUTHORIZED
+        """Acceso al estudio (FR-030): administrador, acceso de cortesía o suscripción activa."""
+        return self._exempt(user_id, roles) or _grants_access(self.open_subscription(user_id))
+
+    def _exempt(self, user_id: uuid.UUID, roles: frozenset[Role]) -> bool:
+        """No necesita suscripción: administrador o acceso de cortesía vigente (FR-032)."""
+        return Role.ADMINISTRATOR in roles or self.active_grant(user_id) is not None
 
     def active_grant(self, user_id: uuid.UUID) -> AccessGrantRow | None:
         return self.db.scalars(
@@ -341,3 +342,8 @@ def _unavailable() -> BillingError:
     return BillingError(
         "billing_unavailable", "No pudimos conectar con el medio de pago. Inténtalo de nuevo."
     )
+
+
+def _grants_access(subscription: SubscriptionRow | None) -> bool:
+    # Pendiente 5 del README: tras cancelar no se conserva acceso hasta decidirlo.
+    return subscription is not None and subscription.status == SubscriptionStatus.AUTHORIZED

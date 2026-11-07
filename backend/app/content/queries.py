@@ -139,6 +139,35 @@ def options(db: Session, version_id: uuid.UUID) -> list[str]:
     )
 
 
+def options_for(db: Session, version_ids: list[uuid.UUID]) -> dict[uuid.UUID, list[str]]:
+    """Las alternativas de varias versiones en una sola consulta, en orden (A, B, C…)."""
+    out: dict[uuid.UUID, list[str]] = {version_id: [] for version_id in version_ids}
+    if version_ids:
+        rows = db.execute(
+            select(AnswerOptionRow.version_id, AnswerOptionRow.text)
+            .where(AnswerOptionRow.version_id.in_(version_ids))
+            .order_by(AnswerOptionRow.version_id, AnswerOptionRow.position)
+        )
+        for version_id, text in rows:
+            out[version_id].append(text)
+    return out
+
+
+def published_question_ids(
+    db: Session, subject: str | None = None
+) -> list[tuple[uuid.UUID, uuid.UUID]]:
+    """(versión, pregunta) de cada versión publicada, de una materia si se indica. Sirve para
+    elegir y ordenar sin cargar el contenido completo."""
+    query = select(QuestionVersionRow.id, QuestionVersionRow.question_id).where(
+        QuestionVersionRow.status == VersionStatus.PUBLISHED
+    )
+    if subject:
+        query = query.join(SubjectRow, SubjectRow.id == QuestionVersionRow.subject_id).where(
+            SubjectRow.name == subject
+        )
+    return [(version_id, question_id) for version_id, question_id in db.execute(query)]
+
+
 def random_published(db: Session, limit: int, subject: str | None = None) -> list[VersionView]:
     """Preguntas publicadas al azar (solo `published`: regla de integridad 1), de una materia
     si se indica."""
@@ -146,14 +175,6 @@ def random_published(db: Session, limit: int, subject: str | None = None) -> lis
     if subject:
         query = query.where(SubjectRow.name == subject)
     return _views(db, query.order_by(func.random()).limit(limit))
-
-
-def published_views(db: Session, subject: str | None = None) -> list[VersionView]:
-    """Todas las versiones publicadas, de una materia si se indica."""
-    query = _versions().where(QuestionVersionRow.status == VersionStatus.PUBLISHED)
-    if subject:
-        query = query.where(SubjectRow.name == subject)
-    return _views(db, query)
 
 
 def published_by_ids(db: Session, version_ids: list[uuid.UUID]) -> list[VersionView]:

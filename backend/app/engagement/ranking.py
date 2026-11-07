@@ -69,7 +69,12 @@ def monthly(db: Session, user_id: uuid.UUID, now: datetime) -> Ranking:
     month_start = local.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     correct = (
         select(PracticeAttemptRow.user_id, func.count().label("correct"))
-        .where(PracticeAttemptRow.correct.is_(True), PracticeAttemptRow.answered_at >= month_start)
+        .where(
+            PracticeAttemptRow.correct.is_(True),
+            PracticeAttemptRow.answered_at >= month_start,
+            # Solo quienes participan del ranking: así no se recorren los intentos de todos.
+            PracticeAttemptRow.user_id.in_(select(RankingProfileRow.user_id)),
+        )
         .group_by(PracticeAttemptRow.user_id)
         .subquery()
     )

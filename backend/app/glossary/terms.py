@@ -227,6 +227,7 @@ def build_rosco(db: Session, subject: str | None = None) -> list[RoscoItem]:
         query = query.where(SubjectRow.name == subject)
     terms = list(db.execute(query).all())
     random.shuffle(terms)
+    words = {term.id: normalize(term.term) for term, _ in terms}
     # Primero las letras con un término que empiece con ellas; con los que sobran se llenan
     # las letras que solo los contienen. Así un término no le quita su letra a otro.
     chosen: dict[str, tuple[GlossaryTermRow, str, Literal["starts", "contains"]]] = {}
@@ -237,7 +238,7 @@ def build_rosco(db: Session, subject: str | None = None) -> list[RoscoItem]:
                 continue
             target = letter.lower()
             for term, name in terms:
-                word = normalize(term.term)
+                word = words[term.id]
                 fits = word.startswith(target) if mode == "starts" else target in word
                 if term.id not in used and fits:
                     chosen[letter] = (term, name, mode)
