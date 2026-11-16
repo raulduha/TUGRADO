@@ -2,8 +2,6 @@
 AC-038, AC-039)."""
 
 import logging
-import secrets
-from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated
 
@@ -11,15 +9,17 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from pydantic import BaseModel, EmailStr
 
 from app.api.deps import (
+    AppSettings,
+    Clock,
     CurrentUser,
+    check_cron_secret,
     get_billing_service,
-    get_clock,
     get_subscription_gateway,
 )
 from app.billing.gateway import FakeGateway, SubscriptionGateway
 from app.billing.service import BillingError, BillingService
 from app.billing.signature import InvalidSignature, verify
-from app.config import Settings, get_settings
+from app.errors import AppError
 from app.persistence.billing_models import SubscriptionStatus
 
 logger = logging.getLogger("tugrado.billing")
@@ -27,7 +27,6 @@ logger = logging.getLogger("tugrado.billing")
 router = APIRouter(prefix="/billing", tags=["billing"])
 
 Billing = Annotated[BillingService, Depends(get_billing_service)]
-AppSettings = Annotated[Settings, Depends(get_settings)]
 
 
 class SubscriptionOut(BaseModel):
@@ -113,10 +112,7 @@ async def mercadopago_webhook(
             data_id,
             x_signature,
         )
-        raise HTTPException(
-            status.HTTP_401_UNAUTHORIZED,
-            detail={"code": "invalid_signature", "message": "Firma inválida"},
-        ) from exc
+        raise AppError("invalid_signature", "Firma inválida") from exc
 
     if topic is None:
         body = await request.json()
@@ -153,11 +149,9 @@ def run_sync(
     """Tarea diaria (Vercel Cron, `Authorization: Bearer <CRON_SECRET>`): consulta al proveedor
     todas las suscripciones abiertas, por si se perdió algún aviso (por ejemplo, un cobro
     rechazado que deja la suscripción con pagos vencidos)."""
-    secret = settings.cron_secret.get_secret_value() if settings.cron_secret else ""
-    if not secret or settings.billing_provider == "fake":
+    if settings.billing_provider == "fake":
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    if not secrets.compare_digest(authorization or "", f"Bearer {secret}"):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    check_cron_secret(settings, authorization)
     synced, failed = billing.sync_open(source="sync")
     return {"synced": synced, "failed": failed}
 
@@ -172,17 +166,14 @@ def approve_fake_subscription(
     user: CurrentUser,
     billing: Billing,
     gateway: Annotated[SubscriptionGateway, Depends(get_subscription_gateway)],
-    clock: Annotated[Callable[[], datetime], Depends(get_clock)],
+    clock: Clock,
 ) -> SubscriptionOut:
-    """Simula que el estudiante autorizó el pago en Mercado Pago. Solo en desarrollo."""
+    """Simula que el estudiante autorizó el pago en el proveedor. Solo en desarrollo."""
     if not isinstance(gateway, FakeGateway):
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     view = billing.view(user.id, user.roles)
     if view.status != SubscriptionStatus.PENDING:
-        raise HTTPException(
-            status.HTTP_409_CONFLICT,
-            detail={"code": "nothing_to_approve", "message": "No hay un pago pendiente"},
-        )
+        raise AppError("nothing_to_approve", "No hay un pago pendiente")
     row = billing.open_subscription(user.id)
     assert row is not None and row.provider_subscription_id is not None
     gateway.approve(row.provider_subscription_id, clock())

@@ -8,6 +8,9 @@ from app.errors import AppError
 
 # Código de error → estado HTTP. Lo que no esté aquí responde 400.
 STATUS_BY_CODE = {
+    "not_authenticated": status.HTTP_401_UNAUTHORIZED,
+    "forbidden": status.HTTP_403_FORBIDDEN,
+    "subscription_required": status.HTTP_402_PAYMENT_REQUIRED,
     "invalid_credentials": status.HTTP_401_UNAUTHORIZED,
     "email_not_verified": status.HTTP_403_FORBIDDEN,
     "account_locked": status.HTTP_429_TOO_MANY_REQUESTS,
@@ -15,7 +18,11 @@ STATUS_BY_CODE = {
     "already_subscribed": status.HTTP_409_CONFLICT,
     "no_subscription": status.HTTP_404_NOT_FOUND,
     "billing_unavailable": status.HTTP_503_SERVICE_UNAVAILABLE,
+    "invalid_signature": status.HTTP_401_UNAUTHORIZED,
+    "nothing_to_approve": status.HTTP_409_CONFLICT,
+    "invalid_unsubscribe_link": status.HTTP_404_NOT_FOUND,
     "question_not_found": status.HTTP_404_NOT_FOUND,
+    "lesson_not_found": status.HTTP_404_NOT_FOUND,
     "invalid_transition": status.HTTP_409_CONFLICT,
     "author_cannot_review": status.HTTP_403_FORBIDDEN,
     "file_too_large": status.HTTP_413_CONTENT_TOO_LARGE,

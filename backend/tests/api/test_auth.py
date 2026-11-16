@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import AdminUser, CurrentUser, get_clock, get_email_sender, require_role
+from app.api.errors import register_error_handlers
 from app.cli import create_admin
 from app.db import get_engine
 from app.persistence.auth_models import Role, UserAccountRow
@@ -264,8 +265,10 @@ def test_consulta_get_desde_otro_origen_no_se_bloquea(api):
 
 @pytest.fixture
 def protected_api(engine, clock, outbox, api):
-    """App mínima con rutas protegidas, para probar las dependencias de autorización."""
+    """App mínima con rutas protegidas, para probar las dependencias de autorización. Registra
+    el mismo manejador de errores que la app real (create_app)."""
     app = FastAPI()
+    register_error_handlers(app)
 
     @app.get("/solo-estudiante")
     def student_only(user: CurrentUser) -> dict:

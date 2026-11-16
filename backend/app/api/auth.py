@@ -2,8 +2,7 @@
 
 import hmac
 import logging
-from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -12,16 +11,17 @@ from pydantic import BaseModel, EmailStr
 
 from app.api.deps import (
     SESSION_COOKIE,
+    AppSettings,
+    Clock,
     CurrentUser,
     get_auth_service,
-    get_clock,
     get_google_provider,
 )
 from app.auth.google import GoogleAuthError, GoogleProvider, new_pkce_pair
 from app.auth.service import AuthError, AuthService
 from app.auth.signed import InvalidSignedValue, sign, unsign
 from app.auth.tokens import new_token
-from app.config import Settings, get_settings
+from app.config import Settings
 from app.persistence.auth_models import Role
 
 logger = logging.getLogger("tugrado.auth")
@@ -29,7 +29,6 @@ logger = logging.getLogger("tugrado.auth")
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 Service = Annotated[AuthService, Depends(get_auth_service)]
-AppSettings = Annotated[Settings, Depends(get_settings)]
 
 # Respuesta idéntica exista o no el correo: no se revela qué cuentas están registradas.
 ACCEPTED = {"detail": "Si el correo es válido, te enviamos un mensaje con los pasos a seguir."}
@@ -76,9 +75,8 @@ def resend_verification(body: EmailOnly, service: Service) -> dict[str, str]:
     return ACCEPTED
 
 
-@router.post("/login", status_code=status.HTTP_204_NO_CONTENT)
-def login(body: Credentials, response: Response, service: Service, settings: AppSettings) -> None:
-    token = service.login(body.email, body.password)
+def _set_session_cookie(response: Response, token: str, settings: Settings) -> None:
+    """La cookie de sesión, con los mismos atributos al ingresar con contraseña o con Google."""
     response.set_cookie(
         SESSION_COOKIE,
         token,
@@ -88,6 +86,12 @@ def login(body: Credentials, response: Response, service: Service, settings: App
         samesite="lax",
         path="/",
     )
+
+
+@router.post("/login", status_code=status.HTTP_204_NO_CONTENT)
+def login(body: Credentials, response: Response, service: Service, settings: AppSettings) -> None:
+    token = service.login(body.email, body.password)
+    _set_session_cookie(response, token, settings)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -125,13 +129,11 @@ def confirm_password_reset(body: PasswordReset, service: Service) -> None:
 GOOGLE_COOKIE = "tugrado_google"
 GOOGLE_COOKIE_TTL = timedelta(minutes=10)
 Google = Annotated[GoogleProvider | None, Depends(get_google_provider)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 
-def _callback_url(settings: Settings) -> str:
-    # Google vuelve al frontend, que reenvía /api al backend: la cookie de sesión es de primera
-    # parte en apruebatuexamen.cl.
-    return f"{settings.frontend_base_url.rstrip('/')}/api/auth/google/callback"
+# Google vuelve al frontend, que reenvía /api al backend: así la cookie de sesión es de primera
+# parte en apruebatuexamen.cl.
+GOOGLE_CALLBACK_PATH = "/api/auth/google/callback"
 
 
 def _frontend(settings: Settings, path: str) -> str:
@@ -159,7 +161,8 @@ def google_start(
         clock() + GOOGLE_COOKIE_TTL,
     )
     response = RedirectResponse(
-        google.authorize_url(state, nonce, challenge, _callback_url(settings)), status_code=302
+        google.authorize_url(state, nonce, challenge, _frontend(settings, GOOGLE_CALLBACK_PATH)),
+        status_code=302,
     )
     response.set_cookie(
         GOOGLE_COOKIE,
@@ -195,20 +198,14 @@ def google_callback(
     if not code or not state or not hmac.compare_digest(state, str(saved.get("state", ""))):
         return failure
     try:
-        identity = google.identify(code, saved["verifier"], _callback_url(settings), saved["nonce"])
+        identity = google.identify(
+            code, saved["verifier"], _frontend(settings, GOOGLE_CALLBACK_PATH), saved["nonce"]
+        )
         token = service.login_with_google(identity)
     except (GoogleAuthError, AuthError) as exc:
         logger.warning("Ingreso con Google rechazado: %s", exc)
         return failure
     response = RedirectResponse(_frontend(settings, saved.get("next", "/panel")), 302)
     response.delete_cookie(GOOGLE_COOKIE, path="/")
-    response.set_cookie(
-        SESSION_COOKIE,
-        token,
-        max_age=settings.auth_session_max_age_seconds,
-        httponly=True,
-        secure=settings.auth_cookie_secure,
-        samesite="lax",
-        path="/",
-    )
+    _set_session_cookie(response, token, settings)
     return response

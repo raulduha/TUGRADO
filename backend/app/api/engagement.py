@@ -1,28 +1,27 @@
 """Rachas (FR-033, AC-042), recordatorios por correo (FR-034, AC-043) y ranking voluntario
 (FR-039, AC-051)."""
 
-import secrets
-from collections.abc import Callable
-from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Header, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, SubscribedUser, get_clock, get_email_sender
-from app.auth.email import EmailSender
+from app.api.deps import (
+    AppSettings,
+    Clock,
+    CurrentUser,
+    Db,
+    Mailer,
+    SubscribedUser,
+    check_cron_secret,
+)
 from app.clock import chile_date
-from app.config import Settings, get_settings
-from app.db import get_db
 from app.engagement import ranking
 from app.engagement.reminders import send_due_reminders, unsubscribe
 from app.engagement.streaks import check_in
+from app.errors import AppError
 
 router = APIRouter(prefix="/engagement", tags=["engagement"])
-
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 
 class StreakOut(BaseModel):
@@ -47,16 +46,12 @@ def checkin(
 def run_reminders(
     db: Db,
     clock: Clock,
-    settings: Annotated[Settings, Depends(get_settings)],
-    sender: Annotated[EmailSender, Depends(get_email_sender)],
+    settings: AppSettings,
+    sender: Mailer,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, int]:
     """Lo llama Vercel Cron una vez al día con `Authorization: Bearer <CRON_SECRET>`."""
-    secret = settings.cron_secret.get_secret_value() if settings.cron_secret else ""
-    if not secret:
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
-    if not secrets.compare_digest(authorization or "", f"Bearer {secret}"):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+    check_cron_secret(settings, authorization)
     return {"sent": send_due_reminders(db, sender, clock(), settings.frontend_base_url)}
 
 
@@ -68,10 +63,7 @@ class UnsubscribeIn(BaseModel):
 def unsubscribe_reminders(body: UnsubscribeIn, db: Db, clock: Clock) -> None:
     """Baja de los recordatorios desde el enlace del correo (sin iniciar sesión)."""
     if not unsubscribe(db, body.token, clock()):
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-            detail={"code": "invalid_token", "message": "El enlace no es válido"},
-        )
+        raise AppError("invalid_unsubscribe_link", "El enlace no es válido")
 
 
 class RankingEntryOut(BaseModel):

@@ -6,21 +6,18 @@ app/content/service.py.
 """
 
 import uuid
-from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from app.api.deps import AdminUser, get_clock
+from app.api.deps import AdminUser, Clock, Db
 from app.content import queries
 from app.content.question import ContentError, QuestionContent, make_content
 from app.content.service import ContentService
 from app.content.spreadsheet import build_workbook, parse_workbook
 from app.content.sync import apply_spreadsheet, export_rows
-from app.db import get_db
 from app.persistence.content_models import (
     DIFFICULTY_MAX,
     DIFFICULTY_MIN,
@@ -32,8 +29,6 @@ from app.persistence.content_models import (
 
 router = APIRouter(prefix="/admin/questions", tags=["content"])
 
-Db = Annotated[Session, Depends(get_db)]
-Clock = Annotated[Callable[[], datetime], Depends(get_clock)]
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # documentos importables: hasta 25 MB (README)
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
