@@ -4,11 +4,12 @@ import { ButtonLink } from "@/components/button";
 import { LegalLinks } from "@/components/legal-page";
 import { HeroIllustration, Icon, type IconName, Logo } from "@/components/illustrations";
 
-const ROUTE: Array<{ icon: IconName; title: string; text: string }> = [
+// `soon`: todavía no existe; se muestra como «Próximamente» y no se vende como incluido.
+const ROUTE: Array<{ icon: IconName; title: string; text: string; soon?: boolean }> = [
   {
     icon: "list",
     title: "Elige qué estudiar",
-    text: "Tu programa completo, una materia o solo los subtemas que quieras reforzar.",
+    text: "Sigue la ruta del temario, lección por lección, o practica una materia en particular.",
   },
   {
     icon: "book",
@@ -18,7 +19,8 @@ const ROUTE: Array<{ icon: IconName; title: string; text: string }> = [
   {
     icon: "mic",
     title: "Simula el examen oral",
-    text: "Responde por voz o por texto, con tiempos como en la comisión.",
+    text: "Responde como ante la comisión, con tiempos reales y una evaluación orientativa.",
+    soon: true,
   },
   {
     icon: "calendar",
@@ -54,8 +56,8 @@ export default function Home() {
               Llega a tu examen de grado con confianza
             </h1>
             <p className="mt-5 text-lg text-muted text-pretty">
-              Practica con preguntas revisadas, simula el examen oral con tiempos reales y sigue
-              un plan de estudio que se ajusta a tu avance.
+              Practica con preguntas revisadas y sigue un plan de estudio que se ajusta a tu
+              avance.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/registro" className="py-3">
@@ -85,6 +87,11 @@ export default function Home() {
                       <Icon name={step.icon} />
                     </span>
                     <span className="text-sm font-semibold text-muted">Paso {index + 1}</span>
+                    {step.soon ? (
+                      <span className="ml-auto rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold">
+                        Próximamente
+                      </span>
+                    ) : null}
                   </div>
                   <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
                   <p className="mt-1 text-sm text-muted">{step.text}</p>

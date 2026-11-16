@@ -12,7 +12,6 @@ import { Icon } from "@/components/illustrations";
 import { api, type LessonSummary, type StudyPath, type StudyToday } from "@/lib/api";
 import { useStudyAccess } from "@/lib/use-access";
 
-import { RankingCard } from "./ranking-card";
 import { TodayCard } from "./today-card";
 
 // Zigzag del camino: posición horizontal (en % del ancho) de cada lección y alto de cada fila.
@@ -135,8 +134,6 @@ export default function StudyPathPage() {
                 ))}
               </nav>
             ) : null}
-
-            {path.units.length > 0 ? <RankingCard /> : null}
 
             {path.units.length === 0 ? (
               <section className="rounded-3xl border border-dashed border-line p-8 text-center">

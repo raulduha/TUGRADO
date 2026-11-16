@@ -5,7 +5,7 @@ Decisión de producto del 2026-10-25, delegada por el usuario. Cifras en pesos c
 ## Reglas
 
 1. **Ganamos al menos $5.000 por suscriptor al mes en cada plan, aunque use todo su cupo.** Por eso las horas de interrogación tienen tope mensual, no se acumulan y los descuentos solo se ofrecen donde el margen lo permite.
-2. **Solo se cobra por lo que existe.** Hoy se vende Procurador; Litigante y Toga se habilitan cuando la interrogación oral con IA pase la prueba de calidad.
+2. **Solo se cobra por lo que existe.** Mientras no exista la interrogación oral hay un solo plan: $9.990 al mes con 14 días de prueba gratis (corrección AG). Procurador, Litigante y Toga se habilitan juntos cuando la interrogación oral con IA pase la prueba de calidad.
 3. **No vendemos horas de abogados.** El abogado del equipo revisa el banco de preguntas y las rúbricas con que la IA corrige; eso es lo que se comunica («contenido y criterios revisados por un abogado»), no clases.
 
 ## Mercado (precios publicados, octubre de 2026)
@@ -25,13 +25,13 @@ Una preparación con personas cuesta entre $200.000 y $600.000 en total y da una
 |---|---|---|---|
 | Precio | $7.990/mes | $14.990/mes | $24.990/mes |
 | Incluye | Banco de alternativas, ruta, repaso espaciado, plan diario, rachas | Procurador + 7 h al mes de interrogación oral con IA + simulacro de comisión mensual | Procurador + 15 h al mes de interrogación oral con IA + simulacro de comisión semanal + informe de brechas por cédula |
-| Cuándo | Al activar Flow | Con la interrogación oral | Con la interrogación oral |
+| Cuándo | Con la interrogación oral | Con la interrogación oral | Con la interrogación oral |
 
 - Todos con 14 días de prueba gratis (`BILLING_TRIAL_DAYS`).
 - Pase «Hasta tu examen» solo para Procurador: 6 meses por $37.990. En los planes con interrogación, un descuento bajaría el margen de los $5.000.
 - Invita a tu dupla: ambos reciben 7 días gratis más (sin horas extra, que tienen costo de IA).
 - Las horas de interrogación reemplazan la cuota única de 5 simulaciones al día y 100 al mes. Se controlan con un contador de créditos en minutos (FR-036, AC-048): el backend reserva el tiempo antes de cada interrogación, cobra lo usado y rechaza la sesión si no hay saldo. Se construye junto con la interrogación oral.
-- Planes en Flow: `APRUEBA-MENSUAL` ($9.990) ya existe y no calza con estos precios; hay que crear `PROCURADOR-MENSUAL` ($7.990) y desactivar el anterior.
+- Planes en Flow: `APRUEBA-MENSUAL` ($9.990) es el plan único vigente hasta la interrogación oral. `PROCURADOR-MENSUAL` ($7.990) ya está creado y se usa al separar los planes.
 
 ## Margen por suscriptor al mes
 

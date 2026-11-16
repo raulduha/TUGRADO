@@ -23,7 +23,6 @@ const ROLE_LABELS: Record<Me["roles"][number], string> = {
 // Sin datos todavía: se muestra el estado vacío, nunca cifras inventadas.
 const STATS: Array<{ icon: IconName; label: string }> = [
   { icon: "book", label: "Preguntas respondidas" },
-  { icon: "mic", label: "Simulaciones orales" },
   { icon: "chart", label: "Cobertura del programa" },
 ];
 
@@ -76,8 +75,8 @@ export default function PanelPage() {
       }
     : streak;
   const statValues: Array<string | null> = sim.enabled
-    ? [String(Math.round(sim.percent * 3.2)), String(Math.round(sim.percent / 8)), `${sim.percent} %`]
-    : [null, null, null];
+    ? [String(Math.round(sim.percent * 3.2)), `${sim.percent} %`]
+    : [null, null];
 
   const done = levels.filter((level) => level.done).length;
   const percent = Math.round((done / levels.length) * 100);
@@ -139,7 +138,7 @@ export default function PanelPage() {
               <h2 id="progreso" className="text-xl font-semibold tracking-tight">
                 Tu progreso
               </h2>
-              <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+              <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 {STATS.map((stat, i) => (
                   <li key={stat.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-soft text-brand">

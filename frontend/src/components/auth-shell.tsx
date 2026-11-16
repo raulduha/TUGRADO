@@ -6,7 +6,6 @@ import { LegalLinks } from "@/components/legal-page";
 
 const BENEFITS = [
   "Preguntas revisadas por personas, con su explicación",
-  "Simulación oral con tiempos reales",
   "Un plan que se ajusta a tu avance",
 ];
 

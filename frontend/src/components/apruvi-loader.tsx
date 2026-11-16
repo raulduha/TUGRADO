@@ -8,7 +8,7 @@ const TIPS = [
   "Ordenando tus apuntes…",
   "Afilando el lápiz…",
   "Repasando tu mapa de estudio…",
-  "Calentando la voz para el oral…",
+  "Buscando tu próxima lección…",
 ];
 
 /** Pantalla de carga con Apruvi saltando sobre su sombra y frases que van rotando. */
