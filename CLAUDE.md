@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del repositorio
 
-Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` es una vista previa con datos de ejemplo y la interfaz la presenta como «Próximamente», nunca como incluida en la suscripción. El plan de estudio real está en `/ruta` (fecha del examen y meta diaria). El banco de preguntas se describe en la sección «Banco de preguntas» más abajo; alimenta `/practica` y la ruta de estudio `/ruta`, y el panel admin está en `/admin/preguntas`. `/temario` es la guía pública de las cédulas (`frontend/src/lib/temario.ts`).
+Hay especificaciones, backend (FastAPI + Python 3.12 con uv: autenticación, suscripción, comentarios, dominio y persistencia de la simulación) y frontend (Next.js 16), desplegados en apruebatuexamen.cl. Producción, variables y despliegue: `docs/despliegue.md`. La simulación todavía no tiene endpoints; `/simulacion` es una vista previa con datos de ejemplo y la interfaz la presenta como «Próximamente», nunca como incluida en la suscripción. El plan diario (FR-035: fecha del examen y meta diaria) está en `/ruta`; el plan original y el adaptativo (FR-019, FR-020) siguen pendientes. El banco de preguntas se describe en la sección «Banco de preguntas» más abajo; alimenta `/practica` y la ruta de estudio `/ruta`, y el panel admin está en `/admin/preguntas`. `/temario` es la guía pública de las cédulas (`frontend/src/lib/temario.ts`).
 
 ## Entorno local (Docker)
 

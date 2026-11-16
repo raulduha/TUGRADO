@@ -17,8 +17,9 @@ export default function TermsPage() {
       <h2>1. El servicio</h2>
       <p>
         Aprueba tu examen es una herramienta para preparar el examen de grado de Derecho: práctica
-        con preguntas y un plan de estudio. Más adelante incluirá una simulación del examen oral
-        con evaluación asistida por inteligencia artificial.
+        con preguntas y un plan de estudio. Más adelante podremos agregar otras funciones, como una
+        simulación del examen oral con evaluación asistida por inteligencia artificial, que podrían
+        ofrecerse en planes distintos.
       </p>
 
       <h2>2. Sin garantía de resultado</h2>

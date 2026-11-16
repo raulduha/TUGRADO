@@ -48,7 +48,7 @@ test("un estudiante se registra, entra al panel, comenta y cierra sesión", asyn
   // Apruvi comenta el nivel que se toca.
   await map.getByRole("button", { name: /^Nivel 5:/ }).click();
   await expect(map.getByText("Apruvi · Nivel 5: Tu primera simulación oral")).toBeVisible();
-  await expect(page.getByRole("region", { name: "Tu progreso" }).getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("region", { name: "Tu progreso" }).getByRole("listitem")).toHaveCount(2);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
@@ -157,7 +157,7 @@ test("un estudiante se suscribe con el simulador de pagos y cancela", async ({ p
   await expect(page).toHaveURL(/\/suscripcion$/);
 });
 
-test("las vistas previas de práctica, simulación oral y plan funcionan", async ({ page }, testInfo) => {
+test("las vistas previas de práctica y simulación oral funcionan", async ({ page }, testInfo) => {
   const email = uniqueEmail(`${testInfo.project.name}-demo`);
   await registerAndVerify(page, email);
   grantAccess(email);

@@ -250,8 +250,8 @@ Se añadieron AC-028 a AC-031 y reglas en los gates 2, 3 y 5.
 ## AG. Plan único hasta el oral, ranking oculto y sin promesas del oral (2026-11-15)
 
 - Precio: mientras no exista la interrogación oral se mantiene un solo plan de $9.990 al mes con 14 días de prueba gratis (`APRUEBA-MENSUAL` en Flow). Procurador ($7.990), Litigante y Toga se aplican juntos al lanzar la interrogación oral; reemplaza el lanzamiento inmediato de Procurador de la corrección AD. README, FR-029 y los términos ya decían $9.990.
-- La interfaz no vende el oral como si existiera: se quitó de los beneficios de la suscripción y del registro, la home lo muestra como «Próximamente» y los términos y la política de privacidad lo describen como algo futuro. La vista previa `/simulacion` se conserva.
+- La interfaz no vende el oral como si existiera: se quitó de los beneficios de la suscripción y del registro, la home lo muestra como «Próximamente», el panel ya no tiene la estadística «Simulaciones orales» ni la frase de carga del oral, y los términos y la política de privacidad lo describen como algo futuro, que podría ofrecerse en planes distintos. La vista previa `/simulacion` se conserva.
 - Ranking mensual (FR-039, AC-051) oculto: se quitó la tarjeta de `/ruta`; el backend y sus pruebas se conservan.
-- Se eliminó la maqueta `/plan`, que mostraba datos de ejemplo: el plan real (fecha del examen y meta diaria) está en `/ruta`, y el nivel «Arma tu plan» del panel lleva allí.
+- Se eliminó la maqueta `/plan`, que mostraba datos de ejemplo: el plan real (fecha del examen y meta diaria) está en `/ruta`, y el nivel «Arma tu plan» del panel lleva allí. Lo implementado es el plan diario (FR-035); el plan original y el adaptativo (FR-019, FR-020), que mostraba la maqueta, siguen pendientes.
 - La home ya no ofrece elegir subtemas ni programa: la ruta es la misma para todos y solo la prueba cronometrada filtra por materia.
 - Sin cambios: la ruta sigue en el orden del temario y la fecha del examen solo calcula la meta diaria.

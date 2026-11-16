@@ -189,4 +189,3 @@ export type GlossaryTerm = {
   author: string;
   mine: boolean;
 };
-
