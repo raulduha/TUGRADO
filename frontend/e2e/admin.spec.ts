@@ -139,18 +139,6 @@ test("una autora importa y otro administrador revisa y publica", async ({ page }
   await expect(page.getByRole("tab", { name: "Borrador" })).toHaveAttribute("aria-selected", "true");
   await expectNoHorizontalScroll(page);
 
-  // Ranking voluntario (FR-039): inscribirse con un apodo y verse en la lista.
-  await page.goto("/ruta");
-  const rankingCard = page.getByRole("region", { name: "Ranking del mes" });
-  const alias = `Admin ${Date.now() % 100000}`;
-  if (await rankingCard.getByRole("button", { name: "Salir" }).isVisible()) {
-    await rankingCard.getByRole("button", { name: "Salir" }).click();
-  }
-  await rankingCard.getByLabel("Tu apodo para el ranking").fill(alias);
-  await rankingCard.getByRole("button", { name: "Unirme" }).click();
-  await expect(rankingCard.getByText(alias)).toBeVisible();
-  await rankingCard.getByRole("button", { name: "Salir" }).click();
-  await expect(rankingCard.getByLabel("Tu apodo para el ranking")).toBeVisible();
   await page.goto("/ruta");
   await unit.getByRole("link", { name: /^(Empezar|Continuar|Repasar|Abrir \(administrador\))$/ }).first().click();
   await expect(page).toHaveURL(/\/practica\?leccion=/);

@@ -27,8 +27,8 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Uso del servicio:</strong> tus respuestas, resultados, avance y plan de estudio.
-          En la simulación oral guardamos la transcripción de tu respuesta, pero no el audio: el
-          audio temporal se elimina al terminar la transcripción.
+          Cuando esté disponible la simulación oral, guardaremos la transcripción de tu respuesta,
+          pero no el audio: el audio temporal se eliminará al terminar la transcripción.
         </li>
         <li>
           <strong>Comentarios y reportes</strong> que nos envías desde la aplicación.

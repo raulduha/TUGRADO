@@ -13,7 +13,6 @@ import { useRequireUser } from "@/lib/use-user";
 
 const BENEFITS = [
   "Práctica con preguntas revisadas y su explicación",
-  "Simulación del examen oral con tiempos reales",
   "Plan de estudio que se ajusta a tu avance",
 ];
 

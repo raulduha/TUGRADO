@@ -172,3 +172,5 @@ Los administradores cargan términos jurídicos (materia, término, definición 
 
 ### FR-039 — Ranking mensual voluntario
 El estudiante puede inscribirse en el ranking del mes con un apodo único de 3 a 24 caracteres, sin correo; solo aparecen quienes se inscriben y solo se muestra el apodo. El ranking ordena por la experiencia ganada en el mes en curso (hora de Chile, 10 XP por respuesta correcta) y muestra los primeros puestos y la posición propia. Salir del ranking es inmediato. Mide constancia de práctica, no promete aprobar el examen.
+
+Oculto en la interfaz desde la corrección AG: el backend y sus pruebas se conservan, pero ninguna pantalla lo muestra.

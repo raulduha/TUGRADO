@@ -190,15 +190,4 @@ test("las vistas previas de práctica, simulación oral y plan funcionan", async
   await expect(page.getByText("Evaluación orientativa")).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText(/5,7\s*\/ 7,0/)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("simulacion.png"), fullPage: true });
-
-  // Plan de estudio.
-  await page.goto("/plan");
-  await expect(page.getByRole("heading", { level: 1, name: "Tu plan de estudio" })).toBeVisible();
-  await page.getByRole("button", { name: "Ver plan original" }).click();
-  await expect(page.getByText(/Se conserva siempre como línea base/)).toBeVisible();
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  );
-  expect(overflow, "no debe haber desplazamiento horizontal").toBeLessThanOrEqual(0);
-  await page.screenshot({ path: testInfo.outputPath("plan.png"), fullPage: true });
 });

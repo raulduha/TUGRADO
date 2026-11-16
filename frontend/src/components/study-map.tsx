@@ -38,9 +38,10 @@ export const LEVELS: Level[] = [
   {
     icon: "calendar",
     title: "Arma tu plan",
-    says: "Armaremos un plan hasta la fecha de tu examen, según el tiempo que tengas cada semana.",
+    says: "Pon la fecha de tu examen y te diremos cuántas preguntas hacer cada día.",
     done: false,
-    preview: "/plan",
+    href: "/ruta",
+    cta: "Ir a mi plan de hoy",
   },
   {
     icon: "book",

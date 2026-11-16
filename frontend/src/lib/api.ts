@@ -190,5 +190,3 @@ export type GlossaryTerm = {
   mine: boolean;
 };
 
-export type RankingEntry = { position: number; alias: string; xp: number; me: boolean };
-export type Ranking = { entries: RankingEntry[]; me: RankingEntry | null; alias: string | null };
